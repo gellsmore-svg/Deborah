@@ -781,6 +781,11 @@ semantic contracts.
 
 ## 14. Versioning & evolution
 
+The version numbers below are **specification** versions — they track the language,
+not the implementation. The Python package (`cairn-lang`) is versioned separately in
+`pyproject.toml` and `CHANGELOG.md` and tagged in git; the two are not expected to
+match. See the Status section of [README.md](README.md) for the current pairing.
+
 - **v0.9** adds versioned live `PLAN` envelopes for bounded recursive revision of a complete `PROCESS` backbone.
 - **v0.8** adds **render profiles** (the `ai`/`operator`/`executive`/`audit`
   projections of one backbone, §3), **ownership vs. contribution**

@@ -203,10 +203,22 @@ rather than theoretical perfection.
 
 ## Status
 
-**v0.8** (current on PyPI as `cairn-lang`) — complete export support (`html`/`docx`/`pdf`), interactive `cairn-serve`, executable grammar + conformance, multiple render profiles, and real usage examples across the family stack.
+Cairn carries **two independent version numbers**, and they are not meant to match:
 
-The specification is at v0.9 (PLAN envelopes etc.). A structural grammar is in
-[GRAMMAR.md](GRAMMAR.md). Refined by describing real systems (Tirzah, Hoglah, Mahalath, etc.).
+| What | Where it lives | Current |
+|---|---|---|
+| **Specification version** — the language itself | `SPEC.md` heading, `GRAMMAR.md` | **v0.9** |
+| **Package version** — the Python implementation on PyPI as `cairn-lang` | `pyproject.toml`, `CHANGELOG.md`, git tag | **0.8.2** |
+
+The package version is the single source of truth for anything installable; it is
+set in `pyproject.toml`, recorded in `CHANGELOG.md`, and tagged (`v0.8.2`). The
+specification version moves only when the language changes — v0.9 added versioned
+live `PLAN` envelopes for bounded recursive revision of a `PROCESS` backbone.
+
+**Package 0.8.2** — complete export support (`html`/`docx`/`pdf`), interactive `cairn-serve`, executable grammar + conformance, multiple render profiles, and real usage examples across the family stack.
+
+A structural grammar is in [GRAMMAR.md](GRAMMAR.md). Refined by describing real
+systems (Tirzah, Hoglah, Mahalath, etc.).
 
 ## Repository
 
