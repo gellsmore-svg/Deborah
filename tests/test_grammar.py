@@ -6,8 +6,8 @@ import pytest
 
 import json
 
-from cairn import document_to_dict, document_to_plan, parse_document, validate_document, validate_plan
-from cairn.grammar.bridge import document_to_render_model
+from deborah import document_to_dict, document_to_plan, parse_document, validate_document, validate_plan
+from deborah.grammar.bridge import document_to_render_model
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "examples"

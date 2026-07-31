@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cairn-lang"
-version = "0.8.2"
-description = "Cairn — a human-readable process language for governed agentic work in human systems, with grammar and plan conformance."
+name = "deborah"
+version = "0.9.0"
+description = "Deborah — a human-readable process language for governed agentic work in human systems, with grammar and plan conformance."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -23,34 +23,22 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Typing :: Typed",
 ]
-# Dependency-free by default so the conformance, render, UI evidence, and layout
-# analysis surfaces can be adopted by any runtime. If Keturah is installed,
-# cairn.manifest uses it; otherwise Cairn provides a small compatible manifest.
+# Dependency-free by default so the conformance and render surfaces can be
+# adopted by any runtime — verified by importing with every optional dependency
+# blocked. If Keturah is installed, deborah.manifest uses it; otherwise Deborah
+# provides a small compatible manifest. The human-systems analysis that used to
+# ship in this package now lives in Huldah.
 dependencies = []
 
 [project.scripts]
-cairn-agent-harness-plan = "cairn.agent_harness_cli:main"
-cairn-render = "cairn.cli:main"
-cairn-human-factors = "cairn.human_factors_cli:main"
-cairn-ui-sim = "cairn.ui_sim_cli:main"
-cairn-ui-evidence = "cairn.ui_evidence_cli:main"
-cairn-ui-roleplay = "cairn.ui_roleplay_cli:main"
-cairn-ui-annotations = "cairn.ui_annotations_cli:main"
-cairn-ui-scenario-validate = "cairn.ui_scenario_validate_cli:main"
-cairn-ui-pipeline = "cairn.ui_pipeline_cli:main"
-cairn-live-observe = "cairn.live_observer_cli:main"
-cairn-system-discover = "cairn.system_discovery_cli:main"
-cairn-galeed-observe = "cairn.galeed_observe_cli:main"
-cairn-layout-load = "cairn.layout_load_cli:main"
-cairn-recommend-interface-changes = "cairn.interface_recommendations_cli:main"
-cairn-generate-report = "cairn.reporting_cli:main"
-cairn-validate = "cairn.validate_cli:main"
-cairn-serve = "cairn.web:main"
+deborah-render = "deborah.cli:main"
+deborah-validate = "deborah.validate_cli:main"
+deborah-serve = "deborah.web:main"
 
 [project.urls]
-Homepage = "https://github.com/gellsmore-svg/Cairn"
-Repository = "https://github.com/gellsmore-svg/Cairn"
-Issues = "https://github.com/gellsmore-svg/Cairn/issues"
+Homepage = "https://github.com/gellsmore-svg/Deborah"
+Repository = "https://github.com/gellsmore-svg/Deborah"
+Issues = "https://github.com/gellsmore-svg/Deborah/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6", "fastapi>=0.110", "uvicorn>=0.29", "httpx", "pyyaml>=6.0"]
@@ -62,7 +50,7 @@ export = ["python-docx>=1.0", "fpdf2>=2.7"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-cairn = ["ui_sim_runner.mjs"]
+deborah = ["py.typed"]
 
 [tool.ruff]
 target-version = "py311"

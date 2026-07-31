@@ -7,8 +7,8 @@ import pytest
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from cairn.render.templates import TemplateStore  # noqa: E402
-from cairn.web import _render_preview, create_app  # noqa: E402
+from deborah.render.templates import TemplateStore  # noqa: E402
+from deborah.web import _render_preview, create_app  # noqa: E402
 
 _SAMPLE = """## CONTEXT
 a line.

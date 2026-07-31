@@ -1,3 +1,29 @@
+# Changelog
+
+## [0.9.0] — 2026-07-31
+
+**Renamed from Cairn, and split.** `cairn` was two products in one package; it is
+now `deborah` (this repo — the process language) and
+[`huldah`](https://github.com/gellsmore-svg/Huldah) (human-systems analysis).
+See [MIGRATING.md](MIGRATING.md).
+
+- Import `deborah`; distribution `deborah`. Console scripts `cairn-render` /
+  `cairn-validate` / `cairn-serve` → `deborah-*`.
+- The published `cairn-lang` distribution becomes a compatibility shim that
+  re-exports from `deborah` (and `huldah`) with a `DeprecationWarning`, including
+  submodules and deep paths. Removed one minor after the last consumer migrates.
+- **The document format is unchanged**: `.cairn.md` sources, ```cairn fences and
+  every example still parse identically. This is a repackaging, not a language
+  revision — the grammar and conformance rules are byte-identical to v0.8.2.
+- The fused manifest was split: Deborah advertises the five language capabilities,
+  Huldah advertises the six analysis ones, so neither claims tools it cannot run.
+- `[render]`, `[web]` and `[export]` stay here — the docx/pdf exporters live in
+  `deborah.render.export`, which Huldah's reporting calls into.
+- Added the `py.typed` marker the `Typing :: Typed` classifier had been claiming
+  without shipping (was Cairn #12).
+- Dependency-free by default is now verified in CI by importing with every
+  optional dependency blocked.
+
 ## [0.8.2] — 2026-07-10
 
 - Added consuming-agent prompts to agent harness plans so Codex CLI, Kiro,

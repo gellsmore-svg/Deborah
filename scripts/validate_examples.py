@@ -12,7 +12,7 @@ EXAMPLES = ROOT / "examples"
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
-from cairn.grammar import parse_document, validate_document  # noqa: E402
+from deborah.grammar import parse_document, validate_document  # noqa: E402
 
 
 def validate(path: Path) -> list[str]:

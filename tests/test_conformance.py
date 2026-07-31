@@ -1,4 +1,4 @@
-from cairn import (
+from deborah import (
     CANONICAL_PLAN,
     PLAN_CONSTRUCTS,
     is_conformant,
@@ -44,8 +44,8 @@ def test_grammar_constructs_all_validate():
     construct set (CORE + EXTENSION), so a document that PARSES must VALIDATE."""
     import re as _re
 
-    import cairn
-    from cairn.grammar.parser import _CONSTRUCT_NORMALIZE, _CONSTRUCT_STEP
+    import deborah
+    from deborah.grammar.parser import _CONSTRUCT_NORMALIZE, _CONSTRUCT_STEP
 
     names = sorted({n for n in _re.findall(r"[A-Z_]{3,}", _CONSTRUCT_STEP.pattern)})
     offenders = []
@@ -56,7 +56,7 @@ def test_grammar_constructs_all_validate():
             f"  1. {name} — do a thing. [CODE]\n"
             "  2. STEP — do another. [CODE]\n```\n"
         )
-        plan = cairn.document_to_plan(cairn.parse_document(src))
-        if any("invalid construct" in e for e in cairn.validate_plan(plan)):
+        plan = deborah.document_to_plan(deborah.parse_document(src))
+        if any("invalid construct" in e for e in deborah.validate_plan(plan)):
             offenders.append(_CONSTRUCT_NORMALIZE.get(name, name))
     assert not offenders, f"grammar accepts constructs conformance rejects: {offenders}"

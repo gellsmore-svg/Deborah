@@ -1,9 +1,9 @@
 ---
 type: Project
-title: Cairn
+title: Deborah
 description: A human-readable process language for governed agentic work in human systems, giving humans and AI systems a shared way to describe, plan, interpret, and review technical, psychological, organisational, and sociological processes.
-resource: https://github.com/gellsmore-svg/Cairn
-tags: [cairn, meta-language, process, agentic, specification]
+resource: https://github.com/gellsmore-svg/Deborah
+tags: [deborah, meta-language, process, agentic, specification]
 timestamp: 2026-06-19T00:00:00Z
 ---
 

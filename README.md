@@ -1,7 +1,14 @@
-# Cairn
+# Deborah
 
-Cairn is a human-readable process language for **governed agentic work in human
+Deborah is a human-readable process language for **governed agentic work in human
 systems**.
+
+> **Renamed from Cairn (v0.9).** The package `cairn` was split into **Deborah**
+> (this repo — the process language) and **[Huldah](https://github.com/gellsmore-svg/Huldah)**
+> (human-systems analysis: human factors, UI evidence, layout load, live
+> observation). The *document format keeps the Cairn name* — your `.cairn.md`
+> files and ```` ```cairn ```` fences are unchanged. See
+> [MIGRATING.md](MIGRATING.md).
 
 It gives humans and AI systems a shared way to describe, plan, interpret, and
 review complex work across technical, psychological, organisational, and
@@ -11,14 +18,13 @@ outcome review, error handling, and human context.
 
 **The specification lives in [SPEC.md](SPEC.md) (v0.9).**
 
-Install: `pip install cairn-lang` — the distribution is named **cairn-lang**
-(the PyPI name `cairn` belongs to an unrelated project) but the import is
-unchanged: `import cairn`.
+Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
+distribution now installs a compatibility shim that re-exports from here.)
 
 Optional extras:
-- `pip install 'cairn-lang[render]'` — YAML stylesheets
-- `pip install 'cairn-lang[web]'` — `cairn-serve` interactive composer
-- `pip install 'cairn-lang[export]'` — HTML / DOCX / PDF export (python-docx + fpdf2)
+- `pip install 'deborah[render]'` — YAML stylesheets
+- `pip install 'deborah[web]'` — `deborah-serve` interactive composer
+- `pip install 'deborah[export]'` — HTML / DOCX / PDF export (python-docx + fpdf2)
 
 ## What it looks like
 
@@ -49,55 +55,36 @@ and OKF-style human-systems mappings.
 Cairn can be turned into audience-friendly views:
 
 ```bash
-cairn-render my-process.cairn.md --profile narrative_steps
+deborah-render my-process.cairn.md --profile narrative_steps
 # Domain examples:
 #   --profile therapeutic     (psychological / regulation + feedback focus)
 #   --profile change_leader   (organisational change + coalition/alignment focus)
 #   --profile human_demand    (human load, support, trust + simulation findings)
 #   --profile human_factors   (cognitive/social/org/incentive risks + mitigations)
-cairn-render my-process.cairn.md -f html -o view.html
-cairn-render my-process.cairn.md -f pdf -o plan.pdf   # requires [export]
+deborah-render my-process.cairn.md -f html -o view.html
+deborah-render my-process.cairn.md -f pdf -o plan.pdf   # requires [export]
 
-# Offline human-factors analysis
-cairn-human-factors my-process.cairn.md
-cairn-human-factors my-process.cairn.md -f json
-
-# Traceable interface recommendations and reports
-cairn-agent-harness-plan --process my-process.cairn.md --ui-evidence ui-evidence.json \
-  --repo . --check-files --output-dir cairn-agent-output
-cairn-agent-harness-plan --process my-process.cairn.md --ui-evidence ui-evidence.json \
-  --format shell --output cairn-agent-plan.sh
-cairn-recommend-interface-changes ui-evidence.json --future-svg-output future.svg
-cairn-generate-report --input my-process.cairn.md --interface-evidence ui-evidence.json \
-  --format html --output report.html
-
-# Optional LLM interpretation through any command provider
-cairn-human-factors my-process.cairn.md --llm-command "my-llm-wrapper --model local"
-cairn-human-factors examples/accounts-payable-exception.cairn.md --llm-command "python examples/llm_command_stub.py"
-
-# Optional Hoglah-backed queued interpretation
-cairn-human-factors my-process.cairn.md --hoglah-model gemma3:1b
-cairn-human-factors my-process.cairn.md --hoglah-model gemma3:1b --hoglah-real
 ```
 
-`cairn-agent-harness-plan` also emits an agent review checklist so interactive
-LLMs explicitly check HCI touchpoint phases, functional layout load, business
-work versus interface overhead, and AI challenge/override paths instead of
-stopping at a generic human-risk summary.
+The human-systems analysis CLIs (`huldah-human-factors`,
+`huldah-agent-harness-plan`, `huldah-recommend-interface-changes`,
+`huldah-generate-report`, the `huldah-ui-*` family) moved to
+**[Huldah](https://github.com/gellsmore-svg/Huldah)** — `pip install huldah`.
+They read the same `.cairn.md` documents this package defines.
 
 Or programmatically:
 
 ```python
-from cairn.render import render_plan, export_view
+from deborah.render import render_plan, export_view
 
 view = render_plan(text, profile="operator")
 pdf = export_view(view, "pdf")
 
-from cairn import analyze_human_factors, build_agent_harness_plan
+from deborah import analyze_human_factors, build_agent_harness_plan
 report = analyze_human_factors(text)  # pure Python; no LLM service required
 plan = build_agent_harness_plan(process_path="my-process.cairn.md", ui_evidence_path="ui-evidence.json")
 
-from cairn import CommandLLMProvider, HoglahLLMProvider, interpret_human_factors
+from deborah import CommandLLMProvider, HoglahLLMProvider, interpret_human_factors
 provider = CommandLLMProvider("my-llm-wrapper --model local")
 interpretation = interpret_human_factors(text, provider)
 
@@ -105,7 +92,7 @@ queued = HoglahLLMProvider(model="gemma3:1b")
 queued_interpretation = interpret_human_factors(text, queued)
 ```
 
-Interactive composer: `cairn-serve`
+Interactive composer: `deborah-serve`
 
 ## What it's for
 
@@ -215,7 +202,7 @@ set in `pyproject.toml`, recorded in `CHANGELOG.md`, and tagged (`v0.8.2`). The
 specification version moves only when the language changes — v0.9 added versioned
 live `PLAN` envelopes for bounded recursive revision of a `PROCESS` backbone.
 
-**Package 0.8.2** — complete export support (`html`/`docx`/`pdf`), interactive `cairn-serve`, executable grammar + conformance, multiple render profiles, and real usage examples across the family stack.
+**Package 0.8.2** — complete export support (`html`/`docx`/`pdf`), interactive `deborah-serve`, executable grammar + conformance, multiple render profiles, and real usage examples across the family stack.
 
 A structural grammar is in [GRAMMAR.md](GRAMMAR.md). Refined by describing real
 systems (Tirzah, Hoglah, Mahalath, etc.).
@@ -269,48 +256,48 @@ Cairn is primarily a spec, but it also ships a tiny, dependency-free
 embedding a private dialect:
 
 ```python
-import cairn
+import deborah
 
 # Runtime PLAN dict conformance (SPEC §4.5)
-errors = cairn.validate_plan(plan_dict)   # [] when conformant
+errors = deborah.validate_plan(plan_dict)   # [] when conformant
 
 # Structural grammar (GRAMMAR.md EBNF + SPEC §12 well-formedness)
-doc = cairn.parse_document(cairn_text_or_markdown)
-errors = cairn.validate_document(doc)   # [] when well-formed
-plan = cairn.document_to_plan(doc)        # first PLAN or PROCESS → plan dict
+doc = deborah.parse_document(cairn_text_or_markdown)
+errors = deborah.validate_document(doc)   # [] when well-formed
+plan = deborah.document_to_plan(doc)        # first PLAN or PROCESS → plan dict
 
 # Simplified human-readable views
-view = cairn.render_plan(cairn_text_or_markdown, profile="narrative_steps")
+view = deborah.render_plan(cairn_text_or_markdown, profile="narrative_steps")
 cairn.CANONICAL_PLAN                       # an executable known-good fixture
 cairn.PLAN_CONSTRUCTS                      # the allowed step constructs (SPEC §5)
 ```
 
-CLI: `cairn-validate examples/hoglah.cairn.md` · `cairn-render examples/hoglah.cairn.md`
+CLI: `deborah-validate examples/hoglah.cairn.md` · `deborah-render examples/hoglah.cairn.md`
 
-### View composer (`cairn-serve`)
+### View composer (`deborah-serve`)
 
 An interactive, local composer for building a transformation view of a process
 and **saving the recipe as a named template**:
 
 ```bash
-pip install 'cairn-lang[web]'
-cairn-serve            # http://127.0.0.1:8795
+pip install 'deborah[web]'
+deborah-serve            # http://127.0.0.1:8795
 ```
 
 Paste a Cairn process, pick a profile and options (language, format, depth,
 sections, layout), watch the view update live, then **Save as template**. A
 template is persisted as a stylesheet under `~/.cairn/templates/<name>.json`,
 so it is directly reusable on the CLI:
-`cairn-render --stylesheet ~/.cairn/templates/<name>.json input.cairn.md`.
+`deborah-render --stylesheet ~/.cairn/templates/<name>.json input.cairn.md`.
 
 Grammar parser: [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md). Simplified views:
 [docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md).
 
-Tirzah's recursive planner is tested against `cairn.validate_plan` so its output
+Tirzah's recursive planner is tested against `deborah.validate_plan` so its output
 cannot drift from the grammar.
 
 Works the same on native Linux and WSL. Cairn has no hard runtime dependency on
-Keturah; when Keturah is installed, `cairn.manifest` uses it, and otherwise
+Keturah; when Keturah is installed, `deborah.manifest` uses it, and otherwise
 Cairn provides a small compatible manifest surface.
 
 ```bash

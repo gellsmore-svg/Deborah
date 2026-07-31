@@ -1,7 +1,7 @@
 from pathlib import Path
 
-import cairn
-from cairn import CANONICAL_PLAN, render_plan, registered_profiles
+import deborah
+from deborah import CANONICAL_PLAN, render_plan, registered_profiles
 
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
@@ -64,7 +64,7 @@ def test_render_plan_boxed_narrative():
 
 
 def test_public_api_exports_render_plan():
-    assert hasattr(cairn, "render_plan")
+    assert hasattr(deborah, "render_plan")
 
 
 def test_audit_profile_lists_tags():
@@ -93,8 +93,8 @@ def test_sections_filter_process_only():
 
 
 def test_export_view_requires_registered_exporter():
-    from cairn.render import export_view
-    from cairn.render.model import RenderResult
+    from deborah.render import export_view
+    from deborah.render.model import RenderResult
     import pytest
 
     result = RenderResult(profile="x", language="en", format="markdown", body="hi")
@@ -113,7 +113,7 @@ def test_export_view_requires_registered_exporter():
 
 
 def test_manifest_lists_render_plan():
-    from cairn.manifest import build_manifest
+    from deborah.manifest import build_manifest
 
     m = build_manifest()
     names = [c.name for c in m.capabilities]

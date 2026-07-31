@@ -15,13 +15,10 @@ All defined in [SPEC.md](https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.m
   PROCESS kept distinct (SPEC §1).
 - **[Backbone & render profiles](backbone-and-render-profiles.md)** — one canonical
   backbone projected to `ai` / `operator` / `executive` / `audit` (SPEC §3).
-- **[Human factors semantics](human-factors.md)** - cognitive, psychological,
   social, organisational, behavioural-economic, and incentive lenses for
   human-facing process steps.
-- **[HCI touchpoints and cognitive aesthetic](hci-touchpoints.md)** - UI-mediated
   human work across awareness, orientation, execution, feedback, recovery,
   handoff, and adaptation.
-- **[Functional layout load](functional-layout-load.md)** - form and operational
   layout effort estimated from element distance, grouping, scan path, and
   pointer travel.
 - **[Augmentation process](augmentation-process.md)** - human-AI collaboration,

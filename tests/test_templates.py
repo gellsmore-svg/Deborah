@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import pytest
 
-from cairn.render import render_plan
-from cairn.render.templates import (
+from deborah.render import render_plan
+from deborah.render.templates import (
     TemplateStore,
     normalize_recipe,
     slugify,

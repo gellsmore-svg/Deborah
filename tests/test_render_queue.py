@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from cairn.render import render_plan
-from cairn.render.phrasing import describe_queue, parse_queue_params, phrase_construct
+from deborah.render import render_plan
+from deborah.render.phrasing import describe_queue, parse_queue_params, phrase_construct
 
 _TAGS = ["ORDER: ROUND_ROBIN; ONE_AT_A_TIME; ROUNDS: 5; UNTIL: consensus"]
 
