@@ -1,6 +1,6 @@
-# Contributing to Cairn
+# Contributing to Deborah
 
-Cairn is a meta-language that **evolves from real use**. The most valuable
+Deborah maintains **Cairn**, a meta-language that **evolves from real use**. The most valuable
 contribution is describing a real process in Cairn and reporting what was
 awkward, ambiguous, or missing — that is exactly how v0.7 was shaped (see
 [`examples/`](examples/)).

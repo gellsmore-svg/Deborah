@@ -1,10 +1,16 @@
 # Cairn — a process meta-language
 
-**Specification v0.9**
+**Specification v0.9** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
 processes — especially agentic / LLM-centric ones — so that humans and LLMs can
 read, write, compare, and reason about the same description.
+
+> **Naming.** *Cairn* is the **document format** this specification defines —
+> `.cairn.md` files, ```` ```cairn ```` fences, the constructs below. The Python
+> package that implements it is **`deborah`** (it was called `cairn` until
+> v0.9.0, when the human-systems analysis half split off into `huldah`). The
+> format did not change in that split; the grammar here is identical to v0.8.2.
 
 This document is the specification. For the why, see
 [README.md](README.md) (Purpose & Philosophy).
@@ -481,7 +487,7 @@ New profiles for human-system work:
   organisational, behavioural-economic, and incentive forces, with qualitative
   risk estimates.
 
-Use `cairn-render ... --profile therapeutic`, `change_leader`, or
+Use `deborah-render ... --profile therapeutic`, `change_leader`, or
 `human_demand` / `human_factors`.
 - `ATOMIC { … }` — a group whose effect is all-or-nothing.
 - `RECOVERY: <action>` — a step/process annotation stating what happens if a crash

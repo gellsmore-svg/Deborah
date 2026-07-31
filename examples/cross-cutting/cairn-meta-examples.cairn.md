@@ -7,7 +7,7 @@ Examples showing Cairn being used to analyze or expand Cairn-like work.
 ```cairn
 PROCESS ManualAgentAnalysisWithHarness (INPUT: repo_or_process_and_evidence; OUTPUT: cairn_analysis_report)
   1. Generate deterministic harness plan. [CODE, DETERMINISTIC]
-     TOOLING: cairn-agent-harness-plan --process process.cairn.md --ui-evidence ui.json --check-files
+     TOOLING: huldah-agent-harness-plan --process process.cairn.md --ui-evidence ui.json --check-files
      PURPOSE: decide which Cairn tools can run before the agent interprets the evidence.
 
   2. Run planned Cairn validation and analysis commands. [TOOL, SEQUENTIAL]

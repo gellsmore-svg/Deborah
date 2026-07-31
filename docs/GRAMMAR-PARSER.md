@@ -26,10 +26,10 @@ if not errors:
 CLI:
 
 ```bash
-cairn-validate examples/hoglah.cairn.md
-cairn-validate examples/hoglah.cairn.md --json
-cairn-validate plan.cairn.md --export-plan
-cairn-validate examples/hoglah.cairn.md --export-ast
+deborah-validate examples/hoglah.cairn.md
+deborah-validate examples/hoglah.cairn.md --json
+deborah-validate plan.cairn.md --export-plan
+deborah-validate examples/hoglah.cairn.md --export-ast
 ```
 
 ## API

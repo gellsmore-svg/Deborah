@@ -105,14 +105,14 @@ PROCESS LayoutLoadOptimizationLoop (INPUT: measured_ui_layout; OUTPUT: lower_loa
      OUTPUT: layout_json
 
   2. Analyze functional layout load. [CODE, DETERMINISTIC]
-     TOOLING: cairn-layout-load layout.json --format json
+     TOOLING: huldah-layout-load layout.json --format json
      FUNCTIONAL_LAYOUT_LOAD:
        label_field_distance: measured from labels to controls.
        evidence_action_distance: measured from warnings/evidence to actions.
        cumulative_pointer_travel: measured over likely task sequence.
 
   3. Generate OKF-traceable recommendations. [CODE, DETERMINISTIC]
-     TOOLING: cairn-recommend-interface-changes ui-evidence.json
+     TOOLING: huldah-recommend-interface-changes ui-evidence.json
 
   4. Human designer reviews future state and trade-offs. [HUMAN, GATED]
      HUMAN_RISK:

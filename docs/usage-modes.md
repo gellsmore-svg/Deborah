@@ -10,11 +10,11 @@ evidence, recommendations, or reports.
 
 ```bash
 pip install cairn-lang
-cairn-validate examples/hoglah.cairn.md
-cairn-human-factors examples/accounts-payable-exception.cairn.md
-cairn-layout-load docs/analysis/customer-po-review-layout.json
-cairn-recommend-interface-changes docs/analysis/customer-po-review-ui-sim-report.json
-cairn-generate-report --input examples/accounts-payable-exception.cairn.md \
+deborah-validate examples/hoglah.cairn.md
+huldah-human-factors examples/accounts-payable-exception.cairn.md
+huldah-layout-load docs/analysis/customer-po-review-layout.json
+huldah-recommend-interface-changes docs/analysis/customer-po-review-ui-sim-report.json
+huldah-generate-report --input examples/accounts-payable-exception.cairn.md \
   --interface-evidence docs/analysis/customer-po-review-ui-sim-report.json \
   --format html --output report.html
 ```
@@ -76,10 +76,10 @@ Cairn unless they are generic enough for the core.
 Use when a repo wants pull requests to validate process files, render views, or
 generate review artifacts. Recommended gates:
 
-- `cairn-validate` for `.cairn.md` files.
-- `cairn-human-factors` for human-facing process changes.
-- `cairn-recommend-interface-changes` for UI evidence snapshots.
-- `cairn-generate-report` for review bundles.
+- `deborah-validate` for `.cairn.md` files.
+- `huldah-human-factors` for human-facing process changes.
+- `huldah-recommend-interface-changes` for UI evidence snapshots.
+- `huldah-generate-report` for review bundles.
 
 ## Boundary Guidance
 

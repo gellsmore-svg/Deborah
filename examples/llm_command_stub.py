@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Example command provider for ``cairn-human-factors --llm-command``.
+"""Example command provider for ``huldah-human-factors --llm-command``.
 
 This is not an LLM. It documents the adapter contract by reading the JSON payload
 from stdin and returning JSON with a ``text`` field. Replace the body with a call

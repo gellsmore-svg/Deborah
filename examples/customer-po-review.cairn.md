@@ -90,7 +90,7 @@ PROCESS ReviewIncomingCustomerPO (INPUT: incoming_po; OUTPUT: po_review_outcome)
        rationale: the decision affects customer fulfilment, finance, and downstream rework; spatially separated warnings and actions can reduce effective review capacity.
      SUPPORT: group PO identity, customer match, duplicate warning, exception evidence, and required next action in one decision panel.
      SIMULATION_FINDINGS:
-       Functional layout load should be measured with `measureLayout` and `cairn-layout-load`.
+       Functional layout load should be measured with `measureLayout` and `huldah-layout-load`.
        Duplicate warnings must be adjacent to PO identity and the accept/reject action.
        Evidence-to-action distance should be treated as a human-risk cue, not a styling preference.
      IMPROVEMENT:

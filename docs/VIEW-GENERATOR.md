@@ -59,10 +59,10 @@ Proof-of-concept: `en`, `es`, `fr`.
 ## CLI
 
 ```bash
-cairn-render examples/keturah.cairn.md --profile operator --boxed
-cairn-render plan.json --profile audit --format json -o audit.json
-cairn-render process.cairn.md --max-depth 2 --sections process,outcomes
-cairn-render examples/tirzah.cairn.md -f html -o view.html   # built-in HTML export
+deborah-render examples/keturah.cairn.md --profile operator --boxed
+deborah-render plan.json --profile audit --format json -o audit.json
+deborah-render process.cairn.md --max-depth 2 --sections process,outcomes
+deborah-render examples/tirzah.cairn.md -f html -o view.html   # built-in HTML export
 ```
 
 ## Export plugins (docx / PDF)
@@ -79,7 +79,7 @@ def to_docx(result, options):
 register_exporter("docx", to_docx)
 
 # CLI now supports it:
-# cairn-render input.cairn.md -f docx -o out.docx
+# deborah-render input.cairn.md -f docx -o out.docx
 bytes_out = export_view(render_plan(md), "docx")
 ```
 

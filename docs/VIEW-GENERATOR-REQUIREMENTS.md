@@ -79,9 +79,9 @@ view_text = render_plan(input_cairn, profile="narrative_steps", language="en", o
 | markdown, text, json, mermaid, html | Done (html built-in) |
 | pluggable profiles | Done |
 | export hooks (docx/pdf) | Built-in docx (python-docx), pdf (fpdf2), html; install cairn-lang[export]; CLI supports -f docx/pdf |
-| cairn-render CLI support for exports | Done |
+| deborah-render CLI support for exports | Done |
 | YAML/JSON stylesheet | Done (`[render]` extra) |
 | en + es + fr | Done |
 | max_depth / sections filters | Done |
-| `cairn-render` CLI | Done |
+| `deborah-render` CLI | Done |
 | docx/PDF hooks | Done (`register_exporter` / `export_view`) |
