@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+- `__version__` is derived from the installed distribution instead of a
+  hand-maintained literal, so it cannot drift from `pyproject.toml`. Guarded by
+  `tests/test_version.py`. (Nothing had drifted; this closes the trap that left
+  Hanani advertising 0.1.0 while shipping 0.8.0.)
+
 ## [0.9.0] — 2026-07-31
 
 **Renamed from Cairn, and split.** `cairn` was two products in one package; it is

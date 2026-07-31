@@ -12,6 +12,8 @@ library, so any runtime can adopt the conformance surface. The document format
 keeps the Cairn name — `.cairn.md` sources and ```cairn fences are unchanged.
 """
 
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+
 from deborah.conformance import (
     CANONICAL_PLAN,
     CONFORMANCE_VERSION,
@@ -40,7 +42,12 @@ from deborah.render import (
     render_plan,
 )
 
-__version__ = "0.9.0"
+try:
+    # Single source of truth: read the installed distribution rather than
+    # restating the version here, so it cannot drift from pyproject.
+    __version__ = _pkg_version("deborah")
+except PackageNotFoundError:  # running straight from a source checkout
+    __version__ = "0.0.0+source"
 
 __all__ = [
     "CANONICAL_PLAN",
