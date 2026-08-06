@@ -1,39 +1,27 @@
 # Changelog
 
 ## [Unreleased]
-- **SPEC v0.10 — cross-LLM framing (not “force determinism”).** States Deborah’s
-  role as framing LLM callers against LLM-consumed capabilities; crystallisation
-  lifecycle; capability pins; core vs descriptive construct profiles; non-goals
-  (no learning store, no hot-path Level-4 replanning). PLAN gains optional
-  `INTENT` / `OUTCOMES` / `ASSUMES` / `ON_UNCERTAINTY` / `REEVALUATE_WHEN` and
-  terminal statuses `open` / `refused`. Conformance `1.1` exports
-  `CORE_CONSTRUCTS`, `ON_UNCERTAINTY_POLICIES`, `is_core_construct`.
-- **Docs pass:** README, usage-modes, grammar/view docs, OKF bundle, CONTRIBUTING,
-  MIGRATING, and examples index aligned with v0.10; removed stale Huldah API
-  imports and broken doc links from the Deborah README; package description
-  updated.
-- `__version__` is derived from the installed distribution instead of a
-  hand-maintained literal, so it cannot drift from `pyproject.toml`. Guarded by
-  `tests/test_version.py`. (Nothing had drifted; this closes the trap that left
-  Hanani advertising 0.1.0 while shipping 0.8.0.)
-- **Correctness: no more silent render fallbacks** (issues #3, #10, #4):
-  - `normalize_input` no longer swallows grammar exceptions into the legacy
-    heuristic parser. Failures raise; pass `lenient=True` (or
-    `deborah-render --lenient`) to keep the old tolerance with an explicit
-    `"grammar parse failed …; used legacy parser"` warning in metadata.
-  - `document_to_render_model` records `"plan export failed: …"` on
-    `ValueError` instead of dropping PLAN envelope metadata silently.
-  - `TemplateStore.save_template` rejects a slug collision when the stored
-    display name differs, so `"Exec Brief"` cannot be clobbered by
-    `"exec brief"`. Same-name re-save still overwrites.
-- **Composer + examples + manifest polish** (issues #7, #9, #11, #13, #16):
-  - `/api/render` preview uses a **single** parse/render pass (warnings come
-    from the `RenderResult`, not a second `render_plan` call).
-  - `validate_examples.py` accepts PLAN-only documents (PROCESS or PLAN).
-  - Manifest maps library capabilities to `deborah-validate` /
-    `deborah-render`; documents that `deborah-serve` is operator-only.
-    `render_plan` schema lists `en`/`es`/`fr` and optional `stylesheet`.
-  - `render_plan` docstring lists French; dead `_STYLES_DIR` removed.
+
+## [0.10.0] — 2026-08-06
+
+**SPEC v0.10 and correctness polish.** Package version tracks the language
+revision that states Deborah’s role as framing cross-LLM caller↔capability work
+(not “force determinism”).
+
+- **Language / SPEC v0.10:** crystallisation lifecycle; capability pins; core vs
+  descriptive construct profiles; non-goals. PLAN gains optional `INTENT` /
+  `OUTCOMES` / `ASSUMES` / `ON_UNCERTAINTY` / `REEVALUATE_WHEN` and terminal
+  statuses `open` / `refused`. Conformance **1.1** exports `CORE_CONSTRUCTS`,
+  `ON_UNCERTAINTY_POLICIES`, `is_core_construct`.
+- **Correctness** (issues #3, #4, #7, #9, #10, #11, #13, #16): no silent
+  grammar→legacy fallback (use `lenient=True` / `--lenient`); plan export
+  failures surface as warnings; template slug collisions rejected; single-pass
+  composer preview; PLAN-only example validation; CLI-mapped manifest; French
+  in language list; dead `_STYLES_DIR` removed.
+- `__version__` derived from the installed distribution (cannot drift from
+  `pyproject.toml`).
+- **Docs:** README, usage-modes, grammar/view docs, OKF, CONTRIBUTING, MIGRATING
+  aligned with v0.10 and the Deborah/Huldah split.
 
 ## [0.9.0] — 2026-07-31
 
