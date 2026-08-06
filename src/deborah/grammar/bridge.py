@@ -98,8 +98,10 @@ def document_to_render_model(doc: CairnDocument) -> ProcessDocument:
 
         try:
             render_doc.plan = document_to_plan(doc)
-        except ValueError:
-            pass
+        except ValueError as exc:
+            # Keep the render usable, but surface the loss of PLAN envelope
+            # metadata so callers are not left with a silent gap (Deborah #10).
+            render_doc.warnings.append(f"plan export failed: {exc}")
 
     render_doc.metadata["grammar"] = {
         "process_count": len(doc.processes),

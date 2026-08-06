@@ -5,6 +5,16 @@
   hand-maintained literal, so it cannot drift from `pyproject.toml`. Guarded by
   `tests/test_version.py`. (Nothing had drifted; this closes the trap that left
   Hanani advertising 0.1.0 while shipping 0.8.0.)
+- **Correctness: no more silent render fallbacks** (issues #3, #10, #4):
+  - `normalize_input` no longer swallows grammar exceptions into the legacy
+    heuristic parser. Failures raise; pass `lenient=True` (or
+    `deborah-render --lenient`) to keep the old tolerance with an explicit
+    `"grammar parse failed …; used legacy parser"` warning in metadata.
+  - `document_to_render_model` records `"plan export failed: …"` on
+    `ValueError` instead of dropping PLAN envelope metadata silently.
+  - `TemplateStore.save_template` rejects a slug collision when the stored
+    display name differs, so `"Exec Brief"` cannot be clobbered by
+    `"exec brief"`. Same-name re-save still overwrites.
 
 ## [0.9.0] — 2026-07-31
 

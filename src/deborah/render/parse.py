@@ -217,12 +217,35 @@ def parse_with_grammar(text: str) -> ProcessDocument:
     return render_doc
 
 
-def normalize_input(input_cairn: str | dict[str, Any], *, use_grammar: bool = True) -> ProcessDocument:
+def normalize_input(
+    input_cairn: str | dict[str, Any],
+    *,
+    use_grammar: bool = True,
+    lenient: bool = False,
+) -> ProcessDocument:
+    """Normalise Cairn text or a PLAN dict into a :class:`ProcessDocument`.
+
+    By default the structural grammar is used. Unexpected grammar failures are
+    **not** swallowed: they propagate so a render that failed validation cannot
+    silently become a plausible legacy view (see Deborah #3).
+
+    Pass ``lenient=True`` to fall back to the heuristic markdown parser on
+    grammar exceptions; the fallback always records an explicit warning so the
+    path is visible in render metadata.
+    """
     if isinstance(input_cairn, dict):
         return parse_plan_dict(input_cairn)
     if use_grammar:
         try:
             return parse_with_grammar(input_cairn)
-        except Exception:
-            pass
+        except Exception as exc:
+            if not lenient:
+                raise
+            doc = parse_markdown(input_cairn)
+            msg = (
+                f"grammar parse failed ({type(exc).__name__}: {exc}); "
+                "used legacy parser"
+            )
+            doc.warnings = [msg, *list(doc.warnings or [])]
+            return doc
     return parse_markdown(input_cairn)

@@ -1,7 +1,11 @@
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 import deborah
 from deborah import CANONICAL_PLAN, render_plan, registered_profiles
+from deborah.render.parse import normalize_input
 
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
@@ -92,10 +96,66 @@ def test_sections_filter_process_only():
     assert "R1." not in text
 
 
+def test_grammar_exception_does_not_silently_fall_back_to_legacy():
+    """Deborah #3: a grammar crash must not produce an unmarked legacy view."""
+    with patch(
+        "deborah.render.parse.parse_with_grammar",
+        side_effect=RuntimeError("simulated grammar failure"),
+    ):
+        with pytest.raises(RuntimeError, match="simulated grammar failure"):
+            normalize_input("1. STEP — something. [CODE]")
+
+
+def test_lenient_grammar_fallback_records_explicit_warning():
+    """Deborah #3: --lenient may fall back, but only with a visible warning."""
+    with patch(
+        "deborah.render.parse.parse_with_grammar",
+        side_effect=RuntimeError("simulated grammar failure"),
+    ):
+        doc = normalize_input("1. STEP — something. [CODE]", lenient=True)
+    assert doc.steps
+    assert any("grammar parse failed" in w and "legacy parser" in w for w in doc.warnings)
+    # json render metadata must carry the same warning (audit path).
+    with patch(
+        "deborah.render.parse.parse_with_grammar",
+        side_effect=RuntimeError("simulated grammar failure"),
+    ):
+        payload = render_plan(
+            "1. STEP — something. [CODE]",
+            output_format="json",
+            options={"lenient": True},
+        )
+    warnings = (payload.get("metadata") or {}).get("warnings") or []
+    assert any("grammar parse failed" in w for w in warnings)
+
+
+def test_plan_export_failure_surfaces_as_render_warning():
+    """Deborah #10: PLAN → machine plan export must not fail silently."""
+    from deborah.grammar.ast import CairnDocument, Plan
+    from deborah.grammar.bridge import document_to_render_model
+
+    plan = Plan(
+        plan_id="p1",
+        revision=1,
+        status="draft",
+        request="do work",
+        trigger="",
+        parent=None,
+        process=None,
+    )
+    doc = CairnDocument(plans=[plan])
+    with patch(
+        "deborah.grammar.plan_export.document_to_plan",
+        side_effect=ValueError("bad plan structure"),
+    ):
+        render_doc = document_to_render_model(doc)
+    assert render_doc.plan is None
+    assert any("plan export failed" in w for w in render_doc.warnings)
+
+
 def test_export_view_requires_registered_exporter():
     from deborah.render import export_view
     from deborah.render.model import RenderResult
-    import pytest
 
     result = RenderResult(profile="x", language="en", format="markdown", body="hi")
     with pytest.raises(NotImplementedError, match="No exporter registered"):

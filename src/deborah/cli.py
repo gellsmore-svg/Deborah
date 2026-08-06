@@ -42,6 +42,14 @@ def main(argv: list[str] | None = None) -> int:
         help="Comma-separated sections to include: context,requirements,outcomes,plan,process",
     )
     parser.add_argument("--stylesheet", help="YAML/JSON stylesheet path")
+    parser.add_argument(
+        "--lenient",
+        action="store_true",
+        help=(
+            "On grammar parse failure, fall back to the legacy heuristic parser "
+            "with an explicit warning instead of aborting"
+        ),
+    )
 
     args = parser.parse_args(argv)
     if args.input in (None, "-"):
@@ -63,6 +71,8 @@ def main(argv: list[str] | None = None) -> int:
         options["max_depth"] = args.max_depth
     if args.sections:
         options["sections"] = [s.strip() for s in args.sections.split(",") if s.strip()]
+    if args.lenient:
+        options["lenient"] = True
 
     try:
         result = render_plan(

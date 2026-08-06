@@ -135,10 +135,33 @@ class TemplateStore:
     def save_template(
         self, name: str, recipe: dict[str, Any], description: str = ""
     ) -> dict[str, Any]:
-        """Persist a recipe under ``name`` (overwrites an existing same-slug one)."""
+        """Persist a recipe under ``name``.
+
+        Overwrites an existing template only when the stored ``name`` matches
+        exactly. Different display names that slug to the same filename (e.g.
+        ``\"Exec Brief\"`` vs ``\"exec brief\"``) are rejected so one save cannot
+        silently clobber another (Deborah #4).
+        """
         name = name.strip()
         if not name:
             raise ValueError("template name is required")
+        path = self._path(name)
+        if path.exists():
+            try:
+                existing = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                existing = None
+            if (
+                isinstance(existing, dict)
+                and existing.get("name")
+                and existing["name"] != name
+            ):
+                slug = slugify(name)
+                raise ValueError(
+                    f"template slug {slug!r} is already used by "
+                    f"{existing['name']!r}; choose a different name or delete "
+                    "the existing template first"
+                )
         record: dict[str, Any] = {
             "name": name,
             "description": description.strip(),
@@ -146,9 +169,7 @@ class TemplateStore:
             **normalize_recipe(recipe),
         }
         self.directory.mkdir(parents=True, exist_ok=True)
-        self._path(name).write_text(
-            json.dumps(record, indent=2) + "\n", encoding="utf-8"
-        )
+        path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
         return record
 
     def delete_template(self, name: str) -> bool:

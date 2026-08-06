@@ -85,8 +85,10 @@ def render_plan(
 
     profile_name = opts.pop("profile", profile)
     language = opts.pop("language", language)
+    # Opt-in legacy fallback when the grammar raises (Deborah #3).
+    lenient = bool(opts.pop("lenient", False))
 
-    doc = apply_filters(normalize_input(input_cairn), opts)
+    doc = apply_filters(normalize_input(input_cairn, lenient=lenient), opts)
     renderer = get_profile(profile_name)
     result = renderer.render(doc, language, opts)
 

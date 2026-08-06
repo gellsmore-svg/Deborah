@@ -115,3 +115,29 @@ def test_corrupt_file_is_skipped(tmp_path) -> None:
     store = TemplateStore(tmp_path)
     assert store.list_templates() == []
     assert store.get_template("broken") is None
+
+
+def test_slug_collision_rejects_different_display_name(tmp_path) -> None:
+    """Deborah #4: different names that slug identically must not clobber each other."""
+    store = TemplateStore(tmp_path)
+    store.save_template(
+        "Exec Brief", {"profile": "executive", "output_format": "markdown"}
+    )
+    with pytest.raises(ValueError, match="already used by 'Exec Brief'"):
+        store.save_template(
+            "exec brief", {"profile": "operator", "output_format": "text"}
+        )
+    # Original is intact.
+    got = store.get_template("Exec Brief")
+    assert got is not None
+    assert got["name"] == "Exec Brief"
+    assert got["profile"] == "executive"
+
+
+def test_same_name_may_overwrite_template(tmp_path) -> None:
+    """Intentional re-save under the same display name still works."""
+    store = TemplateStore(tmp_path)
+    store.save_template("Audit View", {"profile": "audit", "boxed": False})
+    updated = store.save_template("Audit View", {"profile": "audit", "boxed": True})
+    assert updated["boxed"] is True
+    assert store.get_template("Audit View")["boxed"] is True
