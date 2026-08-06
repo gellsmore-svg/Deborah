@@ -11,8 +11,6 @@ from deborah.render.formats import apply_format
 from deborah.render.parse import normalize_input
 from deborah.render.profiles import get_profile, registered_profiles
 
-_STYLES_DIR = Path(__file__).parent / "styles"
-
 DEFAULT_OPTIONS: dict[str, Any] = {
     "boxed": False,
     "include_tags": False,
@@ -62,13 +60,13 @@ def render_plan(
         ``narrative_steps``, ``simple_prose``, ``operator``, ``executive``, or
         ``narrative`` (alias).
     language:
-        ``en`` or ``es`` (proof-of-concept multilingual layer).
+        ``en``, ``es``, or ``fr`` (phrasing tables; more codes fall back to English).
     output_format:
         ``markdown``, ``text``, ``json``, ``mermaid``, ``html``, ``docx``, or ``pdf``
         (docx/pdf require 'deborah[export]').
     options:
         Per-render overrides: ``boxed``, ``include_tags``, ``include_sub_blocks``,
-        ``include_footnotes``, ``max_depth``, ``sections``.
+        ``include_footnotes``, ``max_depth``, ``sections``, ``lenient``.
     stylesheet:
         Optional YAML/JSON path defining profile rules (XSLT-inspired).
 

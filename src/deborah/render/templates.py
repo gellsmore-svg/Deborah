@@ -1,12 +1,14 @@
 """Named transformation-view templates: persisted render recipes.
 
 A *template* is a saved render recipe — a profile plus its options and the
-target language/format. That is exactly a Cairn **stylesheet** (see
-``render/styles/default.yaml``) with a name and a description. Templates are
-stored as JSON, one file per template, so a saved template is **directly
-usable** as a stylesheet::
+target language/format (a flat stylesheet dict). Templates are stored as JSON,
+one file per template, so a saved template is **directly usable** as a
+stylesheet::
 
     deborah-render --stylesheet ~/.cairn/templates/<name>.json input.cairn.md
+
+A repo-only example stylesheet lives at ``src/deborah/render/styles/default.yaml``
+for documentation; it is **not** shipped in the wheel (Deborah #16).
 
 The store is dependency-free (stdlib ``json`` only); the interactive composer
 in ``deborah.web`` is a thin UI over it.

@@ -80,23 +80,33 @@ def build_manifest() -> Manifest:
     return manifest(
         "deborah",
         version=_version(),
-        description="Process meta-language: plan/template grammar and a machine-readable conformance surface.",
+        description=(
+            "Process meta-language: plan/template grammar and a machine-readable "
+            "conformance surface. Library capabilities map to the console tools: "
+            "validate_document/parse_document ≈ deborah-validate; render_plan ≈ "
+            "deborah-render. The interactive composer (deborah-serve) and its "
+            "template store are operator-only CLIs — not MCP tools."
+        ),
         capabilities=[
             capability(
                 "validate_plan",
-                "Validate a Cairn PLAN against the grammar; returns a list of conformance errors "
-                "(empty = conformant). Allowed step constructs: " + ", ".join(sorted(PLAN_CONSTRUCTS)) + ".",
+                "Validate a runtime PLAN dict against the conformance contract; returns a list of "
+                "errors (empty = conformant). Allowed step constructs: "
+                + ", ".join(sorted(PLAN_CONSTRUCTS))
+                + ". (CLI: deborah-validate on exported plan JSON.)",
                 input_schema={"type": "object", "properties": {"plan": {"type": "object"}}, "required": ["plan"]},
                 output_schema={
                     "type": "object",
                     "properties": {"errors": {"type": "array", "items": {"type": "string"}}},
                 },
-                tags=["validation", "plan"],
+                tags=["validation", "plan", "cli:deborah-validate"],
             ),
             capability(
                 "render_plan",
                 "Render a Cairn process description or PLAN dict into a simplified human-readable "
-                "view (narrative_steps, simple_prose, operator, executive).",
+                "view (narrative_steps, simple_prose, operator, executive, audit). "
+                "CLI: deborah-render [--profile …] [--language en|es|fr] [--stylesheet path] "
+                "[--lenient] [--format markdown|text|json|mermaid].",
                 input_schema={
                     "type": "object",
                     "properties": {
@@ -112,9 +122,23 @@ def build_manifest() -> Manifest:
                                 "narrative",
                             ],
                         },
-                        "language": {"type": "string"},
-                        "output_format": {"type": "string", "enum": ["markdown", "text", "json", "mermaid"]},
-                        "options": {"type": "object"},
+                        "language": {
+                            "type": "string",
+                            "enum": ["en", "es", "fr"],
+                            "description": "Phrasing language (en, es, fr)",
+                        },
+                        "output_format": {
+                            "type": "string",
+                            "enum": ["markdown", "text", "json", "mermaid"],
+                        },
+                        "stylesheet": {
+                            "type": "string",
+                            "description": "Optional path to a YAML/JSON stylesheet (saved template)",
+                        },
+                        "options": {
+                            "type": "object",
+                            "description": "boxed, include_tags, max_depth, sections, lenient, …",
+                        },
                     },
                     "required": ["input_cairn"],
                 },
@@ -124,25 +148,32 @@ def build_manifest() -> Manifest:
                         "body": {"type": "string"},
                         "profile": {"type": "string"},
                         "language": {"type": "string"},
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "warnings": {"type": "array", "items": {"type": "string"}},
+                            },
+                        },
                     },
                 },
-                tags=["render", "plan"],
+                tags=["render", "plan", "cli:deborah-render"],
             ),
             capability(
                 "parse_document",
-                "Parse a Cairn markdown or skeleton text file into a structural AST (GRAMMAR.md EBNF).",
+                "Parse a Cairn markdown or skeleton text file into a structural AST (GRAMMAR.md EBNF). "
+                "CLI: deborah-validate --export-ast.",
                 input_schema={
                     "type": "object",
                     "properties": {"text": {"type": "string", "description": "Cairn markdown or skeleton text"}},
                     "required": ["text"],
                 },
                 output_schema={"type": "object", "properties": {"process_count": {"type": "integer"}}},
-                tags=["grammar", "parse"],
+                tags=["grammar", "parse", "cli:deborah-validate"],
             ),
             capability(
                 "validate_document",
                 "Validate a Cairn description for GRAMMAR.md structure and SPEC §12 well-formedness; "
-                "returns errors (empty = well-formed).",
+                "returns errors (empty = well-formed). CLI: deborah-validate.",
                 input_schema={
                     "type": "object",
                     "properties": {"text": {"type": "string"}},
@@ -152,7 +183,7 @@ def build_manifest() -> Manifest:
                     "type": "object",
                     "properties": {"errors": {"type": "array", "items": {"type": "string"}}},
                 },
-                tags=["grammar", "validation"],
+                tags=["grammar", "validation", "cli:deborah-validate"],
             ),
             capability(
                 "plan_schema",

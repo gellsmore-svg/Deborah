@@ -24,7 +24,7 @@ import argparse
 import json
 from typing import Any
 
-from deborah.render import registered_profiles, render_plan
+from deborah.render import registered_profiles
 from deborah.render.templates import (
     OUTPUT_FORMATS,
     SECTIONS,
@@ -326,7 +326,18 @@ init();
 
 
 def _render_preview(source: str, recipe: dict[str, Any]) -> dict[str, Any]:
-    """Render a preview + surface parser warnings, tolerant of bad input."""
+    """Render a preview + surface parser warnings, tolerant of bad input.
+
+    One parse/render pass only (Deborah #7): the previous path rendered the
+    user format and then re-rendered as JSON solely for ``metadata.warnings``,
+    doubling cost on every debounced keystroke.
+    """
+    from deborah.render import DEFAULT_OPTIONS
+    from deborah.render.filters import apply_filters
+    from deborah.render.formats import apply_format
+    from deborah.render.parse import normalize_input
+    from deborah.render.profiles import get_profile
+
     try:
         clean = normalize_recipe(recipe)
     except ValueError as exc:
@@ -338,22 +349,14 @@ def _render_preview(source: str, recipe: dict[str, Any]) -> dict[str, Any]:
     fmt = clean["output_format"]
     options = {k: v for k, v in clean.items() if k not in ("profile", "language", "output_format")}
     try:
-        out = render_plan(
-            source, profile=clean["profile"], language=clean["language"],
-            output_format=fmt, options=dict(options),
-        )
+        opts: dict[str, Any] = dict(DEFAULT_OPTIONS)
+        opts.update(options)
+        # Composer previews stay usable on imperfect drafts; surface the path.
+        doc = apply_filters(normalize_input(source, lenient=True), opts)
+        result = get_profile(clean["profile"]).render(doc, clean["language"], opts)
+        out = apply_format(result, doc, fmt)
         text = json.dumps(out, indent=2) if isinstance(out, dict) else str(out)
-        # A second pass in JSON to pull structured warnings (cheap, pure).
-        warnings: list[str] = []
-        try:
-            meta = render_plan(
-                source, profile=clean["profile"], language=clean["language"],
-                output_format="json", options=dict(options),
-            )
-            if isinstance(meta, dict):
-                warnings = (meta.get("metadata") or {}).get("warnings") or []
-        except Exception:  # noqa: BLE001 - warnings are best-effort
-            warnings = []
+        warnings = list(result.metadata.get("warnings") or doc.warnings or [])
         return {"ok": True, "output": text, "format": fmt,
                 "warnings": warnings, "line_count": text.count("\n") + 1}
     except Exception as exc:  # noqa: BLE001 - report any render error to the UI

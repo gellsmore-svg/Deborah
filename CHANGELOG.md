@@ -15,6 +15,14 @@
   - `TemplateStore.save_template` rejects a slug collision when the stored
     display name differs, so `"Exec Brief"` cannot be clobbered by
     `"exec brief"`. Same-name re-save still overwrites.
+- **Composer + examples + manifest polish** (issues #7, #9, #11, #13, #16):
+  - `/api/render` preview uses a **single** parse/render pass (warnings come
+    from the `RenderResult`, not a second `render_plan` call).
+  - `validate_examples.py` accepts PLAN-only documents (PROCESS or PLAN).
+  - Manifest maps library capabilities to `deborah-validate` /
+    `deborah-render`; documents that `deborah-serve` is operator-only.
+    `render_plan` schema lists `en`/`es`/`fr` and optional `stylesheet`.
+  - `render_plan` docstring lists French; dead `_STYLES_DIR` removed.
 
 ## [0.9.0] — 2026-07-31
 

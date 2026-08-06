@@ -19,6 +19,20 @@ def test_manifest_conforms_and_lists_grammar():
     assert "render_plan" in tool_names
 
 
+def test_manifest_maps_cli_surface_and_languages():
+    """Deborah #9/#13: MCP surface names CLI counterparts; fr is listed."""
+    m = build_manifest()
+    assert "deborah-serve" in m.description
+    assert "operator-only" in m.description
+    render = next(c for c in m.capabilities if c.name == "render_plan")
+    assert "deborah-render" in render.description
+    langs = render.input_schema["properties"]["language"]["enum"]
+    assert langs == ["en", "es", "fr"]
+    assert "stylesheet" in render.input_schema["properties"]
+    validate_doc = next(c for c in m.capabilities if c.name == "validate_document")
+    assert "deborah-validate" in validate_doc.description
+
+
 def test_manifest_advertises_only_the_language():
     """The analysis capabilities moved to Huldah — Deborah must not claim them.
 

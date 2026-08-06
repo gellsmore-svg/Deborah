@@ -21,8 +21,10 @@ def validate(path: Path) -> list[str]:
     errors: list[str] = []
     if doc.parse_errors:
         errors.extend(f"{path.name}: {err}" for err in doc.parse_errors)
-    if not doc.processes:
-        errors.append(f"{path.name}: no PROCESS backbone parsed")
+    # PROCESS or PLAN backbone is enough — PLAN-only docs are grammar-valid
+    # (Deborah #11). CONTEXT/REQUIREMENTS-only files still fail validate_document.
+    if not doc.processes and not doc.plans:
+        errors.append(f"{path.name}: no PROCESS or PLAN backbone parsed")
     for err in validate_document(doc):
         if err not in doc.parse_errors:
             errors.append(f"{path.name}: {err}")

@@ -35,9 +35,27 @@ def test_render_preview_ok_and_bad_recipe() -> None:
     assert good["ok"] is True
     assert good["format"] == "markdown"
     assert good["line_count"] >= 1
+    assert "warnings" in good
 
     bad = _render_preview(_SAMPLE, {"profile": "does-not-exist"})
     assert bad["ok"] is False and "unknown profile" in bad["error"]
+
+
+def test_render_preview_is_single_pass(monkeypatch) -> None:
+    """Deborah #7: preview must not re-render solely to harvest warnings."""
+    from deborah.render import parse as parse_mod
+
+    calls = {"n": 0}
+    real = parse_mod.normalize_input
+
+    def counting_normalize(*args, **kwargs):
+        calls["n"] += 1
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(parse_mod, "normalize_input", counting_normalize)
+    out = _render_preview(_SAMPLE, {"profile": "narrative_steps", "output_format": "markdown"})
+    assert out["ok"] is True
+    assert calls["n"] == 1
 
 
 def test_render_preview_empty_source() -> None:
