@@ -15,7 +15,7 @@ template** — which is persisted as a stylesheet, directly reusable via
 Security posture: bind to 127.0.0.1 by default. There is no auth; the operator
 runs it locally, browser on the same host.
 
-Requires the ``web`` extra: ``pip install 'cairn-lang[web,render]'``.
+Requires the ``web`` extra: ``pip install 'deborah[web,render]'``.
 """
 
 from __future__ import annotations
@@ -436,7 +436,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         import uvicorn
     except ImportError:
-        print("The composer needs the 'web' extra: pip install 'cairn-lang[web,render]'")
+        print("The composer needs the 'web' extra: pip install 'deborah[web,render]'")
         return 1
 
     store = TemplateStore(args.templates_dir)

@@ -2,7 +2,7 @@
 type: Concept
 title: STATE
 description: Explicitly declared state that steps read and write, with scopes that say how widely it is shared — process-local, shared across a parallel branch, or isolated — so data flow and concurrency semantics are visible rather than implied.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, state, scope, concurrency]
 timestamp: 2026-06-19T00:00:00Z
 ---

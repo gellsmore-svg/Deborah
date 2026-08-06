@@ -1,89 +1,99 @@
-# Cairn Usage Modes
+# Deborah / Cairn usage modes
 
-Cairn supports several modes without making the core language carry every
-runtime concern. Use the lightest mode that fits the work.
+Deborah supports several modes without making the core language carry every
+runtime concern. Use the lightest mode that fits. The language **frames**
+cross-LLM caller↔capability work; it does not replace capability registries,
+trace spines, or human-systems analysis products.
 
-## Mode 1: PyPI Package And CLI
+## Mode 1: PyPI package and CLI
 
-Use when you want deterministic local analysis, validation, rendering, UI
-evidence, recommendations, or reports.
+Use when you want local validation, rendering, or composition.
 
 ```bash
-pip install cairn-lang
+pip install deborah
+# optional: pip install 'deborah[render]' 'deborah[web]' 'deborah[export]'
+
 deborah-validate examples/hoglah.cairn.md
-huldah-human-factors examples/accounts-payable-exception.cairn.md
-huldah-layout-load docs/analysis/customer-po-review-layout.json
-huldah-recommend-interface-changes docs/analysis/customer-po-review-ui-sim-report.json
-huldah-generate-report --input examples/accounts-payable-exception.cairn.md \
-  --interface-evidence docs/analysis/customer-po-review-ui-sim-report.json \
-  --format html --output report.html
+deborah-validate plan.cairn.md --export-plan
+deborah-render examples/keturah.cairn.md --profile operator
+deborah-serve   # interactive transformation-view composer
 ```
 
-Use `cairn-lang[export]` when PDF or DOCX export is needed.
+Human-factors and UI-analysis CLIs moved to Huldah:
 
-## Mode 2: Repo Or Library With LLM Calls
+```bash
+pip install huldah
+huldah-human-factors examples/accounts-payable-exception.cairn.md
+```
 
-Use when Cairn is part of a recursive local or remote analysis loop. The core
-contract is still small: Cairn prepares prompts and context, and a provider
-returns text.
+## Mode 2: Library — parse, validate, plan export, render
 
-- `CommandLLMProvider` calls any command that reads JSON on stdin.
-- `HoglahLLMProvider` submits durable queued jobs when Hoglah is installed.
-- Hosted wrappers in `cairn.llm_wrappers` provide non-interactive HTTP adapters
-  for Grok/xAI, Claude/Anthropic, OpenAI-compatible endpoints, and Gemini.
+```python
+from deborah import (
+    parse_document,
+    validate_document,
+    document_to_plan,
+    validate_plan,
+    CORE_CONSTRUCTS,
+)
+from deborah.render import render_plan
 
-API keys are read from environment variables: `XAI_API_KEY`,
-`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`.
+doc = parse_document(open("examples/tirzah-plan-interpreter.cairn.md").read())
+assert not validate_document(doc)
+plan = document_to_plan(doc)
+assert validate_plan(plan) == []
+print(plan.get("intent"), plan.get("assumes"), plan.get("on_uncertainty"))
 
-## Mode 3: Manual Agent Analysis From A GitHub Link
+view = render_plan(open("examples/keturah.cairn.md").read(), profile="operator")
+```
 
-Use when a person gives a repo link or process file to an agent such as Codex,
-Claude, Grok, Amazon Q, Cursor, or Gemini and asks it to analyze with Cairn.
+For recursive LLM *analysis* of human-system dimensions, use Huldah’s providers
+and report builders — not Deborah.
 
-Do not rely on a loose prompt. Point the agent to:
+## Mode 3: Crystallised cross-LLM processes
 
-- `docs/orchestration/manual-agent-analysis.cairn.md`
-- `docs/orchestration/agent-harness-playbook.md`
-- `okf/concepts/index.md`
-- `docs/HCI-TOUCHPOINTS.md`
-- `docs/FUNCTIONAL-LAYOUT-LOAD.md`
+Use when an LLM caller (or human) has agreed how to engage a capability surface
+and you need a **versioned** `PROCESS` / `PLAN` that can be interpreted under
+bounds (SPEC §14).
 
-The orchestration pattern requires the agent to load the OKF bundle, apply
-human-factors and augmentation lenses, generate OKF-traceable recommendations,
-and produce a report. Every recommendation must cite the exact OKF file and
-concept that drove it.
+Typical flow:
 
-When the interactive harness can run local code, treat the manual mode as
-tool-assisted rather than prompt-only. An agentic interface such as Codex CLI
-should use the installed Cairn Python package and CLI commands for validation,
-human-factors analysis, UI evidence review, layout-load analysis, interface
-recommendations, and report generation wherever those tools fit the evidence.
-The agent still interprets, prioritises, and explains, but deterministic Cairn
-libraries should carry the repeatable parts of the work.
+1. Discover capabilities via **Keturah** / MCP.
+2. Optionally negotiate (bounded protocol; recorded in **Galeed**).
+3. Author or emit a `.cairn.md` PLAN with `INTENT`, `OUTCOMES`, `ASSUMES`,
+   `ON_UNCERTAINTY`.
+4. Validate with `deborah-validate` / `validate_plan`.
+5. Interpret with a runtime that enforces allow-lists and bounds (estate
+   roadmap: Deborah runtime extracted from Tirzah planning).
 
-For a concrete sequence, see
-`docs/orchestration/agent-harness-playbook.md`.
+Do **not** treat free-form multi-round tool chat as the long-term execution
+path; re-negotiation is a new REVISION.
 
-## Mode 4: Embedded Governance Library
+## Mode 4: Embedded governance contract
 
-Use when another product needs Cairn as a semantic contract: validation,
-rendering, human-factor review, UI evidence, or recommendation generation inside
-its own runtime. Keep product logging, user identity, and domain storage outside
-Cairn unless they are generic enough for the core.
+Use when another product needs Deborah as a semantic contract: validation,
+rendering, or plan export inside its own runtime. Keep product logging,
+identity, and domain storage outside Deborah unless they are generic enough
+for the core (e.g. `ASSUMES` pins).
 
-## Mode 5: CI Or Review Gate
+## Mode 5: CI or review gate
 
-Use when a repo wants pull requests to validate process files, render views, or
-generate review artifacts. Recommended gates:
+Recommended gates:
 
-- `deborah-validate` for `.cairn.md` files.
-- `huldah-human-factors` for human-facing process changes.
-- `huldah-recommend-interface-changes` for UI evidence snapshots.
-- `huldah-generate-report` for review bundles.
+- `deborah-validate` (or `scripts/validate_examples.py`) for `.cairn.md` files.
+- Optional `deborah-render` smoke for key profiles.
+- Huldah CLIs for human-facing process / UI evidence review when those docs
+  change.
 
-## Boundary Guidance
+## Boundary guidance
 
-Keep Cairn focused on the semantic spine: process language, OKF concepts,
-deterministic analysis, traceable recommendations, and portable reporting.
-Separate repos or modules are better for durable production telemetry, hosted
-dashboards, long-running workflow workers, and product-specific integrations.
+| Concern | Home |
+|---|---|
+| Process language, PLAN framing, conformance | **Deborah** |
+| Capability manifests / MCP | **Keturah** |
+| Trace, decisions, LLM call cost | **Galeed** |
+| Human-factors analysis & UI evidence | **Huldah** |
+| Continuous learning of surface interrogation | Learning architecture (not Cairn docs) |
+
+Keep Deborah focused on the semantic spine: readable process language,
+crystallisable plans, and machine-checkable structure.

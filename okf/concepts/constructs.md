@@ -2,7 +2,7 @@
 type: Concept
 title: Process constructs
 description: The vocabulary of PROCESS blocks — PROCESS, STEP, PURPOSE, MILESTONE, ITERATE (with BREAK/CONTINUE), RECURSE, QUEUE, PARALLEL…MERGE, SERVICE, DECISION, RETRY, ERROR, AWAIT, and CALL — covering iteration, recursion, concurrency, queuing, decisions, and error handling.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, constructs, control-flow]
 timestamp: 2026-06-19T00:00:00Z
 ---

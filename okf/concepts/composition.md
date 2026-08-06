@@ -2,7 +2,7 @@
 type: Concept
 title: Composition & conformance
 description: Processes compose via signatures and CALL; requirements/outcomes are declarative testable assertions linked to the steps that satisfy them; structural conformance defines what makes a document valid Cairn, and versioning governs how the language evolves.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, composition, requirements, conformance, versioning]
 timestamp: 2026-06-19T00:00:00Z
 ---

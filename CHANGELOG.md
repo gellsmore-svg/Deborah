@@ -8,6 +8,10 @@
   `INTENT` / `OUTCOMES` / `ASSUMES` / `ON_UNCERTAINTY` / `REEVALUATE_WHEN` and
   terminal statuses `open` / `refused`. Conformance `1.1` exports
   `CORE_CONSTRUCTS`, `ON_UNCERTAINTY_POLICIES`, `is_core_construct`.
+- **Docs pass:** README, usage-modes, grammar/view docs, OKF bundle, CONTRIBUTING,
+  MIGRATING, and examples index aligned with v0.10; removed stale Huldah API
+  imports and broken doc links from the Deborah README; package description
+  updated.
 - `__version__` is derived from the installed distribution instead of a
   hand-maintained literal, so it cannot drift from `pyproject.toml`. Guarded by
   `tests/test_version.py`. (Nothing had drifted; this closes the trap that left

@@ -80,52 +80,43 @@ They read the same `.cairn.md` documents this package defines.
 Or programmatically:
 
 ```python
+from deborah import parse_document, validate_document, document_to_plan, validate_plan
 from deborah.render import render_plan, export_view
 
+doc = parse_document(text)
+errors = validate_document(doc)
+plan = document_to_plan(doc)
+assert validate_plan(plan) == []
+
 view = render_plan(text, profile="operator")
-pdf = export_view(view, "pdf")
-
-from deborah import analyze_human_factors, build_agent_harness_plan
-report = analyze_human_factors(text)  # pure Python; no LLM service required
-plan = build_agent_harness_plan(process_path="my-process.cairn.md", ui_evidence_path="ui-evidence.json")
-
-from deborah import CommandLLMProvider, HoglahLLMProvider, interpret_human_factors
-provider = CommandLLMProvider("my-llm-wrapper --model local")
-interpretation = interpret_human_factors(text, provider)
-
-queued = HoglahLLMProvider(model="gemma3:1b")
-queued_interpretation = interpret_human_factors(text, queued)
+pdf = export_view(view, "pdf")  # requires deborah[export]
 ```
 
-Interactive composer: `deborah-serve`
+Interactive composer: `deborah-serve` (requires `deborah[web]`).
 
 ## What it's for
 
-- Documenting **requirements** and technical specifications in design documents.
-- **Reverse-engineering** hidden or unclear processes out of existing code, AI
-  systems, or legacy implementations.
-- Defining **governed agentic** processes — recursive calls, iterative
-  refinement, dynamic LLM decisions, tool boundaries, serialized agent
-  discussions, trace, and outcome alignment.
-- Real-world use cases: recursive agentic workflows (chat interfaces, autonomous
-  systems), low-resource queuing, semantic engines, multi-step reasoning.
-- Describing work as it actually happens: technical mechanisms embedded in
-  human contexts, including cognitive, emotional, organisational, and social
-  dynamics.
-- New constructs for human dimensions: REGULATION, APPRAISAL, FEEDBACK, MACRO (psych), COALITION, ALIGN, VISION, RESISTANCE (org), SOCIALIZE, SYMBOLIC_INTERACTION, ROLE (socio), etc.
-- Multi-scale STATE (e.g. scope: org.team), enhanced EMERGENT with attrs, domain-aware validation.
-- Human demand mapping: ORIENT / ACT / CLOSE demand, recovery, trust, support,
-  AI role-play simulation findings, and cognitive-load metrics for human-facing
-  process steps.
-- Human factors semantics: a browsable lens library for plausible cognitive,
-  psychological, social, organisational, behavioural-economic, and incentive
-  risks, with qualitative probability/impact estimates.
-- Augmentation process semantics: human-AI role complementarity,
-  cognitive-state adaptation, interaction richness, trust calibration, and
-  bias dynamics.
+- **Framing cross-LLM work** — how LLM callers interact with LLM-consumed
+  capabilities (tools, services, roles): intent, outcomes, pins, bounds, and
+  residual uncertainty (`open` / `refused`), without pretending to make
+  stochastic steps pure functions. See [SPEC.md](SPEC.md) §14–§17.
+- **Crystallising** negotiated or hand-authored sequences into versioned
+  `PROCESS` / `PLAN` documents that an interpreter can walk under allow-lists
+  and bounds.
+- Documenting **requirements** and technical specifications in design docs.
+- **Reverse-engineering** hidden or unclear processes out of existing systems.
+- Governed agentic flows: recursion, iteration, tool boundaries, revision,
+  approval gates, and outcome alignment.
+- Describing work in **human systems** (cognitive, organisational, social) with
+  descriptive constructs and render profiles — while the **core** construct
+  profile stays portable for execution (`deborah.CORE_CONSTRUCTS`).
 
-Put simply: Cairn treats software work, thinking work, and organisational work
-as processes embedded in human systems, not as purely mechanical flows.
+Human-factors analysis, UI evidence, layout load, and agent-harness reporting
+live in **[Huldah](https://github.com/gellsmore-svg/Huldah)** and consume the
+same `.cairn.md` format.
+
+Put simply: Cairn describes how callers and capabilities work together inside
+real human systems — not only mechanical control flow.
 
 ## Philosophy
 
@@ -165,26 +156,13 @@ clarity always wins.
 ### Human-system awareness
 Cairn can describe psychological, organisational, and sociological processes
 alongside technical ones because governed agentic work happens inside human
-systems. These dimensions are not a separate ambition from the agentic use case;
-they are part of the operating environment that a useful agentic process must be
-able to notice, express, and review.
+systems. Domain constructs (`REGULATION`, `COALITION`, `SOCIALIZE`, …) are in the
+**descriptive** profile — they author and render well; a minimal interpreter may
+skip them without inventing runtime behaviour (SPEC §16).
 
-The human-factors layer is portable by design. The OKF concept bundle supplies a
-local semantic lookup for cognitive load, trust, social pressure,
-organisational change, behavioural economics, and incentive patterns. The
-offline analyzer can run as a normal PyPI module without a service dependency;
-an LLM can later be attached as an optional interpreter that reads the same
-report and starts a richer design conversation.
-
-LLM integration is provider-neutral. A command provider receives JSON on stdin
-(`task`, `prompt`, and `context`) and returns either plain text or JSON with a
-`text` field. That means local llama.cpp/Ollama scripts, hosted-model CLIs,
-Claude/Codex wrappers, or a Hoglah queue submitter can all sit behind the same
-adapter. Hoglah is a natural fit for durable queued analysis jobs, retries, and
-audit trails, and `HoglahLLMProvider` is available when `hoglah` is installed,
-but Cairn does not require it.
-
-See `examples/llm_command_stub.py` for the minimal provider contract.
+Human-factors analysis tooling and provider adapters for offline interpretation
+ship in **Huldah**, not Deborah. Capability manifests for MCP/tool discovery
+ship in **Keturah**. Trace and cost of runs live in **Galeed**.
 
 ### Practical and evolving
 Cairn is meant to be used "in anger" on real projects, evolving from actual needs
@@ -195,75 +173,65 @@ rather than theoretical perfection.
 
 ## Status
 
-Cairn carries **two independent version numbers**, and they are not meant to match:
+Deborah carries **two independent version numbers** (they are not meant to match):
 
 | What | Where it lives | Current |
 |---|---|---|
-| **Specification version** — the language itself | `SPEC.md` heading, `GRAMMAR.md` | **v0.9** |
-| **Package version** — the Python implementation on PyPI as `cairn-lang` | `pyproject.toml`, `CHANGELOG.md`, git tag | **0.8.2** |
+| **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.10** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.9.0** |
 
-The package version is the single source of truth for anything installable; it is
-set in `pyproject.toml`, recorded in `CHANGELOG.md`, and tagged (`v0.8.2`). The
-specification version moves only when the language changes — v0.9 added versioned
-live `PLAN` envelopes for bounded recursive revision of a `PROCESS` backbone.
+Specification **v0.10** states the cross-LLM framing role, crystallisation
+lifecycle, capability pins (`ASSUMES`), terminal statuses `open`/`refused`, and
+core vs descriptive construct profiles. Package **0.9.0** is the Deborah rename
++ Huldah split; grammar/render/validate CLIs and conformance `1.1` land with the
+current tree (see [CHANGELOG.md](CHANGELOG.md) Unreleased for post-0.9.0 work
+not yet cut as a package release).
 
-**Package 0.8.2** — complete export support (`html`/`docx`/`pdf`), interactive `deborah-serve`, executable grammar + conformance, multiple render profiles, and real usage examples across the family stack.
-
-A structural grammar is in [GRAMMAR.md](GRAMMAR.md). Refined by describing real
-systems (Tirzah, Hoglah, Mahalath, etc.).
+Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
+Huldah where needed). Prefer `pip install deborah`.
 
 ## Repository
 
-- [SPEC.md](SPEC.md) — the specification (v0.9).
-- [GRAMMAR.md](GRAMMAR.md) — structural EBNF for the skeleton.
-- [examples/](examples/) — real systems described in Cairn (Tirzah, Hoglah, Mahalath, Mahlah, Milcah, Mizpah); see `tirzah-system.cairn.md` for end-to-end composition.
-- [CHANGELOG.md](CHANGELOG.md) — how the spec has evolved.
-- [docs/HUMAN-FACTORS-METHODOLOGY.md](docs/HUMAN-FACTORS-METHODOLOGY.md) — how
-  to annotate human demand, factors, qualitative risk, and LLM-assisted review.
-- [docs/HCI-TOUCHPOINTS.md](docs/HCI-TOUCHPOINTS.md) — how consuming LLMs should
-  analyze UI touchpoints and cognitive-aesthetic load.
-- [docs/FUNCTIONAL-LAYOUT-LOAD.md](docs/FUNCTIONAL-LAYOUT-LOAD.md) — how to
-  estimate form/layout traversal load from UI geometry.
-- [docs/usage-modes.md](docs/usage-modes.md) — PyPI, recursive LLM, manual
-  GitHub-link agent, embedded, and CI/review-gate usage modes.
-- [docs/orchestration/manual-agent-analysis.cairn.md](docs/orchestration/manual-agent-analysis.cairn.md)
-  — a Cairn-described orchestration pattern for manual agent analysis.
-- [docs/orchestration/agent-harness-playbook.md](docs/orchestration/agent-harness-playbook.md)
-  — concrete CLI/Python sequence for tool-assisted interactive agent use.
+- [SPEC.md](SPEC.md) — normative specification (**v0.10**).
+- [GRAMMAR.md](GRAMMAR.md) — structural EBNF (including PLAN framing fields).
+- [examples/](examples/) — family systems and domain suites in `.cairn.md`.
+- [CHANGELOG.md](CHANGELOG.md) — package and language evolution.
+- [MIGRATING.md](MIGRATING.md) — Cairn → Deborah / Huldah split.
+- [docs/usage-modes.md](docs/usage-modes.md) — CLI, library, embedded, CI modes.
+- [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md) — executable grammar API.
+- [docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md) — render profiles and export.
+- [okf/](okf/) — Open Knowledge Format concept bundle for the language.
 - [docs/future-usage-logging-spec.md](docs/future-usage-logging-spec.md) —
-  future plan for real-world touchpoint logging and analysis.
+  notes on future touchpoint logging.
 - [docs/augmentation-integration-notes.md](docs/augmentation-integration-notes.md)
-  — how the augmentation process research was mapped into Cairn.
-- [okf/](okf/index.md) — an [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing)
-  knowledge bundle: Cairn's concepts and reference, as linked markdown.
+  — how augmentation-process research maps into Cairn.
+- Human-factors / UI analysis docs and CLIs →
+  [Huldah](https://github.com/gellsmore-svg/Huldah).
 
 ## Feedback & contributing
 
 Cairn evolves from real use, so **feedback is the point** — especially from
-describing your own processes in it. That is exactly how v0.7 was shaped.
+describing your own processes in it.
 
-- **Ambiguity, gap, or rough edge?** Open a
-  [feedback issue](../../issues/new/choose).
-- **A new construct, tag, or change?** Open a proposal (same chooser) — say what
-  real process motivated it; concrete beats theoretical.
-- **Questions, ideas, show-and-tell?** Use the
-  [Discussions](../../discussions) tab.
-- See [CONTRIBUTING.md](CONTRIBUTING.md) for how proposals are handled.
+- Open a GitHub issue for ambiguities, gaps, or proposals (show the real process
+  that motivated a language change).
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for principles (including core vs
+  descriptive constructs and non-goals).
 
 ## License
 
 [Apache License 2.0](LICENSE).
 
-## Conformance (`cairn` package)
+## Conformance (`deborah` package)
 
-Cairn is primarily a spec, but it also ships a tiny, dependency-free
+Deborah is primarily a language package, but it ships a tiny, dependency-free
 **conformance surface** so a runtime can validate the plans it produces instead of
 embedding a private dialect:
 
 ```python
 import deborah
 
-# Runtime PLAN dict conformance (SPEC §4.5)
+# Runtime PLAN dict conformance (SPEC §4.5 / conformance 1.1)
 errors = deborah.validate_plan(plan_dict)   # [] when conformant
 
 # Structural grammar (GRAMMAR.md EBNF + SPEC §12 well-formedness)
@@ -273,8 +241,9 @@ plan = deborah.document_to_plan(doc)        # first PLAN or PROCESS → plan dic
 
 # Simplified human-readable views
 view = deborah.render_plan(cairn_text_or_markdown, profile="narrative_steps")
-cairn.CANONICAL_PLAN                       # an executable known-good fixture
-cairn.PLAN_CONSTRUCTS                      # the allowed step constructs (SPEC §5)
+deborah.CANONICAL_PLAN                      # known-good fixture
+deborah.CORE_CONSTRUCTS                     # execution-normative constructs
+deborah.PLAN_CONSTRUCTS                     # core + descriptive domain set
 ```
 
 CLI: `deborah-validate examples/hoglah.cairn.md` · `deborah-render examples/hoglah.cairn.md`

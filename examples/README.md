@@ -1,6 +1,13 @@
 # Cairn examples
 
-Worked Cairn descriptions of real systems, used to stress-test the spec.
+Worked Cairn descriptions of real systems, used to stress-test the Deborah
+specification (**SPEC v0.10**). Documents use the Cairn format (`.cairn.md`);
+the maintaining package is `deborah`.
+
+**Framing:** examples that model live PLAN propose/execute/revise
+(`tirzah-recursive-planning`, `tirzah-plan-interpreter`) illustrate
+crystallisation targets — versioned plans for cross-LLM work, not a claim that
+stochastic steps become pure functions.
 
 ## Expanded Example Library
 

@@ -17,8 +17,12 @@ fences, `HUMAN_*` annotation blocks and every example are unchanged, and both
 packages still read and write them. Only the Python distributions were renamed —
 the rename was about a crowded PyPI/GitHub namespace, not about the language.
 
-The grammar, the conformance rules and the plan schema are byte-identical to
-`cairn-lang` v0.8.2. This is a repackaging, not a language revision.
+At the split (package 0.9.0), the grammar, conformance rules and plan schema were
+byte-identical to `cairn-lang` v0.8.2 — a **repackaging**, not a language
+revision. Since then, **SPEC v0.10** adds *optional* PLAN framing fields
+(`INTENT`, `OUTCOMES`, `ASSUMES`, `ON_UNCERTAINTY`, `REEVALUATE_WHEN`) and
+terminal statuses `open` / `refused`. Existing documents remain valid; new fields
+are additive.
 
 ## Nothing breaks on day one
 
@@ -95,3 +99,12 @@ MCP tool names change namespace accordingly: `cairn.render_plan` →
 `[render]`, `[web]` and `[export]` stay with **deborah** — the docx/pdf
 exporters live in `deborah.render.export`, and Huldah's reporting calls into
 them. `huldah[export]` simply defers to `deborah[export]`.
+
+## Role of Deborah (post-split)
+
+Deborah is the **process language** package: framing how LLM *callers* interact
+with LLM-consumed *capabilities*, crystallising that into versioned PROCESS/PLAN
+documents, validating structure, and rendering audience views. It is not the
+home of human-factors analysis (Huldah), capability registry (Keturah), or
+trace/cost (Galeed). See [SPEC.md](SPEC.md) (v0.10) opening role statement and
+§14–§17.

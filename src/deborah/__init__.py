@@ -1,15 +1,16 @@
-"""Deborah — process meta-language: spec, grammar, and conformance surface.
+"""Deborah — Cairn process language: framing, grammar, conformance, and views.
 
-The repo is primarily a specification (SPEC.md / GRAMMAR.md). This package exposes
-the machine-readable conformance surface and simplified view generation for plans
-and process descriptions.
+Maintains the **Cairn** document format for framing cross-LLM caller↔capability
+work (SPEC.md / GRAMMAR.md). This package exposes parse/validate, plan
+conformance, and simplified view generation.
 
-*Deborah was a judge* — judgment, governance, conformance. The human-systems
-analysis that used to ship in the same package now lives in Huldah.
+*Deborah was a judge* — judgment, governance, conformance. Human-systems
+analysis lives in **Huldah**; capability manifests in **Keturah**; traces in
+**Galeed**.
 
 Dependency-free by default: nothing here imports anything outside the standard
-library, so any runtime can adopt the conformance surface. The document format
-keeps the Cairn name — `.cairn.md` sources and ```cairn fences are unchanged.
+library. The document format keeps the Cairn name — ``.cairn.md`` sources and
+```cairn fences are unchanged.
 """
 
 from importlib.metadata import PackageNotFoundError, version as _pkg_version

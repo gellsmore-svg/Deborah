@@ -2,7 +2,7 @@
 type: Concept
 title: Augmentation process
 description: A Cairn lens for human-AI augmentation, cognitive-state awareness, adaptation, complementarity, trust calibration, and bias dynamics in collaborative workflows.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, augmentation, human-ai, trust, cognitive-state, adaptation]
 timestamp: 2026-07-09T00:00:00Z
 ---

@@ -4,23 +4,27 @@ Executable implementation of [GRAMMAR.md](../GRAMMAR.md) (structural EBNF) and
 [SPEC.md](../SPEC.md) §12 well-formedness rules. The parser constrains the
 *skeleton* only — step prose stays free text.
 
+Package import path: **`deborah`** (document format name remains Cairn).
+
 ## Install
 
 ```bash
 pip install -e ".[dev]"
+# or: pip install deborah
 ```
 
 ## Quick start
 
 ```python
-import cairn
+import deborah
 
 text = open("examples/hoglah.cairn.md").read()
-doc = cairn.parse_document(text)
-errors = cairn.validate_document(doc)
+doc = deborah.parse_document(text)
+errors = deborah.validate_document(doc)
 
 if not errors:
-    plan = cairn.document_to_plan(doc)   # optional: runtime PLAN dict
+    plan = deborah.document_to_plan(doc)  # optional: runtime PLAN dict
+    assert deborah.validate_plan(plan) == []
 ```
 
 CLI:
@@ -39,17 +43,30 @@ deborah-validate examples/hoglah.cairn.md --export-ast
 | `parse_document(text)` | `CairnDocument` | Parse raw Cairn or `.cairn.md` markdown wrapper |
 | `validate_document(doc)` | `list[str]` | SPEC §12 well-formedness (`[]` = well-formed) |
 | `document_to_plan(doc)` | `dict` | Export first `PLAN` or first `PROCESS` as a runtime plan |
-| `document_to_dict(doc)` | `dict` | JSON-serializable AST (for tooling / inspection) |
+| `document_to_dict(doc)` | `dict` | JSON-serializable AST |
 | `extract_cairn_source(text)` | `(str, kind)` | Strip markdown sections/fences to skeleton text |
+| `validate_plan(plan_dict)` | `list[str]` | Runtime PLAN contract (conformance 1.1) |
 
-`cairn.validate_plan(plan_dict)` remains the runtime PLAN contract (JSON dicts
-from planners). `validate_document` validates authored Cairn prose/markdown.
+## PLAN framing fields (SPEC v0.10)
+
+Parsed on the `Plan` AST and exported by `document_to_plan` when present:
+
+| Field | Export key | Notes |
+|---|---|---|
+| `INTENT:` | `intent`, also feeds `objective` | Caller-facing success meaning |
+| `OUTCOMES:` (+ bullets) | `outcomes`, `stopping_conditions` | End-states to judge against |
+| `ASSUMES:` | `assumes` | Capability pins `name` or `name@version` |
+| `ON_UNCERTAINTY:` | `on_uncertainty` | `record` \| `escalate` \| `abort` |
+| `REEVALUATE_WHEN:` | `reevaluate_when` | Reopen hooks for surface/model change |
+
+Terminal plan statuses include `open` and `refused` (residual uncertainty and
+capability refusal are outcomes, not crashes).
 
 ## Markdown wrappers
 
 `.cairn.md` files use `## CONTEXT` bullets, fenced `REQUIREMENTS` / `PROCESS`
 blocks, and optional `OUTCOMES` prose. `extract_cairn_source` lifts these into a
-single parseable skeleton (section headers are re-inserted where needed).
+single parseable skeleton.
 
 ## Well-formedness (SPEC §12)
 
@@ -57,23 +74,25 @@ single parseable skeleton (section headers are re-inserted where needed).
 2. Every PROCESS has a name (signature when I/O declared)
 3. Consistent step numbering / nesting
 4. Reserved tags: one value per dimension; custom tags namespaced
-5. `STATE UPDATE` references declared STATE (document-wide), CONTEXT keys, or signature params
-6. LLM-driven `ITERATE`/`RECURSE` carry `MAX`/`MAX_DEPTH`/`UNTIL`/`OVER`
-7. `BREAK`/`CONTINUE` inside loops — including callee PROCESSes invoked from `ITERATE`/`QUEUE`
+5. `STATE UPDATE` references declared STATE, CONTEXT keys, or signature params
+6. LLM-driven `ITERATE`/`RECURSE` carry a bound (`MAX` / `MAX_DEPTH` / …)
+7. `BREAK`/`CONTINUE` inside loops
 8. `AWAIT` declares `TIMEOUT`
 
-Syntax errors land in `doc.parse_errors`; well-formedness errors are returned
-by `validate_document` (which also includes parse errors).
+Examples may be **PLAN-only** (PROCESS backbone nested under PLAN) —
+`scripts/validate_examples.py` accepts PROCESS or PLAN.
 
 ## Render integration
 
-`cairn.render_plan` uses the grammar parser by default (`normalize_input(use_grammar=True)`),
-projecting the AST through `cairn.grammar.bridge.document_to_render_model`.
+`deborah.render_plan` uses the grammar parser by default
+(`normalize_input(use_grammar=True)`), projecting the AST through
+`deborah.grammar.bridge.document_to_render_model`. Grammar exceptions raise
+unless `lenient=True` / `deborah-render --lenient`.
 
 ## Module layout
 
 ```
-src/cairn/grammar/
+src/deborah/grammar/
   ast.py          # CairnDocument, Process, Step, Plan, …
   lexer.py        # indent-aware lines
   parser.py       # recursive descent
@@ -86,9 +105,7 @@ src/cairn/grammar/
 
 ## Examples
 
-All files in `examples/*.cairn.md` must parse with zero syntax errors:
-
 ```bash
 python scripts/validate_examples.py
-pytest tests/test_grammar.py
+pytest tests/test_grammar.py tests/test_conformance.py
 ```

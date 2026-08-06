@@ -2,36 +2,36 @@
 
 ## 1. Overview / Purpose
 
-Develop a Python-based component (as an extension or module within the existing
-`cairn` Python package) that transforms a formal CAIRN process description into
-one or more **simplified human-readable views**.
+Develop a Python-based component (module `deborah.render` in the **Deborah**
+package) that transforms a formal Cairn process description into one or more
+**simplified human-readable views**.
 
 The goal is to reduce the cognitive load of the full formal syntax (hierarchical
-numbered steps, tags, constructs like ITERATE/DECIDE/CALL/STATE UPDATE, CONSTRAINTS,
-SATISFIES references, PLAN revision envelopes, etc.) while preserving the exact
-same underlying process steps and logic. This enables easier human understanding,
-documentation, onboarding, stakeholder communication, and collaboration alongside
-recursive LLM/agentic execution.
+numbered steps, tags, constructs like ITERATE/DECISION/CALL/STATE UPDATE,
+CONSTRAINTS, SATISFIES references, PLAN revision envelopes, etc.) while
+preserving the exact same underlying process steps and logic. This enables
+easier human understanding, documentation, onboarding, stakeholder communication,
+and collaboration alongside framed cross-LLM execution.
 
-This component acts analogously to an XSLT stylesheet: it takes structured CAIRN
+This component acts analogously to an XSLT stylesheet: it takes structured Cairn
 input (text or parsed dict) and projects it into audience-optimized output formats
 without altering the canonical source.
 
 **Scope**: Focus on view generation/transformation. Do **not** implement full
-parsing/validation (leverage the existing `cairn.validate_plan()` conformance
-surface where possible). Support the latest CAIRN v0.9 specification (including
-render profiles concept).
+parsing/validation (leverage `deborah.validate_plan()` / grammar parse where
+possible). Support SPEC **v0.10** (render profiles, PLAN framing fields).
 
 ## 2. Functional Requirements
 
 ### 2.1 Input Handling
 
-- Accept CAIRN process descriptions as:
+- Accept Cairn process descriptions as:
   - Raw Markdown/text string (`.cairn.md` style content).
-  - Parsed Python dict (compatible with existing `cairn` PLAN structures).
-- Support full PROCESS blocks, PLAN revision envelopes, nested hierarchical steps,
-  CONTEXT/REQUIREMENTS/CONSTRAINTS, and all major constructs from the grammar.
-- Gracefully handle partial or well-formed inputs (with validation warnings if needed).
+  - Parsed Python dict (compatible with Deborah PLAN structures).
+- Support full PROCESS blocks, PLAN revision envelopes (including INTENT /
+  OUTCOMES / ASSUMES where present), nested hierarchical steps,
+  CONTEXT/REQUIREMENTS/CONSTRAINTS, and major constructs from the grammar.
+- Surface parser warnings in JSON metadata; optional `lenient` grammar fallback.
 
 ### 2.2 Core Transformation Features
 
@@ -63,25 +63,24 @@ render profiles concept).
 ### 2.5 Integration & API
 
 ```python
-from cairn import render_plan
+from deborah import render_plan
 view_text = render_plan(input_cairn, profile="narrative_steps", language="en", options={...})
 ```
 
-## Implementation status (v0.7+)
+## Implementation status
 
 | Requirement | Status |
 |---|---|
 | PLAN dict input | Done |
-| Markdown input (lightweight parser) | Done |
-| `validate_plan` warnings | Done |
+| Markdown input (grammar parser default) | Done |
+| `validate_plan` / parse warnings in JSON metadata | Done |
 | narrative_steps, simple_prose, operator, executive, audit | Done |
 | boxed layout | Done |
 | markdown, text, json, mermaid, html | Done (html built-in) |
 | pluggable profiles | Done |
-| export hooks (docx/pdf) | Built-in docx (python-docx), pdf (fpdf2), html; install cairn-lang[export]; CLI supports -f docx/pdf |
-| deborah-render CLI support for exports | Done |
+| export hooks (docx/pdf) | Built-in; `pip install 'deborah[export]'` |
 | YAML/JSON stylesheet | Done (`[render]` extra) |
 | en + es + fr | Done |
 | max_depth / sections filters | Done |
-| `deborah-render` CLI | Done |
-| docx/PDF hooks | Done (`register_exporter` / `export_view`) |
+| `deborah-render` / `deborah-serve` | Done |
+| Single-pass serve preview + lenient flag | Done |

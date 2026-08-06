@@ -1,35 +1,41 @@
 ---
 type: Reference
 title: Specification (SPEC.md)
-description: The normative Cairn specification, v0.9 — covering versioned PLAN envelopes, the three document modes, the shared backbone and render profiles, the core grammar and constructs, STATE, tags, CONTEXT/CONSTRAINTS, requirements/outcomes, composition, conformance, and versioning.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
-tags: [cairn, spec, normative]
-timestamp: 2026-07-05T00:00:00Z
+description: The normative Cairn specification, v0.10 — cross-LLM framing role, PLAN envelopes and framing fields, crystallisation lifecycle, capability references, core vs descriptive constructs, three document modes, backbone and render profiles, grammar, STATE, tags, conformance, non-goals.
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
+tags: [deborah, cairn, spec, normative]
+timestamp: 2026-08-06T00:00:00Z
 ---
 
-# Specification — `SPEC.md` (v0.9)
+# Specification — `SPEC.md` (v0.10)
 
-The normative definition of Cairn. Section map:
+The normative definition of Cairn, maintained by Deborah. Section map:
 
-- §0 Reading guide · §1 [Document structure — three modes](../concepts/document-modes.md)
-- §2 Design principles · §3 [The shared backbone and its render profiles](../concepts/backbone-and-render-profiles.md)
-- §4 Core grammar · §5 [Constructs](../concepts/constructs.md)
-- §6 [STATE](../concepts/state.md) · §7 [Tags](../concepts/tags.md) · §8 CONTEXT and CONSTRAINTS
-- §9 [Requirements & Outcomes](../concepts/composition.md) · §10 [Composition (signatures + CALL)](../concepts/composition.md)
-- §11 Worked example · §12 Conformance (structural) · §13 Versioning & evolution
+- Opening role statement — Deborah frames cross-LLM caller↔capability work
+- §0 Reading guide · §1 Document structure — three modes
+- §2 Design principles · §3 Shared backbone and render profiles
+- §4 Core grammar (incl. PLAN §4.5–§4.6) · §5 Constructs
+- §6 STATE · §7 Tags · §8 CONTEXT and CONSTRAINTS
+- §9 Requirements & Outcomes · §10 Composition (signatures + CALL)
+- §11 Worked example · §12 Conformance (structural)
+- §13 Usage modes · §14 Authoring vs execution (crystallisation)
+- §15 Capability references · §16 Core vs descriptive profiles
+- §17 Non-goals · §18 Versioning
 
-It is deliberately small — the language is meant to fit in one document and be
-read by both humans and LLMs. The formal style's syntax is given precisely in the
-[grammar](grammar.md).
+It is deliberately readable — the language is meant to fit in one document and
+be used by both humans and LLMs. Formal syntax is in the [grammar](grammar.md).
 
-## §4.6 — PLAN interpretation (added in spec 0.9 / conformance 0.2+)
+## PLAN interpretation (§4.6)
 
 A `PLAN` may be **interpreted**: walked step-by-step by a runtime that enforces
 `depends_on`, `allowed_tools`, and the per-step status machine
-(`pending / active / completed / blocked / skipped` — `STEP_STATUSES` in the
-conformance surface). Dispatch is by construct; execution context crosses steps
-through a bounded artifact map; each transition emits a `plan.step.*` process
-event. The degenerate single-CALL plan collapses to a monolithic executor —
-interpretation buys granular tool gating, resumability, and live visibility.
-Tirzah's `planning/executor.py` is the reference interpreter.
+(`pending / active / completed / blocked / skipped`). Dispatch is by construct;
+execution context crosses steps through a bounded artifact map. Completing steps
+is not the same as satisfying `OUTCOMES` — residual uncertainty may end the plan
+`open`, and capability refusal may end it `refused`.
 
+## Conformance surface
+
+Machine-readable plan checks live in `deborah.conformance` (version **1.1**):
+`validate_plan`, `CORE_CONSTRUCTS`, `PLAN_STATUSES` (includes `open`/`refused`),
+`ON_UNCERTAINTY_POLICIES`, `is_core_construct`.

@@ -2,7 +2,7 @@
 type: Concept
 title: Tags
 description: Orthogonal execution dimensions attached to a step in square brackets — e.g. who acts (LLM/HUMAN/SYSTEM), determinism (DETERMINISTIC/STOCHASTIC), and timing (SYNC/ASYNC) — so the same backbone carries machine-relevant detail without changing the prose.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, tags, execution, dimensions]
 timestamp: 2026-06-19T00:00:00Z
 ---

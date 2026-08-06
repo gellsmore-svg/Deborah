@@ -2,7 +2,7 @@
 type: Concept
 title: Backbone & render profiles
 description: Every Cairn description has one canonical backbone, projected to audience-specific render profiles (ai, operator, executive, audit) by rules for what to expose and compress. You author the backbone once; the ai projection is authoritative when profiles disagree.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, backbone, render-profiles, ai, operator]
 timestamp: 2026-06-19T00:00:00Z
 ---

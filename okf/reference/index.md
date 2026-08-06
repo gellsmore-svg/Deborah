@@ -1,16 +1,15 @@
 ---
 type: Reference Index
-title: Cairn Reference
-description: The concrete artifacts — the specification (SPEC.md), the formal grammar (GRAMMAR.md), and the worked examples describing the sibling projects in Cairn.
-resource: https://github.com/gellsmore-svg/Cairn
-tags: [cairn, reference, spec, grammar, examples]
-timestamp: 2026-06-19T00:00:00Z
+title: Deborah / Cairn Reference
+description: The concrete artifacts — SPEC.md, GRAMMAR.md, and worked examples.
+resource: https://github.com/gellsmore-svg/Deborah
+tags: [deborah, cairn, reference, spec, grammar, examples]
+timestamp: 2026-08-06T00:00:00Z
 ---
 
 # Reference
 
-- **[Specification](spec.md)** — `SPEC.md` (v0.8), the normative definition.
+- **[Specification](spec.md)** — `SPEC.md` (**v0.10**), the normative definition.
 - **[Grammar](grammar.md)** — `GRAMMAR.md`, the formal (EBNF) grammar of the
-  formal style.
-- **[Examples](examples.md)** — `examples/`, the family's processes written in
-  Cairn.
+  formal style (incl. PLAN framing fields).
+- **[Examples](examples.md)** — `examples/`, family and domain processes in Cairn.

@@ -1,13 +1,13 @@
 # Simplified View Generator
 
-Python module `cairn.render` transforms formal Cairn process descriptions into
+Python module `deborah.render` transforms formal Cairn process descriptions into
 simplified human-readable views — analogous to an XSLT stylesheet projecting the
 canonical backbone into audience-optimised formats without altering source logic.
 
 ## API
 
 ```python
-from cairn import render_plan
+from deborah import render_plan
 
 # From a PLAN dict (validate_plan-compatible)
 view = render_plan(plan_dict, profile="narrative_steps", language="en")
@@ -30,6 +30,7 @@ payload = render_plan(plan_dict, output_format="json")
 | `executive` | Milestones, objectives, outcomes |
 | `audit` | Defensible record: steps, tags, requirements (SPEC §3.1) |
 | `narrative` | Alias for `narrative_steps` |
+| Domain profiles | e.g. `therapeutic`, `change_leader`, `human_demand`, `human_factors` |
 
 ### Options
 
@@ -37,24 +38,25 @@ payload = render_plan(plan_dict, output_format="json")
 - `include_tags` — show `[LLM]`, `[SATISFIES: …]` tags
 - `include_sub_blocks` — CONSTRAINTS, OUTPUT, etc.
 - `include_footnotes` — append requirement/constraint notes
+- `lenient` — fall back to legacy parser on grammar failure (with warning)
+- `max_depth`, `sections` — filters
 
 ### Stylesheets
 
-Optional YAML/JSON rules (XSLT-inspired):
+Optional YAML/JSON rules (XSLT-inspired). Saved composer templates are usable
+as stylesheets:
 
 ```bash
-pip install 'cairn-lang[render]'   # adds PyYAML
+pip install 'deborah[render]'   # adds PyYAML
+deborah-render input.cairn.md --stylesheet ~/.cairn/templates/ops.json
 ```
 
-```python
-render_plan(md, stylesheet="my-rules.yaml")
-```
-
-See `src/cairn/render/styles/default.yaml`.
+A repo-only example lives at `src/deborah/render/styles/default.yaml` (not
+shipped in the wheel).
 
 ### Languages
 
-Proof-of-concept: `en`, `es`, `fr`.
+`en`, `es`, `fr` (phrasing tables; other codes fall back to English).
 
 ## CLI
 
@@ -62,31 +64,32 @@ Proof-of-concept: `en`, `es`, `fr`.
 deborah-render examples/keturah.cairn.md --profile operator --boxed
 deborah-render plan.json --profile audit --format json -o audit.json
 deborah-render process.cairn.md --max-depth 2 --sections process,outcomes
-deborah-render examples/tirzah.cairn.md -f html -o view.html   # built-in HTML export
+deborah-render examples/tirzah.cairn.md -f html -o view.html
+deborah-render draft.cairn.md --lenient   # explicit legacy fallback + warning
 ```
+
+Interactive: `deborah-serve` (`pip install 'deborah[web]'`) — single-pass
+preview with warnings from the render result.
 
 ## Export plugins (docx / PDF)
 
-Built-in "html" exporter is always available. For docx/pdf:
+Built-in `html` exporter is always available. For docx/pdf:
+
+```bash
+pip install 'deborah[export]'
+```
 
 ```python
-from cairn.render import register_exporter, export_view, render_plan
+from deborah.render import export_view, render_plan
 
-def to_docx(result, options):
-    ...  # your docx builder (pip install python-docx)
-    return b"..."
-
-register_exporter("docx", to_docx)
-
-# CLI now supports it:
-# deborah-render input.cairn.md -f docx -o out.docx
 bytes_out = export_view(render_plan(md), "docx")
 ```
 
 ## Scope
 
 - View generation / transformation only
-- Uses `cairn.grammar` by default for markdown/Cairn text; `validate_plan()` for PLAN dicts
-- Cairn v0.9 render-profile alignment (`operator`, `executive`)
+- Uses `deborah.grammar` by default for markdown/Cairn text; `validate_plan()`
+  for PLAN dicts
+- Aligned with SPEC render profiles (`operator`, `executive`, `audit`, …)
 
 Full requirements: [VIEW-GENERATOR-REQUIREMENTS.md](VIEW-GENERATOR-REQUIREMENTS.md).

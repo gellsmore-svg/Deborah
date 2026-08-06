@@ -1,9 +1,9 @@
 # Contributing to Deborah
 
-Deborah maintains **Cairn**, a meta-language that **evolves from real use**. The most valuable
-contribution is describing a real process in Cairn and reporting what was
-awkward, ambiguous, or missing — that is exactly how v0.7 was shaped (see
-[`examples/`](examples/)).
+Deborah maintains **Cairn**, a process meta-language that **evolves from real
+use**. The most valuable contribution is describing a real process in Cairn and
+reporting what was awkward, ambiguous, or missing — that is exactly how early
+versions were shaped (see [`examples/`](examples/)).
 
 ## Ways to contribute
 
@@ -24,11 +24,20 @@ awkward, ambiguous, or missing — that is exactly how v0.7 was shaped (see
   terse and readable.
 - **Evolve from use.** New vocabulary should come from a real process that needed
   it, not from theory.
+- **Frame, don't determinise.** Deborah frames LLM callers against capability
+  surfaces; it does not exist to force stochastic steps into pure functions
+  (SPEC opening role statement).
+- **Core vs descriptive.** Prefer `CORE_CONSTRUCTS` for portable execution
+  semantics; domain constructs may be documentation-only (SPEC §16).
+- **Non-goals.** Do not grow a learning store, hot-path multi-role replanning,
+  or authority-only-as-prose into the language (SPEC §17).
 
 ## How changes land
 
 - Spec changes go in `SPEC.md`; structure in `GRAMMAR.md`; every change is
   recorded in `CHANGELOG.md`.
+- Parser / conformance / tests stay in lockstep: `pytest` and
+  `scripts/validate_examples.py` must stay green.
 - The reserved verb and tag vocabulary grows deliberately — a proposal that adds
   to it should show the gap in a real description.
 

@@ -2,7 +2,7 @@
 type: Concept
 title: Document modes
 description: A Cairn document is built from three kinds of block kept deliberately distinct — CONTEXT (what world are we in?), REQUIREMENTS/OUTCOMES (what must be true?), and PROCESS (how does it flow?). A document may use any subset in any combination.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
 tags: [cairn, modes, context, requirements, process]
 timestamp: 2026-06-19T00:00:00Z
 ---

@@ -2,14 +2,14 @@
 type: Concept Index
 title: Cairn Concepts
 description: The language ideas — the three document modes, the shared backbone with audience render profiles, the process constructs, STATE scopes, orthogonal tags, and composition.
-resource: https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md
-tags: [cairn, concepts, language]
-timestamp: 2026-06-19T00:00:00Z
+resource: https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md
+tags: [deborah, cairn, concepts, language]
+timestamp: 2026-08-06T00:00:00Z
 ---
 
 # Concepts
 
-All defined in [SPEC.md](https://github.com/gellsmore-svg/Cairn/blob/main/SPEC.md) (v0.8).
+All defined in [SPEC.md](https://github.com/gellsmore-svg/Deborah/blob/main/SPEC.md) (**v0.10**).
 
 - **[Document modes](document-modes.md)** — CONTEXT, REQUIREMENTS/OUTCOMES, and
   PROCESS kept distinct (SPEC §1).
