@@ -1,19 +1,46 @@
 # Cairn — a process meta-language
 
-**Specification v0.9** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
+**Specification v0.10** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
-processes — especially agentic / LLM-centric ones — so that humans and LLMs can
-read, write, compare, and reason about the same description.
+processes — especially **cross-LLM work** — so that humans and LLMs can read,
+write, compare, and reason about the same description.
 
 > **Naming.** *Cairn* is the **document format** this specification defines —
 > `.cairn.md` files, ```` ```cairn ```` fences, the constructs below. The Python
 > package that implements it is **`deborah`** (it was called `cairn` until
 > v0.9.0, when the human-systems analysis half split off into `huldah`). The
-> format did not change in that split; the grammar here is identical to v0.8.2.
+> format did not change in that split; the grammar here is identical to v0.8.2
+> for structural prose, with additive PLAN fields in v0.10.
 
 This document is the specification. For the why, see
 [README.md](README.md) (Purpose & Philosophy).
+
+### What Deborah is for (and what it is not)
+
+**Deborah's role is to frame interaction between LLM *callers* and
+LLM-consumed *capabilities*** — versioned surfaces (tools, services, roles)
+that another model (or human) may invoke, negotiate with, and hold to declared
+outcomes. A Cairn document is the shared medium for that framing: intent,
+outcomes, capability calls, bounds, residual uncertainty, and revision.
+
+It is **not** Deborah's purpose to "take a stochastic process and force it into
+determinism." Stochastic steps (`[LLM, STOCHASTIC]`) remain stochastic. What the
+language and its interpreter **do** constrain is the *frame around* those steps:
+which capabilities may be called, which tools are allowed, which bounds apply,
+when a human must approve, and when the run must stop, record an open question,
+or refuse. Deterministic substrate rules (allow-lists, budgets, schema checks)
+are enforcement of that frame — not a rewrite of the model into a pure function.
+
+In short:
+
+| Concern | Home |
+|---|---|
+| Intent, outcomes, steps, capability calls, revision | **Cairn / Deborah** (this language) |
+| Capability discovery, schemas, cost, negotiable flags | **Keturah** (manifest registry) |
+| Multi-round negotiation *messages* | **Negotiation protocol** (wire format; not this grammar) |
+| Continuous learning of *how* to interrogate a surface | **Learning architecture** (profiles/frontier; not this language) |
+| Trace, decisions, cost of runs | **Galeed** |
 
 ---
 
@@ -249,17 +276,52 @@ Sub-block keywords: `STATE UPDATE`, `OUTPUT`, `RISKS`, `CONSTRAINTS` /
 
 `PROCESS` defines a reusable flow. `PLAN` identifies one live application of a
 process to a request and records how that application changes as new information
-arrives.
+arrives. A plan is the natural **crystallisation target** for cross-LLM work:
+after (optional) negotiation with capabilities, the agreed sequence is written
+here and then *interpreted* (§4.6), not re-invented on every step.
 
 ```text
-PLAN <plan-id> REVISION <n> [STATUS: draft|active|stable|complete|blocked]
+PLAN <plan-id> REVISION <n> [STATUS: draft|active|stable|complete|blocked|open|refused]
   PARENT: <revision number or none>
   REQUEST: <the request this plan serves>
   TRIGGER: <new information that caused this revision, or initial_request>
+  INTENT: <what success means for this application>          (* optional; recommended *)
+  ON_UNCERTAINTY: record | escalate | abort                  (* optional; default record *)
+  ASSUMES: <capability@version>, <capability@version>, …     (* optional surface pins *)
+  OUTCOMES:                                                  (* optional; preferred over prose-only *)
+    - <testable or reviewable end-state>
+    - …
+  REEVALUATE_WHEN:                                           (* optional provenance hooks *)
+    - <condition that should reopen this plan or its skills>
 
   PROCESS <Name> (INPUT: ...; OUTPUT: ...)
     ... normal Cairn process backbone ...
 ```
+
+**Statuses** (lifecycle of the plan instance):
+
+| Status | Meaning |
+|---|---|
+| `draft` | Proposed; not yet executing |
+| `active` | Running under the interpreter |
+| `stable` | No further revision warranted for this request |
+| `complete` | Declared outcomes satisfied |
+| `blocked` | Progress needs unavailable authority, tools, or input |
+| `open` | Terminal: residual uncertainty recorded (open question) — **not a crash** |
+| `refused` | Terminal: a capability or policy refused the work — **not a crash** |
+
+`open` and `refused` are first-class outcomes of cross-LLM framing. Treating them
+as mere errors discards the information the estate is designed to preserve.
+
+**Optional framing fields** (SPEC v0.10; additive — existing plans remain valid):
+
+| Field | Role |
+|---|---|
+| `INTENT` | What this application is trying to achieve (caller-facing). Distinct from `REQUEST` (the raw ask). |
+| `OUTCOMES` | End-states the interpreter / reviewer judges against. Prefer explicit list over free prose alone. |
+| `ASSUMES` | Capability pins (`name` or `name@version`) this plan was crystallised against. Re-evaluation hooks for surface change. |
+| `ON_UNCERTAINTY` | When outcomes cannot be fully met: `record` (default → often ends `open`), `escalate` (human), or `abort`. |
+| `REEVALUATE_WHEN` | Conditions (model/surface/request-class change) under which this crystallisation should be reconsidered. |
 
 A plan revision:
 
@@ -269,9 +331,10 @@ A plan revision:
 - contains a complete process backbone, not an ambiguous patch;
 - must retain hard constraints and stopping bounds unless an authorised human or
   governing process explicitly changes them;
-- may finish as `stable` when no change is warranted, `complete` when its outcome
-  has been reached, or `blocked` when progress requires unavailable authority or
-  information.
+- may finish as `stable` when no change is warranted, `complete` when its
+  outcomes are met, `blocked` when progress requires unavailable authority or
+  information, `open` when residual uncertainty is the honest result, or
+  `refused` when a capability or policy declines.
 
 LLM-produced plans and revisions require bounded iteration. The runtime validates
 the plan structure and remains responsible for tool permissions, side effects,
@@ -325,6 +388,13 @@ value of interpretation is **granular tool gating**, **resumability**, and
 widens `allowed_tools` or skips `depends_on`. Revisions replace the backbone;
 the interpreter may resume from the first `pending`/`blocked` step on the new
 revision.
+
+**Outcomes vs step status:** completing every step is not the same as satisfying
+`OUTCOMES`. A run may finish every step and still end `open` if residual
+uncertainty remains; it may end `refused` if a `CALL` returns a first-class
+refusal. When `OUTCOMES` are declared, an interpretive runtime SHOULD report
+satisfaction, residual issues, or the `ON_UNCERTAINTY` path — not only step
+status.
 
 ---
 
@@ -495,8 +565,16 @@ Use `deborah-render ... --profile therapeutic`, `change_leader`, or
   is a no-op`). This is the crash-window analogue of `ERROR`’s fallback.
 
 ### CALL
-Invoke another PROCESS (composition, §11).
+Invoke another PROCESS **or a registered capability** (composition, §10; capability
+pins, §16).
 - Formal: `CALL <ProcessName>(<args>) → <result>`
+- Capability form (recommended for cross-product work):
+  `CALL <capability>[@<version>](…)` or a step whose `allowed_tools` lists
+  capability ids from the registry (Keturah). Prose names alone are not
+  authoritative for enforcement.
+- A capability may return a result, a clarification need, residual issues, or a
+  **refusal**. Refusal is a valid terminal path for the plan (`refused` / open
+  questions), not an untyped exception.
 
 ### STATE UPDATE / OUTPUT / RISKS
 Annotations on a step: a write to declared state (§7), what the step yields, and
@@ -762,36 +840,161 @@ text.
 
 ## 13. Usage modes and orchestration
 
-Cairn can be used as a package/CLI surface, a local or remote LLM orchestration
-library, a manual agent-analysis scaffold for GitHub links or process files, an
-embedded governance library, or a CI/review-gate tool.
+Cairn documents frame **how callers and capabilities work together**. Concrete
+usage modes:
 
-Manual agent-driven analysis SHOULD use a versioned Cairn orchestration pattern,
-such as `docs/orchestration/manual-agent-analysis.cairn.md`, rather than an
-ad-hoc prompt. The pattern SHOULD require explicit OKF concept traceability for
-human-factors findings, augmentation findings, interface recommendations, and
-reports.
+| Mode | What happens |
+|---|---|
+| **Authoring** | Humans and/or LLMs write PROCESS/PLAN descriptions; optional negotiation with capabilities *before* the document is trusted to run |
+| **Validation** | `deborah-validate` / `validate_document` / `validate_plan` check structure and conformance |
+| **Interpretation** | A runtime walks a PLAN under bounds, allow-lists, and outcome policy (§4.6) |
+| **Render** | Profiles project one backbone for operators, executives, audit, etc. (§3) |
+| **CI / review** | Skeleton validation of example corpora; governance of process templates |
 
-If the manual analysis happens inside an interactive agentic harness that can
-execute code, the harness SHOULD use Cairn's Python APIs and CLI commands for
-repeatable validation, deterministic analysis, recommendation generation, and
-report assembly. Manual agent analysis is therefore not necessarily prompt-only;
-the agent may orchestrate Cairn libraries and then interpret the result for the
-human.
+Manual agent-driven analysis SHOULD use a versioned Cairn pattern rather than an
+ad-hoc prompt, and SHOULD prefer Deborah's Python APIs and CLIs for repeatable
+validation over free-form tool improvisation.
 
-Runtime telemetry, dashboards, and product-specific usage analytics are outside
-the core language contract and SHOULD be separated unless they become portable
-semantic contracts.
+**What must never be left solely to a model** (substrate / runtime duties):
+
+- tool / capability allow-lists and authentication;
+- budget, deadline, and round-limit enforcement;
+- schema validation of capability inputs/outputs;
+- irreversible side effects without an approval path;
+- silent widening of `allowed_tools` or skipping of `depends_on`.
+
+Runtime telemetry, cost, and decision logs belong in the family's trace spine
+(Galeed), not in this language contract, unless they become portable semantic
+fields (e.g. `ASSUMES`, `REEVALUATE_WHEN`).
 
 ---
 
-## 14. Versioning & evolution
+## 14. Authoring vs execution (crystallisation)
+
+Cross-LLM capability use has two phases. Confusing them is the main failure mode
+this section exists to prevent.
+
+### 14.1 Authoring (may be agentic)
+
+An LLM caller may:
+
+- discover capabilities (via Keturah / MCP);
+- negotiate intent, required context, and evidence obligations with a
+  provider-facing role;
+- explore a surface (including undocumented operational knowledge);
+- propose or revise a PROCESS / PLAN.
+
+Negotiation is **bounded** (round limits, budget) and **recorded** (trace). It is
+how a process gets *written* or *revised*, not how every production call must run.
+
+### 14.2 Crystallisation
+
+The useful result of authoring is a **versioned Cairn PROCESS and/or PLAN**:
+
+- intent and outcomes stated;
+- capability pins in `ASSUMES` and/or step `allowed_tools`;
+- hard bounds on loops and recursion;
+- explicit `ON_UNCERTAINTY` policy;
+- optional `REEVALUATE_WHEN` for surface or model change.
+
+That document is reviewable by a human, diffable across revisions, and
+executable by an interpreter that does not re-open free-form tool choice.
+
+### 14.3 Execution (interpretive, framed)
+
+The interpreter walks the crystallised plan:
+
+- dispatches `CALL`s only within allow-lists;
+- enforces bounds and approvals;
+- reports outcome satisfaction, residual uncertainty (`open`), or refusal
+  (`refused`).
+
+Stochastic steps still call models. The **frame** is what is fixed — not the
+model's internal sampling.
+
+### 14.4 Re-negotiation
+
+Re-opening multi-round discovery is a **new REVISION** (or a new plan), not a
+silent hot-path chat that leaves the document behind. Continuous improvement of
+*how* to interrogate surfaces lives in the learning architecture; what lands
+back in Deborah is a better crystallised process, not a growing chat log.
+
+---
+
+## 15. Capability references
+
+Capabilities are the unit of LLM-consumed surface:
+
+```text
+<name>            e.g. milcah.critique
+<name>@<version>  e.g. milcah.critique@1
+```
+
+- **Authoritative definitions** (schemas, cost, failure modes, `negotiable`) live
+  in the capability registry (Keturah), not in Cairn prose.
+- A PLAN SHOULD list the surfaces it depends on under `ASSUMES`.
+- A step that invokes a capability SHOULD name it in a `CALL` and/or
+  `allowed_tools` so the interpreter can gate dispatch.
+- When a pin's version changes, plans that `ASSUMES` the old pin are candidates
+  for re-evaluation (`REEVALUATE_WHEN` / external staleness tools).
+
+Cairn does **not** redefine the registry. It **references** it so cross-LLM
+processes remain auditable when surfaces evolve.
+
+---
+
+## 16. Core vs descriptive construct profiles
+
+The grammar accepts a large construct vocabulary. Not every construct has (or
+needs) execution semantics in a minimal interpreter.
+
+| Profile | Constructs | Runtime duty |
+|---|---|---|
+| **Core (execution-normative)** | `STEP`, `CALL`, `ITERATE`, `DECISION`, `RECURSE`, `QUEUE`, `PARALLEL`, `MERGE`, `SERVICE`, `RETRY`, `AWAIT`, `BREAK`, `CONTINUE`, `MILESTONE`, `ERROR` | Must be interpretable under §4.6 |
+| **Descriptive (documentation)** | Domain constructs (`REGULATION`, `SOCIALIZE`, `SYMBOLIC_INTERACTION`, …) | May render and validate as structure; a core-profile runtime may skip with trace rather than invent behaviour |
+
+Producers that target portable execution SHOULD prefer the core profile.
+Descriptive constructs remain valuable for human-systems modelling; they are not
+a promise of cross-product orchestration semantics.
+
+The machine-readable split is `deborah.CORE_CONSTRUCTS` vs
+`deborah.EXTENSION_CONSTRUCTS`.
+
+---
+
+## 17. Non-goals
+
+The following are **explicitly out of scope** for this specification:
+
+1. **A learning store** — applicability profiles, exploration frontiers, and
+   continuous improvement of surface-interrogation skill are not Cairn
+   documents. This language may *pin* and *reevaluate*; it does not *accumulate*
+   profiles.
+2. **Hot-path multi-role replanning as the default** — unbounded agentic
+   re-planning on every request (estate "Level 4") is rejected as the primary
+   execution mode; crystallisation (§14) is the intended path.
+3. **Authority encoded only as free prose** — who may do what is enforced by
+   substrate and registry, not by models quoting a DESCRIPTION block.
+4. **Full semantic pre/postcondition languages** (OWL-S style) — preconditions
+   and evidence obligations belong on capability manifests, referenced here.
+5. **Turning stochastic steps into pure functions** — see the opening role
+   statement; framing ≠ determinising the model.
+
+---
+
+## 18. Versioning & evolution
 
 The version numbers below are **specification** versions — they track the language,
-not the implementation. The Python package (`cairn-lang`) is versioned separately in
-`pyproject.toml` and `CHANGELOG.md` and tagged in git; the two are not expected to
-match. See the Status section of [README.md](README.md) for the current pairing.
+not the implementation. The Python package (`deborah` / historical `cairn-lang`)
+is versioned separately in `pyproject.toml` and `CHANGELOG.md` and tagged in git;
+the two are not expected to match. See the Status section of [README.md](README.md)
+for the current pairing.
 
+- **v0.10** states Deborah's role as framing cross-LLM caller↔capability work;
+  adds PLAN fields `INTENT`, `OUTCOMES`, `ASSUMES`, `ON_UNCERTAINTY`,
+  `REEVALUATE_WHEN`; terminal statuses `open` / `refused`; crystallisation
+  lifecycle (§14); capability references (§15); core vs descriptive profiles
+  (§16); explicit non-goals (§17).
 - **v0.9** adds versioned live `PLAN` envelopes for bounded recursive revision of a complete `PROCESS` backbone.
 - **v0.8** adds **render profiles** (the `ai`/`operator`/`executive`/`audit`
   projections of one backbone, §3), **ownership vs. contribution**

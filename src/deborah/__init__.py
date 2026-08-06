@@ -17,6 +17,10 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from deborah.conformance import (
     CANONICAL_PLAN,
     CONFORMANCE_VERSION,
+    CORE_CONSTRUCTS,
+    EXTENSION_CONSTRUCTS,
+    ON_UNCERTAINTY_POLICIES,
+    OPTIONAL_PLAN_FIELDS,
     PLAN_CONSTRUCTS,
     PLAN_STATUSES,
     REQUIRED_PLAN_FIELDS,
@@ -24,6 +28,7 @@ from deborah.conformance import (
     REVISION_DECISIONS,
     STEP_STATUSES,
     is_conformant,
+    is_core_construct,
     validate_plan,
 )
 from deborah.grammar import (
@@ -52,7 +57,11 @@ except PackageNotFoundError:  # running straight from a source checkout
 __all__ = [
     "CANONICAL_PLAN",
     "CONFORMANCE_VERSION",
+    "CORE_CONSTRUCTS",
     "CairnDocument",
+    "EXTENSION_CONSTRUCTS",
+    "ON_UNCERTAINTY_POLICIES",
+    "OPTIONAL_PLAN_FIELDS",
     "PLAN_CONSTRUCTS",
     "PLAN_STATUSES",
     "REQUIRED_PLAN_FIELDS",
@@ -64,6 +73,7 @@ __all__ = [
     "export_view",
     "extract_cairn_source",
     "is_conformant",
+    "is_core_construct",
     "parse_document",
     "register_exporter",
     "registered_exporters",

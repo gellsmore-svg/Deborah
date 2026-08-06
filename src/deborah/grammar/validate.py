@@ -157,6 +157,14 @@ def _calls_from_text(text: str) -> list[str]:
     return names
 
 
+_ON_UNCERTAINTY = frozenset({"record", "escalate", "abort"})
+_PLAN_STATUSES = frozenset(
+    {"draft", "active", "stable", "complete", "blocked", "open", "refused"}
+)
+# capability name, optional @version (e.g. milcah.critique@1, tirzah.retrieve)
+_CAPABILITY_REF = re.compile(r"^[A-Za-z_][\w.-]*(?:@[\w.-]+)?$")
+
+
 def _validate_plan(
     plan: Plan,
     *,
@@ -168,6 +176,22 @@ def _validate_plan(
         errors.append(f"PLAN {plan.plan_id!r} at line {plan.lineno}: REQUEST is required")
     if not plan.trigger.strip():
         errors.append(f"PLAN {plan.plan_id!r} at line {plan.lineno}: TRIGGER is required")
+    if plan.status and plan.status not in _PLAN_STATUSES:
+        errors.append(
+            f"PLAN {plan.plan_id!r} at line {plan.lineno}: invalid STATUS {plan.status!r} "
+            f"(allowed: {sorted(_PLAN_STATUSES)})"
+        )
+    if plan.on_uncertainty and plan.on_uncertainty not in _ON_UNCERTAINTY:
+        errors.append(
+            f"PLAN {plan.plan_id!r} at line {plan.lineno}: ON_UNCERTAINTY must be "
+            f"record|escalate|abort, got {plan.on_uncertainty!r}"
+        )
+    for ref in plan.assumes:
+        if not _CAPABILITY_REF.match(ref):
+            errors.append(
+                f"PLAN {plan.plan_id!r} at line {plan.lineno}: "
+                f"invalid ASSUMES capability ref {ref!r} (want name or name@version)"
+            )
     if plan.process:
         errors.extend(
             _validate_process(

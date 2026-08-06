@@ -132,6 +132,12 @@ class Plan:
     parent: str | None = None
     request: str = ""
     trigger: str = ""
+    # Cross-LLM framing fields (SPEC v0.10) — optional, additive.
+    intent: str = ""
+    outcomes: list[str] = field(default_factory=list)
+    assumes: list[str] = field(default_factory=list)  # capability@version pins
+    on_uncertainty: str = ""  # record | escalate | abort
+    reevaluate_when: list[str] = field(default_factory=list)
     process: Process | None = None
     lineno: int = 0
 

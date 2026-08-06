@@ -1,7 +1,13 @@
 # Deborah
 
-Deborah is a human-readable process language for **governed agentic work in human
-systems**.
+Deborah is a human-readable process language for **framing cross-LLM work** —
+how LLM *callers* interact with LLM-consumed *capabilities* (versioned tools,
+services, and roles), with intent, outcomes, bounds, and residual uncertainty
+made explicit.
+
+It is **not** a device for turning stochastic model steps into pure functions.
+Stochastic steps stay stochastic; Deborah constrains the *frame* around them
+(which capabilities may run, under what bounds, when to stop, open, or refuse).
 
 > **Renamed from Cairn (v0.9).** The package `cairn` was split into **Deborah**
 > (this repo — the process language) and **[Huldah](https://github.com/gellsmore-svg/Huldah)**
@@ -10,13 +16,12 @@ systems**.
 > files and ```` ```cairn ```` fences are unchanged. See
 > [MIGRATING.md](MIGRATING.md).
 
-It gives humans and AI systems a shared way to describe, plan, interpret, and
-review complex work across technical, psychological, organisational, and
-sociological dimensions. It bridges pseudocode-style clarity with modern
-agentic realities: iteration, recursion, non-determinism, sync/async, queuing,
-outcome review, error handling, and human context.
+It gives humans and AI systems a shared way to describe, crystallise, interpret,
+and review complex work across technical, psychological, organisational, and
+sociological dimensions — including iteration, recursion, non-determinism,
+sync/async, queuing, outcome review, error handling, and human context.
 
-**The specification lives in [SPEC.md](SPEC.md) (v0.9).**
+**The specification lives in [SPEC.md](SPEC.md) (v0.10).**
 
 Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
 distribution now installs a compatibility shim that re-exports from here.)

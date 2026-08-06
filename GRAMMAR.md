@@ -1,4 +1,4 @@
-# Cairn — structural grammar (v0.9)
+# Cairn — structural grammar (v0.10)
 
 A minimal EBNF for the **structural skeleton** of a Cairn description. It defines
 *shape*, not meaning: the prose in step descriptions, CONTEXT, ACCEPTANCE, etc. is
@@ -33,9 +33,19 @@ plan            = "PLAN" name "REVISION" number "[STATUS:" plan-status "]" NL
                   INDENT [ "PARENT:" (number | "none") NL ]
                          "REQUEST:" TEXT NL
                          "TRIGGER:" TEXT NL
+                         [ "INTENT:" TEXT NL ]
+                         [ "ON_UNCERTAINTY:" uncertainty-policy NL ]
+                         [ "ASSUMES:" capability-ref { "," capability-ref } NL ]
+                         [ plan-outcomes ]
+                         [ plan-reevaluate ]
                          process
                   DEDENT ;
-plan-status     = "draft" | "active" | "stable" | "complete" | "blocked" ;
+plan-status     = "draft" | "active" | "stable" | "complete" | "blocked"
+                | "open" | "refused" ;
+uncertainty-policy = "record" | "escalate" | "abort" ;
+capability-ref  = name [ "@" version ] ;
+plan-outcomes   = "OUTCOMES:" [ TEXT ] NL { INDENT "-" TEXT NL } ;
+plan-reevaluate = "REEVALUATE_WHEN:" [ TEXT ] NL { INDENT "-" TEXT NL } ;
 
 process         = "PROCESS" name [ signature ] NL
                   INDENT { proc-element } DEDENT ;

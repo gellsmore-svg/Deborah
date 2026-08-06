@@ -245,17 +245,53 @@ class Parser:
         while self._peek() and self._peek().indent >= body_indent:
             cur = self._peek()
             assert cur is not None
-            if cur.text.upper().startswith("PARENT:"):
+            upper = cur.text.upper()
+            if upper.startswith("PARENT:"):
                 self._advance()
                 val = cur.text.split(":", 1)[1].strip()
                 plan.parent = None if val.lower() == "none" else val
-            elif cur.text.upper().startswith("REQUEST:"):
+            elif upper.startswith("REQUEST:"):
                 self._advance()
                 plan.request = cur.text.split(":", 1)[1].strip()
-            elif cur.text.upper().startswith("TRIGGER:"):
+            elif upper.startswith("TRIGGER:"):
                 self._advance()
                 plan.trigger = cur.text.split(":", 1)[1].strip()
-            elif cur.text.upper().startswith("PROCESS"):
+            elif upper.startswith("INTENT:"):
+                self._advance()
+                plan.intent = cur.text.split(":", 1)[1].strip()
+            elif upper.startswith("ON_UNCERTAINTY:") or upper.startswith("ON-UNCERTAINTY:"):
+                self._advance()
+                plan.on_uncertainty = cur.text.split(":", 1)[1].strip().lower()
+            elif upper.startswith("ASSUMES:"):
+                self._advance()
+                raw = cur.text.split(":", 1)[1].strip()
+                plan.assumes = [p.strip() for p in raw.split(",") if p.strip()]
+            elif upper.startswith("OUTCOMES:") or upper == "OUTCOMES":
+                self._advance()
+                after = cur.text.split(":", 1)[1].strip() if ":" in cur.text else ""
+                if after:
+                    plan.outcomes.append(after.lstrip("- ").strip())
+                # Collect nested bullet lines under OUTCOMES.
+                while self._peek() and self._peek().indent > cur.indent:
+                    nested = self._advance()
+                    assert nested is not None
+                    text = nested.text.strip()
+                    if text.startswith("-"):
+                        text = text[1:].strip()
+                    if text:
+                        plan.outcomes.append(text)
+            elif upper.startswith("REEVALUATE_WHEN:") or upper.startswith("REEVALUATE-WHEN:"):
+                self._advance()
+                after = cur.text.split(":", 1)[1].strip()
+                if after:
+                    plan.reevaluate_when.append(after)
+                while self._peek() and self._peek().indent > cur.indent:
+                    nested = self._advance()
+                    assert nested is not None
+                    text = nested.text.strip().lstrip("- ").strip()
+                    if text:
+                        plan.reevaluate_when.append(text)
+            elif upper.startswith("PROCESS"):
                 plan.process = self._parse_process()
             else:
                 self._error(f"unexpected PLAN body line: {cur.text!r}", cur)

@@ -32,24 +32,32 @@ def document_to_plan(doc: CairnDocument) -> dict[str, Any]:
 def _plan_to_dict(plan: Plan) -> dict[str, Any]:
     proc = plan.process
     steps: list[dict[str, Any]] = []
-    objective = plan.request
+    objective = plan.intent or plan.request
     if proc:
         steps = _steps_to_dict(proc.steps)
-        if proc.description:
+        if not plan.intent and proc.description:
             objective = proc.description
-    return {
+    out: dict[str, Any] = {
         "plan_id": plan.plan_id,
         "revision": plan.revision,
         "parent_revision": None if plan.parent in (None, "none") else _maybe_int(plan.parent),
         "request": plan.request,
+        "intent": plan.intent or objective,
         "objective": objective,
         "status": plan.status,
         "steps": steps,
-        "stopping_conditions": [],
+        "stopping_conditions": list(plan.outcomes),
+        "outcomes": list(plan.outcomes),
+        "assumes": list(plan.assumes),
+        "on_uncertainty": plan.on_uncertainty or "record",
+        "reevaluate_when": list(plan.reevaluate_when),
         "unresolved_questions": [],
         "revision_decision": "revise",
         "revision_reason": plan.trigger,
     }
+    # Capability refs on CALL steps (name@version or bare name) become allowed_tools
+    # hints when the step text starts with CALL — runtime still owns enforcement.
+    return out
 
 
 def _steps_to_dict(steps: list[Step], *, prefix: str = "s") -> list[dict[str, Any]]:

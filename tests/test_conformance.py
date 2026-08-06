@@ -1,7 +1,12 @@
 from deborah import (
     CANONICAL_PLAN,
+    CORE_CONSTRUCTS,
+    EXTENSION_CONSTRUCTS,
+    ON_UNCERTAINTY_POLICIES,
     PLAN_CONSTRUCTS,
+    PLAN_STATUSES,
     is_conformant,
+    is_core_construct,
     validate_plan,
 )
 
@@ -36,6 +41,35 @@ def test_invalid_step_status_rejected() -> None:
     plan["steps"] = [dict(CANONICAL_PLAN["steps"][0], status="running")]
     errors = validate_plan(plan)
     assert any("invalid status: 'running'" in e for e in errors)
+
+
+def test_open_and_refused_are_valid_plan_terminals() -> None:
+    """Residual uncertainty and capability refusal are outcomes, not crashes."""
+    assert {"open", "refused"} <= PLAN_STATUSES
+    for status in ("open", "refused"):
+        plan = dict(CANONICAL_PLAN)
+        plan["status"] = status
+        plan["revision_decision"] = status
+        assert validate_plan(plan) == []
+
+
+def test_on_uncertainty_and_assumes_validated_when_present() -> None:
+    plan = dict(CANONICAL_PLAN)
+    plan["on_uncertainty"] = "whisper"
+    assert any("on_uncertainty" in e for e in validate_plan(plan))
+    plan["on_uncertainty"] = "record"
+    plan["assumes"] = "not-a-list"
+    assert any("assumes must be a list" in e for e in validate_plan(plan))
+    plan["assumes"] = ["milcah.critique@1"]
+    assert validate_plan(plan) == []
+    assert "record" in ON_UNCERTAINTY_POLICIES
+
+
+def test_core_vs_extension_construct_profiles() -> None:
+    assert is_core_construct("CALL")
+    assert not is_core_construct("SYMBOLIC_INTERACTION")
+    assert CORE_CONSTRUCTS.isdisjoint(EXTENSION_CONSTRUCTS)
+    assert CORE_CONSTRUCTS | EXTENSION_CONSTRUCTS == PLAN_CONSTRUCTS
 
 
 def test_grammar_constructs_all_validate():

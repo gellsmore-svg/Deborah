@@ -13,15 +13,15 @@ from __future__ import annotations
 
 from typing import Any
 
-CONFORMANCE_VERSION = "1.0"
+CONFORMANCE_VERSION = "1.1"
 
 # Step-level constructs from SPEC §5 (the ones a PLAN step may *be*).
 #
-# CORE = general control-flow constructs. EXTENSION = the human-systems / domain
-# constructs (psychology, change-management, sociology) the grammar parser also
-# accepts. Both are kept here as the single source of truth so the grammar and
-# this conformance surface never disagree — a document that PARSES must also
-# VALIDATE. (test_conformance enumerates the parser's constructs to enforce this.)
+# CORE = execution-normative control-flow (the interpreter must understand these).
+# EXTENSION = human-systems / domain constructs the grammar also accepts for
+# documentation; a runtime may skip them without violating the core profile.
+# Both stay in PLAN_CONSTRUCTS so a document that PARSES can still VALIDATE.
+# (test_conformance enumerates the parser's constructs to enforce this.)
 CORE_CONSTRUCTS: frozenset[str] = frozenset(
     {
         "STEP",
@@ -68,12 +68,20 @@ EXTENSION_CONSTRUCTS: frozenset[str] = frozenset(
 
 PLAN_CONSTRUCTS: frozenset[str] = CORE_CONSTRUCTS | EXTENSION_CONSTRUCTS
 
-# PLAN status (SPEC §4.5) and the revision verdict a revisable plan reports.
-PLAN_STATUSES: frozenset[str] = frozenset({"draft", "active", "stable", "complete", "blocked"})
-REVISION_DECISIONS: frozenset[str] = frozenset({"revise", "stable", "complete", "blocked"})
+# PLAN status (SPEC §4.5). ``open`` and ``refused`` are first-class terminals:
+# residual uncertainty and explicit capability refusal are outcomes, not crashes.
+PLAN_STATUSES: frozenset[str] = frozenset(
+    {"draft", "active", "stable", "complete", "blocked", "open", "refused"}
+)
+REVISION_DECISIONS: frozenset[str] = frozenset(
+    {"revise", "stable", "complete", "blocked", "open", "refused"}
+)
 
 # Per-step execution status for interpretive PLAN walkers (SPEC §4.6).
 STEP_STATUSES: frozenset[str] = frozenset({"pending", "active", "completed", "blocked", "skipped"})
+
+# Uncertainty policy when outcomes cannot be fully satisfied (SPEC §4.5).
+ON_UNCERTAINTY_POLICIES: frozenset[str] = frozenset({"record", "escalate", "abort"})
 
 # The cross-repo core contract: fields a Cairn plan/step consumer can rely on.
 REQUIRED_PLAN_FIELDS: tuple[str, ...] = (
@@ -84,6 +92,16 @@ REQUIRED_PLAN_FIELDS: tuple[str, ...] = (
     "steps",
     "stopping_conditions",
     "revision_decision",
+)
+# Additive framing fields (SPEC v0.10). Optional for backward compatibility;
+# when present they are validated.
+OPTIONAL_PLAN_FIELDS: tuple[str, ...] = (
+    "intent",
+    "outcomes",
+    "assumes",
+    "on_uncertainty",
+    "reevaluate_when",
+    "request",
 )
 REQUIRED_STEP_FIELDS: tuple[str, ...] = ("id", "action", "construct", "status")
 
@@ -116,14 +134,46 @@ def validate_plan(plan: Any) -> list[str]:
     if decision is not None and decision not in REVISION_DECISIONS:
         errors.append(f"invalid revision_decision: {decision!r} (allowed: {sorted(REVISION_DECISIONS)})")
 
+    policy = plan.get("on_uncertainty")
+    if policy is not None and policy != "" and policy not in ON_UNCERTAINTY_POLICIES:
+        errors.append(
+            f"invalid on_uncertainty: {policy!r} (allowed: {sorted(ON_UNCERTAINTY_POLICIES)})"
+        )
+
+    assumes = plan.get("assumes")
+    if assumes is not None:
+        if not isinstance(assumes, list):
+            errors.append("assumes must be a list of capability refs (name or name@version)")
+        else:
+            for index, ref in enumerate(assumes):
+                if not isinstance(ref, str) or not ref.strip():
+                    errors.append(f"assumes[{index}] must be a non-empty string")
+
+    for list_field in ("outcomes", "stopping_conditions", "reevaluate_when"):
+        value = plan.get(list_field)
+        if value is not None and not isinstance(value, list):
+            errors.append(f"{list_field} must be a list")
+
     steps = plan.get("steps")
     if not isinstance(steps, list) or not steps:
         errors.append("plan must have at least one step")
     else:
         for index, step in enumerate(steps):
             errors.extend(_validate_step(step, index))
+            # Core-profile note: extension constructs are allowed in the document
+            # but CORE_CONSTRUCTS is the set a minimal interpreter must implement.
+            construct = step.get("construct") if isinstance(step, dict) else None
+            if construct in EXTENSION_CONSTRUCTS:
+                # Not an error — descriptive profile. Consumers of the core
+                # profile may skip; recorded only so tests can assert the split.
+                pass
 
     return errors
+
+
+def is_core_construct(construct: str | None) -> bool:
+    """True if ``construct`` is in the execution-normative core profile."""
+    return construct is not None and construct in CORE_CONSTRUCTS
 
 
 def is_conformant(plan: Any) -> bool:
@@ -137,6 +187,7 @@ CANONICAL_PLAN: dict[str, Any] = {
     "revision": 1,
     "parent_revision": None,
     "request": "Summarise the retrieved context and answer the question.",
+    "intent": "Produce a grounded answer to the user's question.",
     "objective": "Produce a grounded answer to the user's question.",
     "status": "active",
     "steps": [
@@ -160,6 +211,10 @@ CANONICAL_PLAN: dict[str, Any] = {
         },
     ],
     "stopping_conditions": ["answer produced", "no further context improves sufficiency"],
+    "outcomes": ["answer produced", "no further context improves sufficiency"],
+    "assumes": ["retrieval@1", "answer_adapter@1"],
+    "on_uncertainty": "record",
+    "reevaluate_when": [],
     "unresolved_questions": [],
     "revision_decision": "revise",
     "revision_reason": "",

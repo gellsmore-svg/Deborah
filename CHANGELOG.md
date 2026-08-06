@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+- **SPEC v0.10 — cross-LLM framing (not “force determinism”).** States Deborah’s
+  role as framing LLM callers against LLM-consumed capabilities; crystallisation
+  lifecycle; capability pins; core vs descriptive construct profiles; non-goals
+  (no learning store, no hot-path Level-4 replanning). PLAN gains optional
+  `INTENT` / `OUTCOMES` / `ASSUMES` / `ON_UNCERTAINTY` / `REEVALUATE_WHEN` and
+  terminal statuses `open` / `refused`. Conformance `1.1` exports
+  `CORE_CONSTRUCTS`, `ON_UNCERTAINTY_POLICIES`, `is_core_construct`.
 - `__version__` is derived from the installed distribution instead of a
   hand-maintained literal, so it cannot drift from `pyproject.toml`. Guarded by
   `tests/test_version.py`. (Nothing had drifted; this closes the trap that left

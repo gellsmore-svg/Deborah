@@ -34,6 +34,14 @@ PLAN plan_test REVISION 1 [STATUS: active]
   PARENT: none
   REQUEST: Answer the question
   TRIGGER: initial_request
+  INTENT: Grounded answer with residual uncertainty made explicit
+  ON_UNCERTAINTY: record
+  ASSUMES: tirzah.retrieve@1, milcah.critique@1
+  OUTCOMES:
+    - answer cites retrieved context
+    - unresolved concepts recorded if ontology misses them
+  REEVALUATE_WHEN:
+    - milcah.critique major version change
   PROCESS Fulfil (INPUT: question; OUTPUT: answer)
     1. Retrieve context. [CODE]
     2. Synthesise answer. [LLM] [STOCHASTIC]
@@ -76,10 +84,23 @@ PROCESS Work (INPUT: Store; OUTPUT: —)
 
 def test_plan_export_is_conformant() -> None:
     doc = parse_document(PLAN_SAMPLE)
+    assert doc.plans and not doc.parse_errors
+    p = doc.plans[0]
+    assert p.intent.startswith("Grounded answer")
+    assert p.on_uncertainty == "record"
+    assert "milcah.critique@1" in p.assumes
+    assert any("retrieved context" in o for o in p.outcomes)
+    assert p.reevaluate_when
+
     plan = document_to_plan(doc)
     assert validate_plan(plan) == []
     assert plan["plan_id"] == "plan_test"
     assert len(plan["steps"]) >= 2
+    assert plan["intent"].startswith("Grounded answer")
+    assert plan["assumes"] == p.assumes
+    assert plan["on_uncertainty"] == "record"
+    assert plan["outcomes"]
+    assert plan["stopping_conditions"] == plan["outcomes"]
 
 
 def test_all_examples_parse_without_syntax_errors() -> None:
