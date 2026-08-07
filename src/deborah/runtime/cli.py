@@ -9,6 +9,7 @@ from pathlib import Path
 
 from deborah.contracts import EXAMPLE_RESULTS
 from deborah.grammar import document_to_plan, parse_document, validate_document
+from deborah.runtime.estate import interpret_with_estate
 from deborah.runtime.interpreter import StubHandler, interpret_plan
 
 
@@ -48,6 +49,19 @@ def main(argv: list[str] | None = None) -> int:
         "--demo-results",
         action="store_true",
         help="Use built-in EXAMPLE_RESULTS by cognition (demo / contract tests)",
+    )
+    parser.add_argument(
+        "--estate-demo",
+        action="store_true",
+        help=(
+            "Phase E demo: resolve ASSUMES via in-process capability index and "
+            "dispatch tirzah.retrieve / milcah.critique stubs"
+        ),
+    )
+    parser.add_argument(
+        "--trace",
+        action="store_true",
+        help="Record run on Galeed Tracer if galeed is installed (no-op otherwise)",
     )
     parser.add_argument(
         "--results",
@@ -100,15 +114,38 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     results_by_id[key] = val
 
-    handler = StubHandler(results_by_id=results_by_id, results_by_cognition=results_by_cog)
-    run = interpret_plan(
-        plan,
-        handler=handler,
-        validate_profile=None if args.no_validate else args.profile,
-        check_contracts=args.check_contracts,
-        contract_mode=args.contract_mode,
-        max_steps=args.max_steps,
-    )
+    tracer = None
+    if args.trace:
+        from deborah.runtime.estate import try_make_tracer
+
+        tracer = try_make_tracer(source="deborah-run")
+
+    if args.estate_demo:
+        run = interpret_with_estate(
+            plan,
+            demo=True,
+            tracer=tracer,
+            check_contracts=args.check_contracts,
+            contract_mode=args.contract_mode,
+            validate_profile=None if args.no_validate else args.profile,
+            max_steps=args.max_steps,
+            fallback_results_by_cognition=results_by_cog or EXAMPLE_RESULTS,
+        )
+    else:
+        handler = StubHandler(results_by_id=results_by_id, results_by_cognition=results_by_cog)
+        run = interpret_plan(
+            plan,
+            handler=handler,
+            validate_profile=None if args.no_validate else args.profile,
+            check_contracts=args.check_contracts,
+            contract_mode=args.contract_mode,
+            max_steps=args.max_steps,
+        )
+        if tracer is not None:
+            from deborah.runtime.estate import record_run_on_tracer
+
+            record_run_on_tracer(run, tracer)
+            run.events.append({"type": "galeed.recorded", "ok": True})
 
     if args.json:
         print(json.dumps(run.to_dict(), indent=2))

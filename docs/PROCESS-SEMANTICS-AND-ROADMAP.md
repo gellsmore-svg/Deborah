@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
-**Date:** 2026-08-07 · **Status:** Phases A–D implemented · **Baseline:** package
-**0.12.0**; language SPEC **v0.11**; contracts **1.0**; thin runtime
+**Date:** 2026-08-07 · **Status:** Phases A–E implemented · **Baseline:** package
+**0.12.0**+; language SPEC **v0.11**; contracts **1.0**; thin runtime + estate hooks
 
 This document:
 
@@ -315,12 +315,15 @@ Omit `COGNITION` → today’s behaviour (no product contract).
 - `max_steps` hard bound; re-entry **off**
 - Injectable handlers for estate capabilities (Phase E)
 
-### Phase E — Estate integration
+### Phase E — Estate integration — **DONE** (optional deps)
 
-- Keturah resolve ASSUMES
-- Galeed decision/residual events
-- One real slice (retrieve + critique)
-- Map adversarial evaluation to Milcah-style critique capability
+- `resolve_assumes` + `DictCapabilityIndex` / Keturah `Registry` adapter
+- `EstateHandler` dispatches CALL tools (e.g. `milcah.critique`, `tirzah.retrieve`)
+- `interpret_with_estate(..., demo=True)` — in-process demo slice without live
+  Tirzah/Milcah
+- Optional Galeed `Tracer` recording via `try_make_tracer` / `record_run_on_tracer`
+- CLI: `deborah-run --estate-demo` and `--trace`
+- Hard deps remain none; keturah/galeed optional
 
 ### Phase F — Deferred cognitions & policies
 

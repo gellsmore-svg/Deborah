@@ -9,6 +9,18 @@ Handlers are injectable so estate products (Tirzah, Milcah, …) can supply real
 capability dispatch later without owning the control frame.
 """
 
+from deborah.runtime.estate import (
+    AssumeResolution,
+    DictCapabilityIndex,
+    EstateHandler,
+    demo_capability_index,
+    demo_critique_dispatch,
+    interpret_with_estate,
+    record_run_on_tracer,
+    resolve_assumes,
+    try_load_keturah_registry,
+    try_make_tracer,
+)
 from deborah.runtime.interpreter import (
     Handler,
     RunResult,
@@ -18,9 +30,19 @@ from deborah.runtime.interpreter import (
 )
 
 __all__ = [
+    "AssumeResolution",
+    "DictCapabilityIndex",
+    "EstateHandler",
     "Handler",
     "RunResult",
     "StepRecord",
     "StubHandler",
+    "demo_capability_index",
+    "demo_critique_dispatch",
     "interpret_plan",
+    "interpret_with_estate",
+    "record_run_on_tracer",
+    "resolve_assumes",
+    "try_load_keturah_registry",
+    "try_make_tracer",
 ]

@@ -45,7 +45,15 @@ from deborah.contracts import (
     validate_confidence,
     validate_step_results,
 )
-from deborah.runtime import RunResult, StubHandler, interpret_plan
+from deborah.runtime import (
+    DictCapabilityIndex,
+    EstateHandler,
+    RunResult,
+    StubHandler,
+    interpret_plan,
+    interpret_with_estate,
+    resolve_assumes,
+)
 from deborah.grammar import (
     CairnDocument,
     document_to_dict,
@@ -93,11 +101,14 @@ __all__ = [
     "VALIDATE_PROFILES",
     "document_to_dict",
     "document_to_plan",
+    "DictCapabilityIndex",
+    "EstateHandler",
     "RunResult",
     "StubHandler",
     "export_view",
     "extract_cairn_source",
     "interpret_plan",
+    "interpret_with_estate",
     "is_conformant",
     "is_core_construct",
     "parse_document",
@@ -105,6 +116,7 @@ __all__ = [
     "registered_exporters",
     "registered_profiles",
     "render_plan",
+    "resolve_assumes",
     "validate_cognition_result",
     "validate_confidence",
     "validate_document",

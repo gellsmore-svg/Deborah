@@ -74,9 +74,23 @@ run = interpret_plan(plan, handler=StubHandler(results_by_cognition=EXAMPLE_RESU
 print(run.terminal)  # complete | open | refused | blocked
 ```
 
-Inject real capability handlers for estate tools (Phase E). Do **not** treat
-free-form multi-round tool chat as the long-term execution path; re-negotiation
-is a new REVISION.
+**Estate demo** (in-process capability index + retrieve/critique stubs):
+
+```bash
+deborah-run examples/cross-llm-critique.cairn.md --estate-demo --check-contracts
+# optional Galeed tracing if galeed is installed:
+deborah-run examples/cross-llm-critique.cairn.md --estate-demo --trace
+```
+
+```python
+from deborah import interpret_with_estate, document_to_plan, parse_document
+plan = document_to_plan(parse_document(open("examples/cross-llm-critique.cairn.md").read()))
+run = interpret_with_estate(plan, demo=True, check_contracts=True)
+```
+
+Inject real Keturah registries and capability callables for production tools.
+Do **not** treat free-form multi-round tool chat as the long-term execution path;
+re-negotiation is a new REVISION.
 
 ## Mode 4: Embedded governance contract
 
