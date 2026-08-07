@@ -198,6 +198,9 @@ Huldah where needed). Prefer `pip install deborah`.
 - [docs/usage-modes.md](docs/usage-modes.md) — CLI, library, embedded, CI modes.
 - [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md) — executable grammar API.
 - [docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md) — render profiles and export.
+- [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md)
+  — three-layer process semantics (execution / behaviour / cognition) and
+  phased implementation roadmap after 0.10.0.
 - [okf/](okf/) — Open Knowledge Format concept bundle for the language.
 - [docs/future-usage-logging-spec.md](docs/future-usage-logging-spec.md) —
   notes on future touchpoint logging.
