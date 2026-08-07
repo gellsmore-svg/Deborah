@@ -61,13 +61,22 @@ Typical flow:
 1. Discover capabilities via **Keturah** / MCP.
 2. Optionally negotiate (bounded protocol; recorded in **Galeed**).
 3. Author or emit a `.cairn.md` PLAN with `INTENT`, `OUTCOMES`, `ASSUMES`,
-   `ON_UNCERTAINTY`.
-4. Validate with `deborah-validate` / `validate_plan`.
-5. Interpret with a runtime that enforces allow-lists and bounds (estate
-   roadmap: Deborah runtime extracted from Tirzah planning).
+   `ON_UNCERTAINTY`, and optional step `COGNITION`.
+4. Validate with `deborah-validate --profile strict`.
+5. Interpret with the **thin runtime**:
 
-Do **not** treat free-form multi-round tool chat as the long-term execution
-path; re-negotiation is a new REVISION.
+```bash
+deborah-run examples/cross-llm-critique.cairn.md --demo-results --check-contracts
+# or programmatically:
+from deborah import interpret_plan, document_to_plan, parse_document, StubHandler, EXAMPLE_RESULTS
+plan = document_to_plan(parse_document(open("examples/cross-llm-critique.cairn.md").read()))
+run = interpret_plan(plan, handler=StubHandler(results_by_cognition=EXAMPLE_RESULTS))
+print(run.terminal)  # complete | open | refused | blocked
+```
+
+Inject real capability handlers for estate tools (Phase E). Do **not** treat
+free-form multi-round tool chat as the long-term execution path; re-negotiation
+is a new REVISION.
 
 ## Mode 4: Embedded governance contract
 

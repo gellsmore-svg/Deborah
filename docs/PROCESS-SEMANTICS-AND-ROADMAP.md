@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
-**Date:** 2026-08-07 · **Status:** Phases A–C implemented · **Baseline:** package
-0.10.0; language SPEC **v0.11**; contracts **1.0**
+**Date:** 2026-08-07 · **Status:** Phases A–D implemented · **Baseline:** package
+0.11.0+; language SPEC **v0.11**; contracts **1.0**; thin runtime
 
 This document:
 
@@ -306,11 +306,14 @@ Omit `COGNITION` → today’s behaviour (no product contract).
 - CLI: `deborah-validate … --results path.json --results-mode soft|strict`
 - Re-entry policy documented (opt-in + MAX; default open/escalate) — **not** implemented
 
-### Phase D — Thin interpreter
+### Phase D — Thin interpreter — **DONE**
 
-- Walk core constructs; allow-list; ON_UNCERTAINTY terminals
-- Optional: if step has COGNITION and returns structured result, run contract check
-- Re-entry **off by default**; experimental flag later with MAX
+- `deborah.runtime.interpret_plan` + `StubHandler` + `deborah-run` CLI
+- Walk steps (depends_on order); allow-list from `ASSUMES` or explicit set
+- Terminals: `complete` | `open` | `refused` | `blocked` via `ON_UNCERTAINTY`
+- Optional cognition contract checks (`check_contracts` / `--check-contracts`)
+- `max_steps` hard bound; re-entry **off**
+- Injectable handlers for estate capabilities (Phase E)
 
 ### Phase E — Estate integration
 

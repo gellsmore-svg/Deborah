@@ -34,6 +34,7 @@ dependencies = []
 deborah-render = "deborah.cli:main"
 deborah-validate = "deborah.validate_cli:main"
 deborah-serve = "deborah.web:main"
+deborah-run = "deborah.runtime.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/gellsmore-svg/Deborah"

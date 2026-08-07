@@ -251,8 +251,13 @@ deborah.CORE_CONSTRUCTS                     # execution-normative constructs
 deborah.COGNITION_MVP                       # observe|infer|evaluate|decide
 ```
 
-CLI: `deborah-validate examples/cross-llm-critique.cairn.md --profile strict` ·
-`deborah-render examples/hoglah.cairn.md`
+CLI:
+
+```bash
+deborah-validate examples/cross-llm-critique.cairn.md --profile strict
+deborah-run examples/cross-llm-critique.cairn.md --demo-results --check-contracts
+deborah-render examples/hoglah.cairn.md
+```
 
 ### View composer (`deborah-serve`)
 

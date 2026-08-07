@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+- **Phase D — thin PLAN interpreter:** `deborah.runtime.interpret_plan`,
+  `StubHandler`, terminals `complete|open|refused|blocked`, allow-list from
+  `ASSUMES`, optional cognition contract checks, `max_steps` bound, CLI
+  `deborah-run`. Re-entry still off. No free-form re-planning.
 
 ## [0.11.0] — 2026-08-07
 

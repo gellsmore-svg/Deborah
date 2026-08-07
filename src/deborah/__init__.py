@@ -45,6 +45,7 @@ from deborah.contracts import (
     validate_confidence,
     validate_step_results,
 )
+from deborah.runtime import RunResult, StubHandler, interpret_plan
 from deborah.grammar import (
     CairnDocument,
     document_to_dict,
@@ -92,8 +93,11 @@ __all__ = [
     "VALIDATE_PROFILES",
     "document_to_dict",
     "document_to_plan",
+    "RunResult",
+    "StubHandler",
     "export_view",
     "extract_cairn_source",
+    "interpret_plan",
     "is_conformant",
     "is_core_construct",
     "parse_document",
