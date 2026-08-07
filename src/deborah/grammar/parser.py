@@ -44,7 +44,7 @@ _STATE_DECL = re.compile(
     re.I,
 )
 _ANNOTATION = re.compile(
-    r"^(STATE UPDATE|OUTPUT|RISKS|PURPOSE|CONSTRAINTS|BOUNDARIES|CONTEXT|"
+    r"^(STATE UPDATE|OUTPUT|RISKS|PURPOSE|COGNITION|CONSTRAINTS|BOUNDARIES|CONTEXT|"
     r"HUMAN_DEMAND|HUMAN SIMULATION|HUMAN_SIMULATION|HUMAN_LOAD|"
     r"HUMAN_FACTORS|HUMAN_RISK|TRUST|SUPPORT|FAILURE_MODE|"
     r"SIMULATION_FINDINGS|IMPROVEMENT|CHANGE_IMPACT):\s*(.*)$",
@@ -76,13 +76,21 @@ def _is_section_header(text: str) -> bool:
 
 
 def _is_block_start(text: str) -> bool:
+    """True for real top-level Cairn blocks — not CONTEXT glossary prose.
+
+    CONTEXT often defines terms as ``PLAN — …`` / ``PROCESS — …`` lines. Those
+    must not be treated as block headers (they are not ``PLAN id REVISION …`` or
+    formal ``PROCESS Name (INPUT:…; OUTPUT:…)`` / narrative ``PROCESS — Name:``).
+    """
     if _is_section_header(text):
         return True
-    if text.startswith("PLAN "):
+    if _PLAN_HDR.match(text):
         return True
-    if text.startswith("PROCESS ") or text.startswith("PROCESS—") or text.startswith("PROCESS-"):
+    if _PROCESS_NARRATIVE.match(text):
         return True
-    if text.startswith("PROCESS —") or text.startswith("PROCESS –"):
+    match = _PROCESS_HDR.match(text)
+    # Formal signature form only (group 1 set). Dash-prose falls through as body.
+    if match and match.group(1):
         return True
     return False
 
@@ -166,7 +174,8 @@ class Parser:
         while self._peek() and self._peek().indent == base:
             cur = self._peek()
             assert cur is not None
-            if _is_section_header(cur.text):
+            # Stop at any top-level block (PLAN/PROCESS/OUTCOMES/…), not only section titles.
+            if _is_block_start(cur.text):
                 break
             block.lines.append(self._advance().text)  # type: ignore[union-attr]
         return block
@@ -179,7 +188,7 @@ class Parser:
         while self._peek() and self._peek().indent == base:
             cur = self._peek()
             assert cur is not None
-            if _is_section_header(cur.text) or cur.text.startswith("PROCESS "):
+            if _is_block_start(cur.text):
                 break
             emergent = _EMERGENT.match(cur.text)
             if emergent:

@@ -112,7 +112,10 @@ def test_all_examples_parse_without_syntax_errors() -> None:
 def test_example_documents_have_process_backbone() -> None:
     for path in sorted(EXAMPLES.glob("*.cairn.md")):
         doc = parse_document(path.read_text(encoding="utf-8"))
-        assert doc.processes, f"{path.name} has no PROCESS blocks"
+        # PROCESS and/or PLAN (PLAN nests a PROCESS) — PLAN-only docs are valid.
+        assert doc.processes or doc.plans, f"{path.name} has no PROCESS or PLAN backbone"
+        if doc.plans:
+            assert all(p.process for p in doc.plans), f"{path.name}: PLAN missing nested PROCESS"
 
 
 def test_grammar_bridge_feeds_render_model() -> None:

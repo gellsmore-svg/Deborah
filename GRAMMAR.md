@@ -1,4 +1,4 @@
-# Cairn — structural grammar (v0.10)
+# Cairn — structural grammar (v0.11)
 
 A minimal EBNF for the **structural skeleton** of a Cairn description. It defines
 *shape*, not meaning: the prose in step descriptions, CONTEXT, ACCEPTANCE, etc. is
@@ -75,13 +75,16 @@ step-id         = number { "." number } [ letter ] "." ;   (* 1.  2.1  3a. *)
 sub-block       = annotation
                 | construct-line
                 | step ;                       (* nested steps *)
-annotation      = ( "STATE UPDATE:" | "OUTPUT:" | "RISKS:" | "PURPOSE:"
+annotation      = ( "STATE UPDATE:" | "OUTPUT:" | "RISKS:" | "PURPOSE:" | "COGNITION:"
                   | "CONSTRAINTS:" | "BOUNDARIES:" | "CONTEXT:"
                   | "HUMAN_DEMAND:" | "HUMAN_LOAD:" | "HUMAN_SIMULATION:"
                   | "HUMAN_FACTORS:" | "HUMAN_RISK:"
                   | "TRUST:" | "SUPPORT:" | "FAILURE_MODE:"
                   | "SIMULATION_FINDINGS:" | "IMPROVEMENT:" | "CHANGE_IMPACT:"
                   | emergent-satisfies ) TEXT NL ;
+(* COGNITION TEXT first token must be observe|infer|evaluate|decide (MVP).
+   Progressive: omit COGNITION = no product contract.
+   Reserved for later: negotiate | learn | optimize *)
 emergent-satisfies = "EMERGENT" ( satisfies | attrs ) NL { TEXT NL } ;   (* e.g. EMERGENT [TYPE: psychological; FROM: regulation] or [SATISFIES: R3]; attrs for domain/feedback *)
 
 (* a step may *be* a construct, or a construct may stand on its own line *)

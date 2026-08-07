@@ -17,6 +17,8 @@ def _section_keyword(section: str) -> str | None:
         return "REQUIREMENTS"
     if lower.startswith("outcomes"):
         return "OUTCOMES"
+    if lower.startswith("plan"):
+        return "PLAN"
     if "process" in lower:
         return "PROCESS"
     return None
@@ -42,7 +44,9 @@ def _markdown_context_lines(lines: list[str]) -> list[str]:
 
 def _is_block_keyword(line: str) -> bool:
     upper = line.upper()
-    return upper in {"CONTEXT", "OUTCOMES", "REQUIREMENTS"} or upper.startswith(("PLAN ", "PROCESS "))
+    return upper in {"CONTEXT", "OUTCOMES", "REQUIREMENTS"} or upper.startswith(
+        ("PLAN ", "PROCESS ")
+    )
 
 
 def _outcomes_lines(lines: list[str]) -> list[str]:
@@ -55,6 +59,17 @@ def _outcomes_lines(lines: list[str]) -> list[str]:
     return out
 
 
+def _plan_lines(lines: list[str]) -> list[str]:
+    """Keep PLAN skeleton lines; drop pure markdown chrome."""
+    out: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        out.append(line.rstrip())
+    return out
+
+
 def extract_cairn_source(text: str) -> tuple[str, str]:
     """Return (cairn_source, source_kind) where kind is ``markdown`` or ``cairn``."""
     if "## " not in text and "```" not in text:
@@ -62,7 +77,6 @@ def extract_cairn_source(text: str) -> tuple[str, str]:
 
     lines = text.splitlines()
     blocks: list[str] = []
-    section = ""
     section_key: str | None = None
     in_fence = False
     fence_buf: list[str] = []
@@ -76,15 +90,18 @@ def extract_cairn_source(text: str) -> tuple[str, str]:
             blocks.append("\n".join(_markdown_context_lines(prose_buf)))
         elif section_key == "OUTCOMES":
             blocks.append("\n".join(_outcomes_lines(prose_buf)))
+        elif section_key == "PLAN":
+            plan_body = _plan_lines(prose_buf)
+            if plan_body:
+                blocks.append("\n".join(plan_body))
         prose_buf = None
 
     for line in lines:
         sec = _SECTION.match(line)
         if sec:
             flush_prose()
-            section = sec.group(1).strip()
-            section_key = _section_keyword(section)
-            if section_key in {"CONTEXT", "OUTCOMES"}:
+            section_key = _section_keyword(sec.group(1).strip())
+            if section_key in {"CONTEXT", "OUTCOMES", "PLAN"}:
                 prose_buf = []
             else:
                 prose_buf = None
@@ -94,7 +111,8 @@ def extract_cairn_source(text: str) -> tuple[str, str]:
             if in_fence:
                 if fence_buf:
                     header = section_key or ""
-                    if header == "PROCESS":
+                    # PROCESS/PLAN fences already carry their own header line.
+                    if header in {"PROCESS", "PLAN"}:
                         blocks.append("\n".join(fence_buf))
                     elif header:
                         blocks.append(header + "\n" + "\n".join(fence_buf))
@@ -114,7 +132,9 @@ def extract_cairn_source(text: str) -> tuple[str, str]:
     flush_prose()
     if fence_buf:
         header = section_key or ""
-        if header and header != "PROCESS":
+        if header in {"PROCESS", "PLAN"}:
+            blocks.append("\n".join(fence_buf))
+        elif header:
             blocks.append(header + "\n" + "\n".join(fence_buf))
         else:
             blocks.append("\n".join(fence_buf))

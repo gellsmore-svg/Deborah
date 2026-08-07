@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+- **SPEC v0.11 / Phase A process semantics:** orthogonal axes HOW / PRODUCT /
+  FRAME / CONTROL; progressive `COGNITION:` (`observe|infer|evaluate|decide`);
+  crystallised ≠ all-deterministic steps. Parser, well-formedness, plan export
+  (`cognition`, `execution`, `purpose`), conformance **1.2**, golden example
+  `examples/cross-llm-critique.cairn.md`. Behaviour multi-select and
+  negotiate/learn/optimize deferred (see
+  `docs/PROCESS-SEMANTICS-AND-ROADMAP.md`).
 
 ## [0.10.0] — 2026-08-06
 

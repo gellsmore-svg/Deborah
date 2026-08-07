@@ -1,5 +1,6 @@
 from deborah import (
     CANONICAL_PLAN,
+    COGNITION_MVP,
     CORE_CONSTRUCTS,
     EXTENSION_CONSTRUCTS,
     ON_UNCERTAINTY_POLICIES,
@@ -70,6 +71,15 @@ def test_core_vs_extension_construct_profiles() -> None:
     assert not is_core_construct("SYMBOLIC_INTERACTION")
     assert CORE_CONSTRUCTS.isdisjoint(EXTENSION_CONSTRUCTS)
     assert CORE_CONSTRUCTS | EXTENSION_CONSTRUCTS == PLAN_CONSTRUCTS
+
+
+def test_cognition_on_canonical_plan_is_optional() -> None:
+    """Omit cognition → still conformant; MVP values accepted."""
+    assert validate_plan(CANONICAL_PLAN) == []
+    plan = dict(CANONICAL_PLAN)
+    plan["steps"] = [dict(plan["steps"][0], cognition="observe", execution="deterministic")]
+    assert validate_plan(plan) == []
+    assert "observe" in COGNITION_MVP
 
 
 def test_grammar_constructs_all_validate():

@@ -177,13 +177,14 @@ Deborah carries **two independent version numbers** (they are not meant to match
 
 | What | Where it lives | Current |
 |---|---|---|
-| **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.10** |
+| **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.11** |
 | **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.10.0** |
 
-Specification **v0.10** and package **0.10.0** ship together: cross-LLM framing
-role, crystallisation lifecycle, capability pins (`ASSUMES`), terminal statuses
-`open`/`refused`, core vs descriptive construct profiles, and conformance **1.1**.
-See [CHANGELOG.md](CHANGELOG.md).
+Package **0.10.0** shipped with SPEC v0.10 framing. **SPEC v0.11** (in-tree /
+Unreleased) adds process-semantic axes and progressive `COGNITION`
+(observe|infer|evaluate|decide); conformance **1.2**. See
+[CHANGELOG.md](CHANGELOG.md) and
+[docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
 Huldah where needed). Prefer `pip install deborah`.

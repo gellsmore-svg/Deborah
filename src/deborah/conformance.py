@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-CONFORMANCE_VERSION = "1.1"
+CONFORMANCE_VERSION = "1.2"
 
 # Step-level constructs from SPEC §5 (the ones a PLAN step may *be*).
 #
@@ -82,6 +82,12 @@ STEP_STATUSES: frozenset[str] = frozenset({"pending", "active", "completed", "bl
 
 # Uncertainty policy when outcomes cannot be fully satisfied (SPEC §4.5).
 ON_UNCERTAINTY_POLICIES: frozenset[str] = frozenset({"record", "escalate", "abort"})
+
+# Cognitive product contracts on steps (SPEC process-semantic axes). Progressive:
+# omit cognition = no product contract. MVP four; others reserved.
+COGNITION_MVP: frozenset[str] = frozenset({"observe", "infer", "evaluate", "decide"})
+COGNITION_RESERVED: frozenset[str] = frozenset({"negotiate", "learn", "optimize"})
+COGNITION_VALUES: frozenset[str] = COGNITION_MVP | COGNITION_RESERVED
 
 # The cross-repo core contract: fields a Cairn plan/step consumer can rely on.
 REQUIRED_PLAN_FIELDS: tuple[str, ...] = (
@@ -160,13 +166,28 @@ def validate_plan(plan: Any) -> list[str]:
     else:
         for index, step in enumerate(steps):
             errors.extend(_validate_step(step, index))
-            # Core-profile note: extension constructs are allowed in the document
-            # but CORE_CONSTRUCTS is the set a minimal interpreter must implement.
-            construct = step.get("construct") if isinstance(step, dict) else None
-            if construct in EXTENSION_CONSTRUCTS:
-                # Not an error — descriptive profile. Consumers of the core
-                # profile may skip; recorded only so tests can assert the split.
-                pass
+            if not isinstance(step, dict):
+                continue
+            cognition = step.get("cognition")
+            if cognition is not None and cognition != "":
+                value = str(cognition).strip().lower()
+                if value in COGNITION_RESERVED:
+                    errors.append(
+                        f"step[{index}] cognition {value!r} is reserved; "
+                        f"MVP allows {sorted(COGNITION_MVP)}"
+                    )
+                elif value not in COGNITION_MVP:
+                    errors.append(
+                        f"step[{index}] unknown cognition {value!r} "
+                        f"(allowed: {sorted(COGNITION_MVP)})"
+                    )
+            execution = step.get("execution")
+            if execution is not None and execution != "":
+                if str(execution).strip().lower() not in {"deterministic", "stochastic"}:
+                    errors.append(
+                        f"step[{index}] invalid execution {execution!r} "
+                        f"(allowed: deterministic|stochastic)"
+                    )
 
     return errors
 

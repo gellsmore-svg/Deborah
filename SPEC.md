@@ -1,6 +1,6 @@
 # Cairn — a process meta-language
 
-**Specification v0.10** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
+**Specification v0.11** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
 processes — especially **cross-LLM work** — so that humans and LLMs can read,
@@ -412,9 +412,31 @@ A major transition / phase in a process (e.g. `FRAME`, `BUILD`, `VERIFY`,
   significant transition explicit.
 
 ### PURPOSE
-A one-line statement of **intent** on a PROCESS, MILESTONE, or step — *why* it
-exists, not *how* it works. The `operator` profile renders it as "Purpose:".
-- Formal: `PURPOSE: <intent>` (a sub-block, like OUTPUT/RISKS).
+A one-line statement of **why** a PROCESS, MILESTONE, or step exists (motivation
+for humans and profiles) — not *how* it works. Distinct from PLAN `INTENT`
+(application success) and from `COGNITION` (expected semantic product — §17).
+The `operator` profile renders it as "Purpose:".
+- Formal: `PURPOSE: <why this step exists>` (a sub-block, like OUTPUT/RISKS).
+
+### COGNITION
+Optional progressive annotation: the **expected semantic product** of a step
+(process-semantic **PRODUCT** axis — §17). At most one per step.
+
+```text
+COGNITION: observe | infer | evaluate | decide
+```
+
+| Value | Expected product (contract sketch; structured enforcement later) |
+|---|---|
+| `observe` | Evidence with provenance — not conclusions |
+| `infer` | Claim(s) linked to evidence, assumptions, confidence bands |
+| `evaluate` | Criteria and scores/ranks — no commitment |
+| `decide` | Selected alternative and commitment |
+
+Omit `COGNITION` → no product contract (document remains valid). Reserved for
+later language revisions (invalid in v0.11): `negotiate`, `learn`, `optimize`.
+
+Do **not** use the bare keyword `intent` for this axis.
 
 ### STEP
 A single action. The default construct; the verb carries the meaning.
@@ -912,6 +934,11 @@ The interpreter walks the crystallised plan:
 Stochastic steps still call models. The **frame** is what is fixed — not the
 model's internal sampling.
 
+**Crystallised ≠ all-deterministic steps.** A crystallised PLAN has a versioned
+control graph, allow-lists, and bounds. Individual steps may still be
+`[LLM, STOCHASTIC]`. What must not happen at runtime is silent free-form tool
+choice or unbounded re-planning that abandons the document.
+
 ### 14.4 Re-negotiation
 
 Re-opening multi-round discovery is a **new REVISION** (or a new plan), not a
@@ -962,7 +989,41 @@ The machine-readable split is `deborah.CORE_CONSTRUCTS` vs
 
 ---
 
-## 17. Non-goals
+## 17. Process semantic axes
+
+Deborah describes process properties on **orthogonal axes**. Do not collapse them
+into one taxonomy. Full rationale:
+[docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
+
+| Axis | Question | Surface |
+|---|---|---|
+| **HOW** | How is the next state determined? | Tags `DETERMINISTIC` · `STOCHASTIC` (§7) |
+| **PRODUCT** | What semantic product does the step owe? | `COGNITION:` (§5) — progressive |
+| **FRAME** | What is this plan application trying to achieve, under which surfaces? | PLAN `INTENT`, `OUTCOMES`, `ASSUMES`, `ON_UNCERTAINTY` (§4.5) |
+| **CONTROL** | How does orchestration structure execution? | Constructs (`ITERATE`, `AWAIT`, `DECISION`, …) + bounds + `GATED` |
+
+**ChatGPT-style “control behaviours”** (reactive, adaptive, exploratory, …) are
+**not** a peer multi-select layer in v0.11. Map them to constructs and plan
+policy (e.g. reactive → `AWAIT`; exploratory → bounded `ITERATE` + residual
+`open`). A future revision may add narrow modifiers only where enforceable.
+
+**Composition example**
+
+```text
+2. Form a failure hypothesis. [LLM, STOCHASTIC]     (* HOW *)
+   PURPOSE: narrow the incident class before paging
+   COGNITION: infer                                 (* PRODUCT *)
+   OUTPUT: hypothesis with evidence refs
+```
+
+**Confidence** (when structured results exist later): prefer ordinal bands on
+`evidence` / `inference` / `execution`, not a single float as the system of
+record. Low confidence defaults to plan `ON_UNCERTAINTY` (`record`/`escalate`),
+not silent unbounded re-planning.
+
+---
+
+## 18. Non-goals
 
 The following are **explicitly out of scope** for this specification:
 
@@ -979,10 +1040,12 @@ The following are **explicitly out of scope** for this specification:
    and evidence obligations belong on capability manifests, referenced here.
 5. **Turning stochastic steps into pure functions** — see the opening role
    statement; framing ≠ determinising the model.
+6. **Five composable step “behaviours” as a first-class peer to constructs** —
+   see §17; control stays in constructs and bounds for v0.11.
 
 ---
 
-## 18. Versioning & evolution
+## 19. Versioning & evolution
 
 The version numbers below are **specification** versions — they track the language,
 not the implementation. The Python package (`deborah` / historical `cairn-lang`)
@@ -990,6 +1053,9 @@ is versioned separately in `pyproject.toml` and `CHANGELOG.md` and tagged in git
 the two are not expected to match. See the Status section of [README.md](README.md)
 for the current pairing.
 
+- **v0.11** adds process semantic axes (§17) and progressive `COGNITION`
+  (observe|infer|evaluate|decide); clarifies crystallised ≠ all-deterministic
+  steps; defers behaviour multi-select and negotiate/learn/optimize contracts.
 - **v0.10** states Deborah's role as framing cross-LLM caller↔capability work;
   adds PLAN fields `INTENT`, `OUTCOMES`, `ASSUMES`, `ON_UNCERTAINTY`,
   `REEVALUATE_WHEN`; terminal statuses `open` / `refused`; crystallisation

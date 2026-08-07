@@ -405,8 +405,15 @@ def _validate_construct_line(
     return errors
 
 
+# MVP cognitive product contracts (SPEC process-semantic axes). Progressive:
+# omit COGNITION = no product contract. Future: negotiate|learn|optimize.
+_COGNITION_MVP = frozenset({"observe", "infer", "evaluate", "decide"})
+_COGNITION_RESERVED = frozenset({"negotiate", "learn", "optimize"})
+
+
 def _validate_annotations(annotations: list[Annotation], declared_states: set[str], lineno: int) -> list[str]:
     errors: list[str] = []
+    cognition_seen = 0
     for ann in annotations:
         if ann.keyword == "STATE_UPDATE":
             ref = _STATE_REF.match(ann.text.strip())
@@ -414,6 +421,24 @@ def _validate_annotations(annotations: list[Annotation], declared_states: set[st
                 errors.append(
                     f"line {ann.lineno}: STATE UPDATE references undeclared state {ref.group(1)!r}"
                 )
+        elif ann.keyword == "COGNITION":
+            cognition_seen += 1
+            value = ann.text.strip().lower().split()[0] if ann.text.strip() else ""
+            # Allow "infer  # comment" style: first token only.
+            if not value:
+                errors.append(f"line {ann.lineno}: COGNITION requires a value (observe|infer|evaluate|decide)")
+            elif value in _COGNITION_RESERVED:
+                errors.append(
+                    f"line {ann.lineno}: COGNITION {value!r} is reserved for a later contract; "
+                    f"MVP allows {sorted(_COGNITION_MVP)}"
+                )
+            elif value not in _COGNITION_MVP:
+                errors.append(
+                    f"line {ann.lineno}: unknown COGNITION {value!r} "
+                    f"(allowed: {sorted(_COGNITION_MVP)})"
+                )
+    if cognition_seen > 1:
+        errors.append(f"line {lineno}: at most one COGNITION annotation per step")
     return errors
 
 

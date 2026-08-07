@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from deborah.grammar.ast import CairnDocument, Plan, Step
+from deborah.grammar.tags import split_tag_list
 
 
 def document_to_plan(doc: CairnDocument) -> dict[str, Any]:
@@ -82,6 +83,25 @@ def _steps_to_dict(steps: list[Step], *, prefix: str = "s") -> list[dict[str, An
             criteria = [a.text for a in node.annotations if a.keyword == "OUTPUT"]
             if criteria:
                 entry["success_criteria"] = criteria
+            purpose = next((a.text for a in node.annotations if a.keyword == "PURPOSE"), None)
+            if purpose:
+                entry["purpose"] = purpose
+            cognition = next((a.text for a in node.annotations if a.keyword == "COGNITION"), None)
+            if cognition:
+                # First token is the product type; remainder is optional prose.
+                token = cognition.strip().split()[0].lower() if cognition.strip() else ""
+                if token:
+                    entry["cognition"] = token
+            # Determinism tag → execution axis (HOW), when present.
+            # Tags may arrive as one bracket group ("CODE, DETERMINISTIC").
+            for raw in node.tags:
+                for tag in split_tag_list(raw):
+                    root = tag.split(":", 1)[0].split("[", 1)[0].strip().upper()
+                    if root in {"DETERMINISTIC", "STOCHASTIC"}:
+                        entry["execution"] = root.lower()
+                        break
+                if "execution" in entry:
+                    break
             out.append(entry)
             if node.children:
                 walk(node.children, step_id)

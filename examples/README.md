@@ -9,6 +9,11 @@ the maintaining package is `deborah`.
 crystallisation targets — versioned plans for cross-LLM work, not a claim that
 stochastic steps become pure functions.
 
+**SPEC v0.11 golden:**
+[`cross-llm-critique.cairn.md`](cross-llm-critique.cairn.md) — observe → infer →
+evaluate → decide/open with `COGNITION`, PLAN framing, and mixed
+DETERMINISTIC/STOCHASTIC steps.
+
 ## Expanded Example Library
 
 The example library now includes categorized suites under subfolders. These are

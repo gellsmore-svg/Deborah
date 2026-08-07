@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
-**Date:** 2026-08-07 · **Status:** refined after recursive review · **Baseline:**
-Deborah 0.10.0 / SPEC v0.10
+**Date:** 2026-08-07 · **Status:** Phase A implemented (SPEC v0.11 + COGNITION
+MVP) · **Baseline:** Deborah 0.10.0 package; language SPEC **v0.11**
 
 This document:
 
@@ -259,21 +259,21 @@ Omit `COGNITION` → today’s behaviour (no product contract).
 4. **Runtime after contracts.**
 5. **Crystallisation story stays authoritative** for negotiation/exploration.
 
-### Phase A — Spec + parse + golden example *(Deborah-only, first)*
+### Phase A — Spec + parse + golden example *(Deborah-only, first)* — **DONE**
 
-**In**
+**Shipped**
 
-- SPEC: process semantic axes (HOW / PRODUCT / FRAME / CONTROL constructs)
-- SPEC: crystallised ≠ all-deterministic steps
-- `COGNITION:` parse + validate enum (MVP four)
-- Export on plan steps
-- Golden example: cross-LLM observe → infer → evaluate → decide/open
-- Tests; progressive (optional field)
+- SPEC §17 axes; §5 `COGNITION`; crystallised ≠ all-deterministic (§14.3)
+- `COGNITION:` parse + well-formedness (MVP four; reserved rejected)
+- Export: step `cognition`, `execution`, `purpose`
+- Conformance 1.2 + `COGNITION_MVP` / `COGNITION_RESERVED`
+- Golden example `examples/cross-llm-critique.cairn.md`
+- Tests: `tests/test_cognition.py`
 
-**Out**
+**Still out (later phases)**
 
 - BEHAVIOUR multi-select
-- negotiate/learn/optimize
+- negotiate/learn/optimize contracts
 - Interpreter
 - Confidence auto-recursion
 
