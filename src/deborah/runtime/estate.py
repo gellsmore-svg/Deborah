@@ -136,7 +136,16 @@ CapabilityDispatch = Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]
 # (golden cross-llm plan uses STEP for observe + CALL for critique).
 _COGNITION_DEFAULT_TOOLS: dict[str, tuple[str, ...]] = {
     "observe": ("tirzah.retrieve", "retrieve", "tirzah.search_memory", "search_memory"),
-    "evaluate": ("milcah.critique", "critique", "milcah.coherence_check", "coherence_check"),
+    "infer": ("deborah.infer", "infer"),
+    "evaluate": (
+        "milcah.critique",
+        "critique",
+        "milcah.coherence_check",
+        "coherence_check",
+        "mahalath.detect_novel",
+        "detect_novel",
+        "mahalath.retrieve",
+    ),
 }
 
 
@@ -289,6 +298,8 @@ def demo_capability_index() -> DictCapabilityIndex:
     idx = DictCapabilityIndex()
     idx.add("tirzah.retrieve", product="tirzah", kind="tool")
     idx.add("milcah.critique", product="milcah", kind="tool", tags=["critique", "evaluate"])
+    idx.add("deborah.infer", product="deborah", kind="tool", tags=["infer"])
+    idx.add("mahalath.detect_novel", product="mahalath", kind="tool", tags=["novel"])
     return idx
 
 
@@ -310,6 +321,18 @@ def try_load_live_dispatch() -> dict[str, CapabilityDispatch]:
         from milcah.deborah import deborah_dispatch as milcah_dispatch  # type: ignore[import-not-found]
 
         dispatch.update(milcah_dispatch())
+    except Exception:
+        pass
+    try:
+        from deborah.runtime.infer import deborah_infer_dispatch
+
+        dispatch.update(deborah_infer_dispatch(use_llm=False))
+    except Exception:
+        pass
+    try:
+        from mahalath.deborah import deborah_dispatch as mahalath_dispatch  # type: ignore[import-not-found]
+
+        dispatch.update(mahalath_dispatch())
     except Exception:
         pass
     return dispatch

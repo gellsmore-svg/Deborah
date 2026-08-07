@@ -68,6 +68,31 @@ def prepare_live_slice(
     except Exception:
         pass
 
+    # Rule-based infer (always available in Deborah)
+    try:
+        from deborah.runtime.infer import deborah_infer_dispatch
+
+        dispatch = {**dispatch, **deborah_infer_dispatch(use_llm=False)}
+    except Exception:
+        pass
+
+    # Mahalath novel-concept detection when installed (+ optional same Mongo)
+    try:
+        from mahalath.deborah import deborah_dispatch as mahalath_dispatch  # type: ignore[import-not-found]
+
+        # Prefer Mahalath's own DB if configured; else None (all candidates novel)
+        mdb = None
+        try:
+            from mahalath.config import load_config as mahalath_load_config
+            from mahalath.db import get_database as mahalath_get_db
+
+            mdb = mahalath_get_db(mahalath_load_config())
+        except Exception:
+            mdb = None
+        dispatch = {**dispatch, **mahalath_dispatch(db=mdb)}
+    except Exception:
+        pass
+
     if store is None and not dispatch:
         return {
             "live_ok": False,

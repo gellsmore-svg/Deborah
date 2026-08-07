@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.20.0] — 2026-08-07
+
+**Close top orchestration gaps: infer, novel concepts, GATED decide.**
+
+- Rule-based (optional Ollama) **infer** handler — live product, not demo-only
+- GATED/HUMAN DECISION → `awaiting_decision` until `--decision` / injected map
+- Substrate plan adds mahalath novel-concept evaluate step + deborah.infer
+- Estate routes infer + mahalath.detect_novel when adapters present
+
 ## [0.19.0] — 2026-08-07
 
 **Live Mongo estate for the substrate slice.**

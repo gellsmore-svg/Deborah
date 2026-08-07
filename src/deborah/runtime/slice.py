@@ -82,6 +82,8 @@ def run_substrate_slice(
     tracer: Any = None,
     require_evidence: bool = True,
     use_live_open_questions: bool = False,
+    decisions: dict[str, str] | None = None,
+    use_llm_infer: bool = False,
 ) -> SliceResult:
     """Execute the substrate critique slice under framed control.
 
@@ -145,6 +147,14 @@ def run_substrate_slice(
                     if idx.find(stem) is None:
                         idx.add(stem, product=stem.split(".")[0] if "." in stem else "live")
             index = idx
+
+    # Demo / default: always attach rule-based infer (+ optional novel stub)
+    if dispatch is None:
+        dispatch = {}
+    if not any(k.endswith("infer") or k == "infer" for k in dispatch):
+        from deborah.runtime.infer import deborah_infer_dispatch
+
+        dispatch = {**deborah_infer_dispatch(use_llm=use_llm_infer), **dispatch}
 
     negotiation: NegotiationResult | None = None
     if negotiate:
@@ -228,17 +238,73 @@ def run_substrate_slice(
                 events=events,
             )
 
-    run = interpret_with_estate(
-        plan,
-        demo=demo and not live,
-        live=live,
-        dispatch=dispatch,
-        index=index,
-        tracer=tracer,
-        check_contracts=check_contracts,
-        contract_mode=contract_mode,
-        validate_profile="full",
-    )
+    # interpret_with_estate does not yet pass decisions — wrap after if needed
+    from deborah.runtime.estate import EstateHandler, demo_capability_index, demo_critique_dispatch
+    from deborah.runtime.interpreter import StubHandler, interpret_plan
+    from deborah.contracts import EXAMPLE_RESULTS
+
+    if demo and not live:
+        index = index or demo_capability_index()
+        dispatch = {**demo_critique_dispatch(), **(dispatch or {})}
+        # Infer already in dispatch
+        if index is not None and isinstance(index, DictCapabilityIndex):
+            for stem in dispatch:
+                if index.find(stem) is None:
+                    index.add(stem, product=stem.split(".")[0] if "." in stem else "demo")
+
+    # Prefer explicit decisions path through interpret_plan when we have custom dispatch
+    if dispatch or decisions is not None:
+        from deborah.runtime.estate import resolve_assumes
+
+        resolution = resolve_assumes(plan.get("assumes"), index)
+        allow = set(resolution.stems) if resolution.stems else None
+        fallback = StubHandler(
+            results_by_cognition=EXAMPLE_RESULTS if (demo and not live) else {}
+        )
+        handler = EstateHandler(
+            index=index,
+            dispatch=dispatch,
+            fallback=fallback,
+            route_cognition=True,
+        )
+        claim_ctx = plan.get("request") or plan.get("intent") or claim
+
+        def _handler(step: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+            context = dict(context)
+            context.setdefault("request", claim_ctx)
+            context.setdefault("claim", claim_ctx)
+            if decisions:
+                context.setdefault("decisions", dict(decisions))
+            return handler(step, context)
+
+        run = interpret_plan(
+            plan,
+            handler=_handler,
+            allow_list=allow,
+            validate_profile="full",
+            check_contracts=check_contracts,
+            contract_mode=contract_mode,
+            decisions=decisions,
+        )
+        if tracer is not None:
+            try:
+                from deborah.runtime.estate import record_run_on_tracer
+
+                record_run_on_tracer(run, tracer)
+            except Exception:
+                pass
+    else:
+        run = interpret_with_estate(
+            plan,
+            demo=demo and not live,
+            live=live,
+            dispatch=dispatch,
+            index=index,
+            tracer=tracer,
+            check_contracts=check_contracts,
+            contract_mode=contract_mode,
+            validate_profile="full",
+        )
     events.extend(run.events)
 
     outcomes = check_outcomes(

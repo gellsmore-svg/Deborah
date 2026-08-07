@@ -114,6 +114,10 @@ deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
 # Live Tirzah Mongo retrieve + open questions in family DB (when estate is up):
 deborah-run examples/answer-substrate-question.cairn.md --slice --estate-live \
   --open-questions-mongo --check-contracts --negotiator auto
+
+# GATED decide: inject operator verdict (without this, decide stays awaiting/open)
+deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
+  --decision accept --negotiator accept
 ```
 
 ```python

@@ -84,6 +84,10 @@ class StubHandler:
     CALL steps succeed if the tool is allow-listed (or no allow-list is set).
     Inject ``results_by_id`` to supply structured cognition results for contract
     checks without a real model.
+
+    GATED / HUMAN DECISION steps use :mod:`deborah.runtime.decide` — without an
+    injected selection they return ``awaiting_decision`` rather than inventing
+    a verdict.
     """
 
     def __init__(
@@ -98,6 +102,8 @@ class StubHandler:
         self.refuse_tools = {t.lower() for t in (refuse_tools or set())}
 
     def __call__(self, step: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+        from deborah.runtime.decide import gated_decision_outcome, step_is_gated
+
         sid = str(step.get("id", ""))
         construct = (step.get("construct") or "STEP").upper()
         cognition = step.get("cognition")
@@ -132,19 +138,15 @@ class StubHandler:
         if result is None and cognition:
             result = self.results_by_cognition.get(str(cognition).lower())
 
+        # GATED decisions: never invent accept/reject without injection
+        if construct == "DECISION" or str(cognition or "").lower() == "decide":
+            if step_is_gated(step) or construct == "DECISION":
+                # Non-gated DECISION still uses gated_decision_outcome for open residual
+                return gated_decision_outcome(step, context, fallback_result=result)
+
         out: dict[str, Any] = {"status": "completed"}
         if result is not None:
             out["result"] = result
-        # DECISION without a selected result → residual uncertainty
-        if construct == "DECISION" and (
-            result is None
-            or (isinstance(result, dict) and result.get("selected") in (None, "", "open"))
-        ):
-            if isinstance(result, dict) and result.get("selected") == "open":
-                out["residual"] = True
-            elif result is None:
-                out["residual"] = True
-                out["result"] = {"selected": "open", "committed": False}
         return out
 
 
@@ -221,6 +223,7 @@ def interpret_plan(
     max_steps: int | None = None,
     allow_reentry: bool = False,
     reflective_pass: bool | None = None,
+    decisions: dict[str, str] | None = None,
 ) -> RunResult:
     """Walk ``plan`` under the framed control policy.
 
@@ -248,6 +251,9 @@ def interpret_plan(
     reflective_pass:
         Phase F: if true (or plan.reflective_pass), mark residual when
         infer/evaluate reports low/unassessed inference confidence.
+    decisions:
+        Optional map of step id → selected verdict for GATED DECISION steps
+        (``accept`` | ``reject`` | ``open``).
     """
     events: list[dict[str, Any]] = []
     errors: list[str] = []
@@ -300,6 +306,7 @@ def interpret_plan(
         "allow_list": allow,
         "plan_id": plan_id,
         "artifacts": {},  # step_id → result
+        "decisions": dict(decisions or {}),
     }
     records: list[StepRecord] = []
     residual = False
@@ -427,6 +434,10 @@ def interpret_plan(
         # Hard stop on blocked/refused mid-plan (no free re-planning)
         if status in {"blocked", "refused"}:
             break
+        # GATED await: stop walk so later steps do not run without a verdict
+        if status == "awaiting_decision":
+            residual = True
+            break
 
     terminal = _resolve_terminal(
         blocked=blocked,
@@ -436,8 +447,11 @@ def interpret_plan(
         records=records,
     )
     unresolved: list[str] = []
+    if any(r.status == "awaiting_decision" for r in records):
+        unresolved.append("awaiting gated human decision")
     if residual or terminal == "open":
-        unresolved.append("residual uncertainty after interpretation")
+        if "awaiting gated human decision" not in unresolved:
+            unresolved.append("residual uncertainty after interpretation")
     if terminal == "refused":
         unresolved.append("capability or policy refusal")
     if reentry_used:
@@ -474,6 +488,8 @@ def _resolve_terminal(
         return "refused"
     if blocked:
         return "blocked"
+    if any(r.status == "awaiting_decision" for r in records):
+        return "open"
     if residual:
         if on_uncertainty == "abort":
             return "blocked"

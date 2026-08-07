@@ -137,6 +137,17 @@ def main(argv: list[str] | None = None) -> int:
             "accept (one-shot), critique (content rules for milcah.critique)"
         ),
     )
+    parser.add_argument(
+        "--decision",
+        metavar="VERDICT",
+        choices=["accept", "reject", "open"],
+        help="Inject GATED decision verdict for the decide step (slice/runtime)",
+    )
+    parser.add_argument(
+        "--llm-infer",
+        action="store_true",
+        help="Use Ollama for infer step when reachable (else rule-based)",
+    )
     args = parser.parse_args(argv)
 
     if args.input in (None, "-"):
@@ -199,6 +210,16 @@ def main(argv: list[str] | None = None) -> int:
         demo = not args.estate_live
         if args.estate_demo:
             demo = True
+        decisions = None
+        if args.decision:
+            # Apply to any decide step id (s4/s5/…); handler also checks default
+            decisions = {"default": args.decision}
+            for step in plan.get("steps") or []:
+                if isinstance(step, dict) and (
+                    str(step.get("cognition") or "").lower() == "decide"
+                    or str(step.get("construct") or "").upper() == "DECISION"
+                ):
+                    decisions[str(step.get("id"))] = args.decision
         slice_result = run_substrate_slice(
             plan,
             question=args.question,
@@ -213,6 +234,8 @@ def main(argv: list[str] | None = None) -> int:
             check_contracts=args.check_contracts or True,
             contract_mode=args.contract_mode,
             tracer=tracer,
+            decisions=decisions,
+            use_llm_infer=bool(args.llm_infer),
         )
         if args.json:
             print(json.dumps(slice_result.to_dict(), indent=2))
