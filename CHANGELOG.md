@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-08-07
+
+**Live Tirzah/Milcah estate adapters.** Optional real handlers for the golden
+cross-LLM critique plan — still no hard dependency on either product.
+
+- `try_load_live_dispatch` / `try_load_live_index` / `live_estate_available`
+- `interpret_with_estate(live=True)` merges adapters from `tirzah.deborah` and
+  `milcah.deborah` when importable; falls back to demo stubs if neither loads
+- `EstateHandler` routes STEP `COGNITION: observe|evaluate` to registered
+  retrieve/critique when CALL tools are absent (golden plan shape)
+- CLI: `deborah-run --estate-live`
+
 ## [0.14.0] — 2026-08-07
 
 **Phase F — extended cognitions and reflective policy.** Completes the

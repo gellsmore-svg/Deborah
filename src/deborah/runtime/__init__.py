@@ -16,9 +16,12 @@ from deborah.runtime.estate import (
     demo_capability_index,
     demo_critique_dispatch,
     interpret_with_estate,
+    live_estate_available,
     record_run_on_tracer,
     resolve_assumes,
     try_load_keturah_registry,
+    try_load_live_dispatch,
+    try_load_live_index,
     try_make_tracer,
 )
 from deborah.runtime.interpreter import (
@@ -41,8 +44,11 @@ __all__ = [
     "demo_critique_dispatch",
     "interpret_plan",
     "interpret_with_estate",
+    "live_estate_available",
     "record_run_on_tracer",
     "resolve_assumes",
     "try_load_keturah_registry",
+    "try_load_live_dispatch",
+    "try_load_live_index",
     "try_make_tracer",
 ]

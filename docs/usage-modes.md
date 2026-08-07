@@ -88,6 +88,20 @@ plan = document_to_plan(parse_document(open("examples/cross-llm-critique.cairn.m
 run = interpret_with_estate(plan, demo=True, check_contracts=True)
 ```
 
+**Live estate** (real Tirzah retrieve + Milcah critique when those packages
+are installed; still fail-soft if Mongo/Hoglah are down):
+
+```bash
+pip install tirzah milcah   # optional
+deborah-run examples/cross-llm-critique.cairn.md --estate-live --check-contracts
+```
+
+```python
+run = interpret_with_estate(plan, live=True, check_contracts=True)
+# Or inject: tirzah.deborah.deborah_dispatch(search=…) /
+# milcah.deborah.deborah_dispatch(run_fn=…) into dispatch=
+```
+
 **Phase F reflective policy** (off by default; requires plan fields and flags):
 
 ```bash

@@ -178,13 +178,12 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.14.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.15.0** |
 
-Package **0.14.0** completes process-semantics Phases A–F: extended
-`COGNITION` (`negotiate` / `learn` / `optimize` with gated contracts), PLAN
-`EXPLORATION_BUDGET` / `REFLECTIVE_PASS`, and opt-in reflective re-entry on
-top of estate hooks (0.13) and the thin interpreter (0.12). SPEC **v0.12**.
-See [CHANGELOG.md](CHANGELOG.md) and
+Package **0.15.0** adds optional **live** Tirzah/Milcah estate adapters
+(`deborah-run --estate-live`) on top of Phase F (0.14), estate demo hooks
+(0.13), and the thin interpreter (0.12). SPEC **v0.12**. See
+[CHANGELOG.md](CHANGELOG.md) and
 [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and

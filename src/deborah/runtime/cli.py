@@ -59,6 +59,15 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--estate-live",
+        action="store_true",
+        help=(
+            "Use real Tirzah/Milcah Deborah adapters when installed "
+            "(tirzah.deborah / milcah.deborah); falls back to demo stubs if "
+            "neither package is importable"
+        ),
+    )
+    parser.add_argument(
         "--trace",
         action="store_true",
         help="Record run on Galeed Tracer if galeed is installed (no-op otherwise)",
@@ -130,16 +139,19 @@ def main(argv: list[str] | None = None) -> int:
 
         tracer = try_make_tracer(source="deborah-run")
 
-    if args.estate_demo:
+    if args.estate_demo or args.estate_live:
         run = interpret_with_estate(
             plan,
-            demo=True,
+            demo=bool(args.estate_demo) and not args.estate_live,
+            live=bool(args.estate_live),
             tracer=tracer,
             check_contracts=args.check_contracts,
             contract_mode=args.contract_mode,
             validate_profile=None if args.no_validate else args.profile,
             max_steps=args.max_steps,
             fallback_results_by_cognition=results_by_cog or EXAMPLE_RESULTS,
+            allow_reentry=args.allow_reentry,
+            reflective_pass=True if args.reflective_pass else None,
         )
     else:
         handler = StubHandler(results_by_id=results_by_id, results_by_cognition=results_by_cog)

@@ -98,6 +98,104 @@ def test_galeed_tracer_optional() -> None:
     assert len(tracer.events) >= 1
 
 
+def test_estate_live_with_injected_adapters() -> None:
+    """live=True with explicit dispatch (no Mongo/Hoglah) completes under contracts."""
+    from deborah.runtime.estate import DictCapabilityIndex
+
+    def retrieve(step, context):
+        return {
+            "status": "completed",
+            "result": {
+                "evidence": [
+                    {
+                        "statement": "Injected memory hit about the claim.",
+                        "source": "tirzah.retrieve:test",
+                        "trace_ref": "t1",
+                    }
+                ]
+            },
+        }
+
+    def critique(step, context):
+        return {
+            "status": "completed",
+            "result": {
+                "criteria": ["groundedness", "internal_consistency", "adversarial_resilience"],
+                "scores": {
+                    "groundedness": "medium",
+                    "internal_consistency": "medium",
+                    "adversarial_resilience": "low",
+                },
+                "ranking": ["open", "revise", "accept"],
+                "objections": ["Evidence is thin."],
+                "confidence": {
+                    "evidence": "medium",
+                    "inference": "low",
+                    "execution": "high",
+                    "basis": "injected",
+                },
+            },
+        }
+
+    idx = DictCapabilityIndex()
+    idx.add("tirzah.retrieve", product="tirzah")
+    idx.add("milcah.critique", product="milcah")
+    run = interpret_with_estate(
+        _plan(),
+        index=idx,
+        dispatch={
+            "tirzah.retrieve": retrieve,
+            "retrieve": retrieve,
+            "milcah.critique": critique,
+            "critique": critique,
+        },
+        live=False,
+        demo=False,
+        check_contracts=True,
+        contract_mode="soft",
+        validate_profile="full",
+    )
+    assert run.terminal in {"complete", "open"}
+    observe = [s for s in run.steps if s.cognition == "observe"]
+    assert observe and observe[0].status == "completed"
+    assert observe[0].result and observe[0].result.get("evidence")
+    call_steps = [s for s in run.steps if s.construct == "CALL"]
+    assert call_steps and call_steps[0].result and "criteria" in call_steps[0].result
+
+
+def test_cognition_routing_observe_without_call() -> None:
+    from deborah.runtime.estate import EstateHandler
+    from deborah.runtime.interpreter import StubHandler
+
+    seen: list[str] = []
+
+    def retrieve(step, context):
+        seen.append("retrieve")
+        return {
+            "status": "completed",
+            "result": {"evidence": [{"statement": "x", "source": "t", "trace_ref": "1"}]},
+        }
+
+    h = EstateHandler(
+        dispatch={"tirzah.retrieve": retrieve},
+        fallback=StubHandler(),
+        route_cognition=True,
+    )
+    out = h({"construct": "STEP", "cognition": "observe", "id": "1"}, {})
+    assert out["status"] == "completed"
+    assert seen == ["retrieve"]
+
+
+def test_try_load_live_failsoft() -> None:
+    from deborah.runtime.estate import live_estate_available, try_load_live_dispatch
+
+    # Must not raise whether or not packages are installed.
+    avail = live_estate_available()
+    assert set(avail) == {"tirzah", "milcah"}
+    dispatch = try_load_live_dispatch()
+    assert isinstance(dispatch, dict)
+
+
 def test_keturah_registry_optional() -> None:
     try:
         from keturah import Registry, capability, manifest

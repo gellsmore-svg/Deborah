@@ -132,12 +132,21 @@ def resolve_assumes(
 CapabilityDispatch = Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]
 
 
+# Cognition → preferred capability stems when STEP has no explicit CALL tool
+# (golden cross-llm plan uses STEP for observe + CALL for critique).
+_COGNITION_DEFAULT_TOOLS: dict[str, tuple[str, ...]] = {
+    "observe": ("tirzah.retrieve", "retrieve", "tirzah.search_memory", "search_memory"),
+    "evaluate": ("milcah.critique", "critique", "milcah.coherence_check", "coherence_check"),
+}
+
+
 class EstateHandler:
     """Handler: resolve CALL tools via index + optional per-tool dispatch.
 
     * ``dispatch`` maps capability stem → callable(step, context) -> outcome
     * Unknown CALL tools → blocked (if index present) or delegated to ``fallback``
-    * Non-CALL steps always use ``fallback`` (default :class:`StubHandler`)
+    * Non-CALL steps use ``fallback`` unless ``route_cognition=True`` and a
+      cognition maps to a registered dispatch (observe→retrieve, evaluate→critique)
     """
 
     def __init__(
@@ -147,38 +156,58 @@ class EstateHandler:
         dispatch: dict[str, CapabilityDispatch] | None = None,
         fallback: Handler | None = None,
         require_resolved_assumes: bool = True,
+        route_cognition: bool = True,
     ) -> None:
         self.index = index
         self.dispatch = {k.split("@", 1)[0].lower(): v for k, v in (dispatch or {}).items()}
         self.fallback: Handler = fallback or StubHandler()
         self.require_resolved_assumes = require_resolved_assumes
+        self.route_cognition = route_cognition
+
+    def _dispatch_stem(self, stem: str) -> CapabilityDispatch | None:
+        stem = stem.split("@", 1)[0].lower()
+        if stem in self.dispatch:
+            return self.dispatch[stem]
+        bare = stem.split(".")[-1]
+        for key, fn in self.dispatch.items():
+            if key == bare or stem.endswith("." + key) or key.endswith("." + bare):
+                return fn
+        return None
 
     def __call__(self, step: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         construct = (step.get("construct") or "STEP").upper()
-        if construct != "CALL":
+        tools = _call_tools(step)
+
+        if construct == "CALL":
+            if not tools:
+                return {"status": "blocked", "reason": "CALL step has no tool name"}
+            tool = tools[0]
+            stem = tool.split("@", 1)[0].lower()
+
+            if self.index is not None:
+                found = self.index.find(stem) or self.index.find(tool)
+                if found is None:
+                    return {
+                        "status": "blocked",
+                        "reason": f"capability {tool!r} not in registry",
+                    }
+
+            fn = self._dispatch_stem(stem)
+            if fn is not None:
+                return fn(step, context)
             return self.fallback(step, context)
 
-        tools = _call_tools(step)
-        if not tools:
-            return {"status": "blocked", "reason": "CALL step has no tool name"}
-
-        tool = tools[0]
-        stem = tool.split("@", 1)[0].lower()
-
-        if self.index is not None:
-            found = self.index.find(stem) or self.index.find(tool)
-            if found is None:
-                return {
-                    "status": "blocked",
-                    "reason": f"capability {tool!r} not in registry",
-                }
-
-        if stem in self.dispatch:
-            return self.dispatch[stem](step, context)
-        # Also try product.tool full key
-        for key, fn in self.dispatch.items():
-            if stem.endswith("." + key) or key.endswith("." + stem.split(".")[-1]):
-                return fn(step, context)
+        # STEP / DECISION / … — optional cognition routing for live estate
+        if self.route_cognition:
+            cognition = str(step.get("cognition") or "").strip().lower()
+            candidates = list(tools)
+            for pref in _COGNITION_DEFAULT_TOOLS.get(cognition, ()):
+                if pref not in candidates:
+                    candidates.append(pref)
+            for stem in candidates:
+                fn = self._dispatch_stem(stem)
+                if fn is not None:
+                    return fn(step, context)
 
         return self.fallback(step, context)
 
@@ -263,6 +292,70 @@ def demo_capability_index() -> DictCapabilityIndex:
     return idx
 
 
+def try_load_live_dispatch() -> dict[str, CapabilityDispatch]:
+    """Import real Tirzah/Milcah Deborah adapters when those packages are installed.
+
+    Fail-soft: missing package or import error → empty/partial dispatch.
+    Live handlers may still block at call time if Mongo/Hoglah are unavailable;
+    inject search/run_fn in those packages' factories for offline tests.
+    """
+    dispatch: dict[str, CapabilityDispatch] = {}
+    try:
+        from tirzah.deborah import deborah_dispatch as tirzah_dispatch  # type: ignore[import-not-found]
+
+        dispatch.update(tirzah_dispatch())
+    except Exception:
+        pass
+    try:
+        from milcah.deborah import deborah_dispatch as milcah_dispatch  # type: ignore[import-not-found]
+
+        dispatch.update(milcah_dispatch())
+    except Exception:
+        pass
+    return dispatch
+
+
+def try_load_live_index() -> DictCapabilityIndex | None:
+    """Build a capability index from installed Tirzah/Milcah entry helpers."""
+    idx = DictCapabilityIndex()
+    loaded = False
+    try:
+        from tirzah.deborah import capability_index_entries as tirzah_entries  # type: ignore[import-not-found]
+
+        for name, meta in tirzah_entries().items():
+            idx.add(name, **{k: v for k, v in meta.items() if k != "name"})
+            loaded = True
+    except Exception:
+        pass
+    try:
+        from milcah.deborah import capability_index_entries as milcah_entries  # type: ignore[import-not-found]
+
+        for name, meta in milcah_entries().items():
+            idx.add(name, **{k: v for k, v in meta.items() if k != "name"})
+            loaded = True
+    except Exception:
+        pass
+    return idx if loaded else None
+
+
+def live_estate_available() -> dict[str, bool]:
+    """Which live adapters import cleanly (does not probe Mongo/Hoglah)."""
+    out = {"tirzah": False, "milcah": False}
+    try:
+        import tirzah.deborah  # noqa: F401
+
+        out["tirzah"] = True
+    except Exception:
+        pass
+    try:
+        import milcah.deborah  # noqa: F401
+
+        out["milcah"] = True
+    except Exception:
+        pass
+    return out
+
+
 # --- Galeed tracing (optional) ------------------------------------------------
 
 
@@ -335,20 +428,45 @@ def interpret_with_estate(
     require_assumes: bool = True,
     tracer: Any | None = None,
     demo: bool = False,
+    live: bool = False,
     check_contracts: bool = False,
     contract_mode: str = "soft",
     validate_profile: str | None = "full",
     max_steps: int | None = None,
     fallback_results_by_cognition: dict[str, dict[str, Any]] | None = None,
+    allow_reentry: bool = False,
+    reflective_pass: bool | None = None,
 ) -> RunResult:
     """Interpret a plan with optional registry resolution and Galeed tracing.
 
     If ``demo=True``, installs the demo retrieve/critique dispatch and index
     (for the cross-llm-critique slice without live Tirzah/Milcah).
+
+    If ``live=True``, merges real adapters from ``tirzah.deborah`` /
+    ``milcah.deborah`` when those packages are importable (still fail-soft at
+    call time if Mongo or Hoglah are down). Explicit ``dispatch`` / ``index``
+    override or extend the live load.
     """
     if demo:
         index = index or demo_capability_index()
         dispatch = {**demo_critique_dispatch(), **(dispatch or {})}
+
+    if live:
+        live_dispatch = try_load_live_dispatch()
+        live_index = try_load_live_index()
+        if live_index is not None:
+            if index is None:
+                index = live_index
+            elif isinstance(index, DictCapabilityIndex):
+                for name, meta in live_index.capabilities.items():
+                    index.capabilities.setdefault(name, meta)
+        if live_dispatch:
+            dispatch = {**live_dispatch, **(dispatch or {})}
+        elif dispatch is None and not demo:
+            # Live requested but nothing installed — fall back to demo so the
+            # plan can still be walked under contracts.
+            index = index or demo_capability_index()
+            dispatch = demo_critique_dispatch()
 
     resolution = resolve_assumes(plan.get("assumes"), index)
     if require_assumes and index is not None and resolution.missing:
@@ -373,16 +491,18 @@ def interpret_with_estate(
     from deborah.contracts import EXAMPLE_RESULTS
 
     fallback = StubHandler(
-        results_by_cognition=fallback_results_by_cognition or (EXAMPLE_RESULTS if demo else {})
+        results_by_cognition=fallback_results_by_cognition
+        or (EXAMPLE_RESULTS if (demo or live) else {})
     )
     handler: Handler = EstateHandler(
         index=index,
         dispatch=dispatch,
         fallback=fallback,
         require_resolved_assumes=require_assumes,
+        route_cognition=True,
     )
 
-    # Stash request text for demo handlers
+    # Stash request text for demo / live handlers
     context_claim = plan.get("request") or plan.get("intent") or plan.get("objective")
 
     # Wrap handler to inject claim into context
@@ -402,9 +522,21 @@ def interpret_with_estate(
         check_contracts=check_contracts,
         contract_mode=contract_mode,
         max_steps=max_steps,
+        allow_reentry=allow_reentry,
+        reflective_pass=reflective_pass,
     )
     if tracer is not None:
         record_run_on_tracer(run, tracer)
         # expose galeed events count on a copy-friendly field via events
         run.events.append({"type": "galeed.recorded", "ok": True})
+    if live or demo:
+        avail = live_estate_available() if live else {"tirzah": False, "milcah": False}
+        run.events.append(
+            {
+                "type": "estate.mode",
+                "demo": demo,
+                "live": live,
+                "live_adapters": avail if live else {},
+            }
+        )
     return run
