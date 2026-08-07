@@ -1064,7 +1064,11 @@ for the current pairing.
 
 - **v0.12** extends `COGNITION` with negotiate/learn/optimize (gated contracts);
   optional PLAN `EXPLORATION_BUDGET` / `REFLECTIVE_PASS` for bounded reflective
-  policy (re-entry still opt-in at the interpreter).
+  policy (re-entry still opt-in at the interpreter). **Reflect is plan policy,
+  not a COGNITION.** Taxonomy stance:
+  [`docs/TAXONOMY-COGNITION-AND-PATTERNS.md`](docs/TAXONOMY-COGNITION-AND-PATTERNS.md).
+  Package ≥0.16 adds the substrate slice (bounded negotiation → interpret →
+  outcomes → open-question record).
 - **v0.11** adds process semantic axes (§17) and progressive `COGNITION`
   (observe|infer|evaluate|decide); clarifies crystallised ≠ all-deterministic
   steps; defers behaviour multi-select.
