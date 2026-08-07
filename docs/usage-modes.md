@@ -110,6 +110,10 @@ deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
   --question "Is relational substrate coherence well-supported?" \
   --negotiator auto
 # auto → critique rules when ASSUMES milcah.*; accept = one-shot; critique = force
+
+# Live Tirzah Mongo retrieve + open questions in family DB (when estate is up):
+deborah-run examples/answer-substrate-question.cairn.md --slice --estate-live \
+  --open-questions-mongo --check-contracts --negotiator auto
 ```
 
 ```python

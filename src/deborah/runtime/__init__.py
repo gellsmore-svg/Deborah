@@ -39,6 +39,7 @@ from deborah.runtime.negotiate import (
 )
 from deborah.runtime.open_questions import OpenQuestion, OpenQuestionStore, open_question_from_run
 from deborah.runtime.outcomes import OutcomeCheck, check_outcomes
+from deborah.runtime.live import prepare_live_slice, try_open_questions_db, try_tirzah_db
 from deborah.runtime.slice import SliceResult, run_substrate_slice
 
 __all__ = [
@@ -62,6 +63,7 @@ __all__ = [
     "interpret_with_estate",
     "live_estate_available",
     "open_question_from_run",
+    "prepare_live_slice",
     "record_run_on_tracer",
     "resolve_assumes",
     "resolve_negotiator",
@@ -71,4 +73,6 @@ __all__ = [
     "try_load_live_dispatch",
     "try_load_live_index",
     "try_make_tracer",
+    "try_open_questions_db",
+    "try_tirzah_db",
 ]

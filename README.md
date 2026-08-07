@@ -178,10 +178,10 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.18.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.19.0** |
 
-Package **0.18.0** adds a **content-aware** `milcah.critique` negotiator
-(clarify / refuse / accept) on the substrate slice (`--negotiator auto`). See
+Package **0.19.0** runs the substrate slice against **live Tirzah Mongo**
+(`--estate-live --open-questions-mongo`) when the estate is up. See
 [CHANGELOG.md](CHANGELOG.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and

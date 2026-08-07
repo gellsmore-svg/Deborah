@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.19.0] — 2026-08-07
+
+**Live Mongo estate for the substrate slice.**
+
+- `deborah.runtime.live.prepare_live_slice` — Tirzah retrieve + Milcah critique
+- Open questions to family Mongo (`deborah_open_questions`) via
+  `--open-questions-mongo` / live estate
+- Live smoke tests skip when Mongo is down
+
 ## [0.18.0] — 2026-08-07
 
 **Content-aware critique negotiation.**

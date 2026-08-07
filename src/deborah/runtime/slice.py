@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from deborah.runtime.estate import interpret_with_estate
+from deborah.runtime.estate import DictCapabilityIndex, interpret_with_estate
 from deborah.runtime.interpreter import RunResult
 from deborah.runtime.negotiate import (
     NegotiationResult,
@@ -81,6 +81,7 @@ def run_substrate_slice(
     index: Any = None,
     tracer: Any = None,
     require_evidence: bool = True,
+    use_live_open_questions: bool = False,
 ) -> SliceResult:
     """Execute the substrate critique slice under framed control.
 
@@ -97,6 +98,11 @@ def run_substrate_slice(
         JSONL path for local open-question persistence.
     open_questions_db:
         Optional Mongo db for ``deborah_open_questions`` collection.
+    live:
+        When True, load Tirzah/Milcah live dispatch (and Mongo open-questions
+        if ``use_live_open_questions`` or ``open_questions_db`` is set).
+    use_live_open_questions:
+        Auto-bind Tirzah Mongo for open-question persistence when live.
     """
     events: list[dict[str, Any]] = []
     plan = dict(plan)
@@ -109,6 +115,36 @@ def run_substrate_slice(
     )
     if question:
         plan["request"] = question
+
+    # Live estate bootstrap (Tirzah retrieve + Milcah critique when installed).
+    if live and dispatch is None:
+        from deborah.runtime.live import prepare_live_slice
+
+        live_bits = prepare_live_slice()
+        events.append(
+            {
+                "type": "slice.live.prepared",
+                "live_ok": live_bits.get("live_ok"),
+                "error": live_bits.get("error"),
+                "has_dispatch": bool(live_bits.get("dispatch")),
+            }
+        )
+        dispatch = live_bits.get("dispatch") or {}
+        if open_questions_db is None and (
+            use_live_open_questions or live_bits.get("open_questions_db") is not None
+        ):
+            open_questions_db = live_bits.get("open_questions_db")
+        if index is None and live_bits.get("dispatch"):
+            idx = DictCapabilityIndex()
+            for stem in live_bits["dispatch"]:
+                idx.add(stem, product=stem.split(".")[0] if "." in stem else "live")
+            # Ensure ASSUMES stems resolve
+            for ref in plan.get("assumes") or []:
+                if isinstance(ref, str) and ref.strip():
+                    stem = ref.strip().split("@", 1)[0]
+                    if idx.find(stem) is None:
+                        idx.add(stem, product=stem.split(".")[0] if "." in stem else "live")
+            index = idx
 
     negotiation: NegotiationResult | None = None
     if negotiate:

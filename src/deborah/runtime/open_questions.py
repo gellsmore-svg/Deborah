@@ -81,11 +81,50 @@ def record_open_question_mongo(
     collection: str = "deborah_open_questions",
 ) -> OpenQuestion:
     """Best-effort insert into a Mongo-like db (Tirzah estate). Never raises."""
+    # Prefer Tirzah's helper (indexes + fail-soft) when installed.
+    try:
+        from tirzah.open_questions import record_open_question  # type: ignore[import-not-found]
+
+        record_open_question(db, question.to_dict())
+        return question
+    except Exception:
+        pass
     try:
         db[collection].insert_one(question.to_dict())
     except Exception:
         pass
     return question
+
+
+def list_open_questions_mongo(
+    db: Any,
+    *,
+    plan_id: str | None = None,
+    limit: int = 50,
+    collection: str = "deborah_open_questions",
+) -> list[OpenQuestion]:
+    """Load open questions from Mongo (Tirzah helper or raw collection)."""
+    try:
+        from tirzah.open_questions import list_open_questions  # type: ignore[import-not-found]
+
+        rows = list_open_questions(db, plan_id=plan_id, limit=limit)
+        return [OpenQuestion.from_dict(r) for r in rows if isinstance(r, dict)]
+    except Exception:
+        pass
+    if db is None:
+        return []
+    try:
+        query: dict[str, Any] = {}
+        if plan_id:
+            query["plan_id"] = plan_id
+        cursor = db[collection].find(query, {"_id": 0})
+        try:
+            rows = list(cursor.sort([("created_at", -1)]).limit(limit))
+        except (AttributeError, TypeError):
+            rows = list(cursor)[-limit:]
+        return [OpenQuestion.from_dict(r) for r in rows if isinstance(r, dict)]
+    except Exception:
+        return []
 
 
 def open_question_from_run(

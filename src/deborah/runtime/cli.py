@@ -107,6 +107,11 @@ def main(argv: list[str] | None = None) -> int:
         help="JSONL path for open-question records (used with --slice)",
     )
     parser.add_argument(
+        "--open-questions-mongo",
+        action="store_true",
+        help="Persist open questions to Tirzah/family Mongo (deborah_open_questions)",
+    )
+    parser.add_argument(
         "--confidence-floor",
         choices=["high", "medium", "low"],
         default="low",
@@ -204,6 +209,7 @@ def main(argv: list[str] | None = None) -> int:
             negotiator_name=args.negotiator,
             confidence_floor=args.confidence_floor,
             open_questions_path=args.open_questions,
+            use_live_open_questions=bool(args.open_questions_mongo or args.estate_live),
             check_contracts=args.check_contracts or True,
             contract_mode=args.contract_mode,
             tracer=tracer,
