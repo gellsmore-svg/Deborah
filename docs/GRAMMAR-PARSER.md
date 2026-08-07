@@ -32,10 +32,14 @@ CLI:
 ```bash
 deborah-validate examples/hoglah.cairn.md
 deborah-validate examples/cross-llm-critique.cairn.md --profile strict
+deborah-validate examples/cross-llm-critique.cairn.md --results tests/fixtures/cognition_results.json --results-mode strict
 deborah-validate examples/hoglah.cairn.md --json
 deborah-validate plan.cairn.md --export-plan
 deborah-validate examples/hoglah.cairn.md --export-ast
 ```
+
+Cognitive **result** checks (Phase C) apply when steps carry a structured
+`result` (or via `--results`). They do not replace plan structure validation.
 
 ## API
 
@@ -47,6 +51,9 @@ deborah-validate examples/hoglah.cairn.md --export-ast
 | `document_to_dict(doc)` | `dict` | JSON-serializable AST |
 | `extract_cairn_source(text)` | `(str, kind)` | Strip markdown sections/fences to skeleton text |
 | `validate_plan(plan_dict, profile=…)` | `list[str]` | Runtime PLAN contract (conformance 1.3): `full` \| `core` \| `strict` |
+| `validate_cognition_result(cog, result, mode=…)` | `list[str]` | Product contract for a step result (`soft` \| `strict`) |
+| `validate_step_results(plan, mode=…)` | `list[str]` | Check `result` on each plan step with cognition |
+| `validate_confidence(obj)` | `list[str]` | Banded evidence/inference/execution confidence |
 
 ## PLAN framing fields (SPEC v0.10)
 

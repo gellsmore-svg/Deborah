@@ -36,6 +36,15 @@ from deborah.conformance import (
     is_core_construct,
     validate_plan,
 )
+from deborah.contracts import (
+    CONFIDENCE_BANDS,
+    CONFIDENCE_DIMENSIONS,
+    CONTRACT_VERSION,
+    EXAMPLE_RESULTS,
+    validate_cognition_result,
+    validate_confidence,
+    validate_step_results,
+)
 from deborah.grammar import (
     CairnDocument,
     document_to_dict,
@@ -64,9 +73,13 @@ __all__ = [
     "COGNITION_MVP",
     "COGNITION_RESERVED",
     "COGNITION_VALUES",
+    "CONFIDENCE_BANDS",
+    "CONFIDENCE_DIMENSIONS",
     "CONFORMANCE_VERSION",
+    "CONTRACT_VERSION",
     "CORE_CONSTRUCTS",
     "CairnDocument",
+    "EXAMPLE_RESULTS",
     "EXTENSION_CONSTRUCTS",
     "ON_UNCERTAINTY_POLICIES",
     "OPTIONAL_PLAN_FIELDS",
@@ -88,6 +101,9 @@ __all__ = [
     "registered_exporters",
     "registered_profiles",
     "render_plan",
+    "validate_cognition_result",
+    "validate_confidence",
     "validate_document",
     "validate_plan",
+    "validate_step_results",
 ]

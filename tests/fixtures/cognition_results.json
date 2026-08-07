@@ -1,0 +1,54 @@
+{
+  "observe": {
+    "evidence": [
+      {
+        "statement": "CPU utilisation remained above 95% for 20 minutes.",
+        "source": "metrics.prom",
+        "trace_ref": "obs_001"
+      },
+      {
+        "statement": "Request latency increased by 400%.",
+        "source": "apm.traces",
+        "trace_ref": "obs_002"
+      }
+    ]
+  },
+  "infer": {
+    "claim": "The service is likely CPU-bound.",
+    "evidence_refs": ["obs_001", "obs_002"],
+    "assumptions": ["No concurrent network saturation"],
+    "alternatives": ["GC thrashing"],
+    "confidence": {
+      "evidence": "high",
+      "inference": "medium",
+      "execution": "high",
+      "basis": "two correlated metrics, single window"
+    }
+  },
+  "evaluate": {
+    "criteria": ["groundedness", "internal_consistency", "adversarial_resilience"],
+    "scores": {
+      "groundedness": "high",
+      "internal_consistency": "medium",
+      "adversarial_resilience": "low"
+    },
+    "ranking": ["revise_claim", "accept_provisional", "reject"],
+    "confidence": {
+      "evidence": "high",
+      "inference": "medium",
+      "execution": "high"
+    }
+  },
+  "decide": {
+    "selected": "open",
+    "alternatives": ["accept", "reject", "open"],
+    "constraints": ["prefer open when critique marks underspecified"],
+    "committed": true,
+    "confidence": {
+      "evidence": "medium",
+      "inference": "low",
+      "execution": "high",
+      "basis": "evaluate flagged adversarial_resilience low"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
-**Date:** 2026-08-07 · **Status:** Phase A implemented (SPEC v0.11 + COGNITION
-MVP) · **Baseline:** Deborah 0.10.0 package; language SPEC **v0.11**
+**Date:** 2026-08-07 · **Status:** Phases A–C implemented · **Baseline:** package
+0.10.0; language SPEC **v0.11**; contracts **1.0**
 
 This document:
 
@@ -224,7 +224,7 @@ require approximately:
 
 Soft mode: annotation is metadata only + render.
 
-### Confidence (MVP)
+### Confidence (MVP) — implemented in `deborah.contracts`
 
 ```text
 confidence:
@@ -234,7 +234,19 @@ confidence:
   basis: short prose optional
 ```
 
-No single float as the system of record.
+No single float as the system of record (`validate_confidence` rejects
+float-only shapes).
+
+### Re-entry policy (documented only)
+
+Process-level re-entry when inference confidence is low is **not** automatic:
+
+1. Step must declare `COGNITION`
+2. Plan or loop must declare a **bound** (MAX / budget)
+3. Plan policy must opt in (default **off**)
+4. Otherwise use `ON_UNCERTAINTY`: `record` → often terminal `open`, or `escalate`
+
+Silent unbounded re-planning remains a non-goal.
 
 ### Surface syntax (proposed, progressive)
 
@@ -285,12 +297,14 @@ Omit `COGNITION` → today’s behaviour (no product contract).
 - `deborah-validate --profile core|full|strict`
 - Bridge projects PLAN-nested PROCESS steps into the render model
 
-### Phase C — Soft/strict result contracts
+### Phase C — Soft/strict result contracts — **DONE**
 
-- `deborah.contracts` (or similar) schemas for four cognitions
-- Validate structured result fixtures
-- Confidence band shape
-- Document opt-in re-entry policy (not implemented)
+- `deborah.contracts`: `validate_cognition_result`, `validate_confidence`,
+  `validate_step_results`, `EXAMPLE_RESULTS`
+- Confidence: ordinal bands on evidence / inference / execution (+ optional basis)
+- Soft vs strict modes; fixtures in `tests/fixtures/cognition_results.json`
+- CLI: `deborah-validate … --results path.json --results-mode soft|strict`
+- Re-entry policy documented (opt-in + MAX; default open/escalate) — **not** implemented
 
 ### Phase D — Thin interpreter
 

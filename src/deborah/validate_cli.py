@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from deborah.conformance import VALIDATE_PROFILES, validate_plan
+from deborah.contracts import CONTRACT_MODES, validate_step_results
 from deborah.grammar import document_to_dict, document_to_plan, parse_document, validate_document
 
 
@@ -37,6 +38,20 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Exit non-zero on well-formedness errors (always) and set plan profile to strict",
     )
+    parser.add_argument(
+        "--results",
+        metavar="PATH",
+        help=(
+            "JSON file: either a plan dict with step results, or a list/object of "
+            "per-step results merged onto the exported plan for contract checks"
+        ),
+    )
+    parser.add_argument(
+        "--results-mode",
+        choices=sorted(CONTRACT_MODES),
+        default="soft",
+        help="Cognitive result contract mode: soft (default) or strict",
+    )
 
     args = parser.parse_args(argv)
     if args.input in (None, "-"):
@@ -49,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     doc = parse_document(text)
     errors = list(validate_document(doc))
     plan_errors: list[str] = []
+    result_errors: list[str] = []
     plan_dict = None
     if not doc.parse_errors:
         try:
@@ -57,12 +73,23 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             plan_errors = [f"plan export: {exc}"]
 
-    all_errors = errors + [f"plan/{plan_profile}: {e}" for e in plan_errors]
+    if args.results and plan_dict is not None and not plan_errors:
+        raw = json.loads(Path(args.results).read_text(encoding="utf-8"))
+        merged = _merge_results(plan_dict, raw)
+        result_errors = validate_step_results(merged, mode=args.results_mode)
+
+    all_errors = (
+        errors
+        + [f"plan/{plan_profile}: {e}" for e in plan_errors]
+        + [f"results/{args.results_mode}: {e}" for e in result_errors]
+    )
     report = {
         "parse_errors": doc.parse_errors,
         "well_formedness_errors": [e for e in errors if e not in doc.parse_errors],
         "plan_profile": plan_profile,
         "plan_errors": plan_errors,
+        "results_mode": args.results_mode if args.results else None,
+        "result_errors": result_errors,
         "errors": all_errors,
         "process_count": len(doc.processes),
         "plan_count": len(doc.plans),
@@ -91,6 +118,49 @@ def main(argv: list[str] | None = None) -> int:
     if all_errors:
         return 1
     return 0
+
+
+def _merge_results(plan: dict, raw: object) -> dict:
+    """Attach results to plan steps from a results payload."""
+    import copy
+
+    merged = copy.deepcopy(plan)
+    steps = merged.get("steps")
+    if not isinstance(steps, list):
+        return merged
+    if isinstance(raw, dict) and isinstance(raw.get("steps"), list):
+        # Full plan-shaped payload
+        for i, step in enumerate(raw["steps"]):
+            if i < len(steps) and isinstance(step, dict) and "result" in step:
+                steps[i]["result"] = step["result"]
+                if step.get("cognition"):
+                    steps[i]["cognition"] = step["cognition"]
+        return merged
+    if isinstance(raw, dict) and "results" in raw and isinstance(raw["results"], list):
+        raw = raw["results"]
+    if isinstance(raw, list):
+        for i, item in enumerate(raw):
+            if i >= len(steps):
+                break
+            if isinstance(item, dict) and "result" in item:
+                steps[i]["result"] = item["result"]
+                if item.get("cognition"):
+                    steps[i]["cognition"] = item["cognition"]
+            else:
+                steps[i]["result"] = item
+        return merged
+    if isinstance(raw, dict):
+        # Map by step id, or by cognition key (observe/infer/evaluate/decide).
+        by_id = raw
+        for step in steps:
+            sid = step.get("id")
+            cog = step.get("cognition")
+            if sid in by_id:
+                step["result"] = by_id[sid]
+            elif cog and cog in by_id:
+                step["result"] = by_id[cog]
+        return merged
+    return merged
 
 
 if __name__ == "__main__":

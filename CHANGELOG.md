@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+- **Phase C — cognitive result contracts:** new `deborah.contracts` module
+  (`validate_cognition_result`, `validate_confidence`, `validate_step_results`)
+  with soft/strict modes for observe/infer/evaluate/decide; ordinal confidence
+  bands; fixtures; `deborah-validate --results` / `--results-mode`. Re-entry
+  policy documented, not implemented.
 - **Phase B — frame enforcement in tools:** `validate_plan(profile=full|core|strict)`
   (core rejects extension constructs; strict requires OUTPUT for COGNITION and
   CALL tools ⊆ assumes); `deborah-validate --profile`; render PLAN framing
