@@ -21,12 +21,74 @@ def _plan(path: Path = SLICE_PLAN) -> dict:
 
 
 def test_negotiation_default_one_shot_agreed() -> None:
-    result = run_negotiation(intent="test", assumes=["milcah.critique"], max_rounds=4)
+    from deborah.runtime.negotiate import default_accept_negotiator
+
+    result = run_negotiation(
+        intent="test",
+        assumes=["milcah.critique"],
+        max_rounds=4,
+        negotiator=default_accept_negotiator,
+    )
     assert result.status == "agreed"
     assert result.ok
     product = result.as_cognition_result()
     assert product["status"] == "agreed"
     assert product.get("force_agreement") is False
+
+
+def test_critique_negotiator_accepts_claim_shape() -> None:
+    from deborah.runtime.negotiate import critique_content_negotiator
+
+    result = run_negotiation(
+        intent="Ground a claim",
+        claim="Is relational substrate coherence well-supported?",
+        assumes=["milcah.critique@1"],
+        max_rounds=4,
+        negotiator=critique_content_negotiator,
+    )
+    assert result.status == "agreed"
+    assert result.rounds_used == 1
+
+
+def test_critique_negotiator_clarifies_then_refuses_empty() -> None:
+    from deborah.runtime.negotiate import critique_content_negotiator
+
+    result = run_negotiation(
+        intent="",
+        claim="",
+        assumes=["milcah.critique"],
+        max_rounds=4,
+        negotiator=critique_content_negotiator,
+    )
+    # empty claim → clarify → still empty after restate → refuse
+    assert result.status == "refused"
+    assert "underspecified" in (result.reason or "").lower()
+
+
+def test_critique_negotiator_refuses_out_of_scope() -> None:
+    from deborah.runtime.negotiate import critique_content_negotiator
+
+    result = run_negotiation(
+        intent="chat",
+        claim="hello there",
+        max_rounds=3,
+        negotiator=critique_content_negotiator,
+    )
+    assert result.status == "refused"
+    assert "out-of-scope" in (result.reason or "").lower() or "scope" in (
+        result.reason or ""
+    ).lower()
+
+
+def test_resolve_negotiator_auto_picks_critique() -> None:
+    from deborah.runtime.negotiate import (
+        critique_content_negotiator,
+        default_accept_negotiator,
+        resolve_negotiator,
+    )
+
+    assert resolve_negotiator("auto", assumes=["milcah.critique@1"]) is critique_content_negotiator
+    assert resolve_negotiator("accept", assumes=["milcah.critique"]) is default_accept_negotiator
 
 
 def test_negotiation_exhaustion_is_unresolved() -> None:

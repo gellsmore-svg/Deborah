@@ -107,7 +107,9 @@ run = interpret_with_estate(plan, live=True, check_contracts=True)
 ```bash
 deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
   --check-contracts --open-questions /tmp/oq.jsonl \
-  --question "Is relational substrate coherence well-supported?"
+  --question "Is relational substrate coherence well-supported?" \
+  --negotiator auto
+# auto → critique rules when ASSUMES milcah.*; accept = one-shot; critique = force
 ```
 
 ```python

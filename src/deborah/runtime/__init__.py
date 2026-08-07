@@ -31,7 +31,12 @@ from deborah.runtime.interpreter import (
     StubHandler,
     interpret_plan,
 )
-from deborah.runtime.negotiate import NegotiationResult, run_negotiation
+from deborah.runtime.negotiate import (
+    NegotiationResult,
+    critique_content_negotiator,
+    resolve_negotiator,
+    run_negotiation,
+)
 from deborah.runtime.open_questions import OpenQuestion, OpenQuestionStore, open_question_from_run
 from deborah.runtime.outcomes import OutcomeCheck, check_outcomes
 from deborah.runtime.slice import SliceResult, run_substrate_slice
@@ -50,6 +55,7 @@ __all__ = [
     "StepRecord",
     "StubHandler",
     "check_outcomes",
+    "critique_content_negotiator",
     "demo_capability_index",
     "demo_critique_dispatch",
     "interpret_plan",
@@ -58,6 +64,7 @@ __all__ = [
     "open_question_from_run",
     "record_run_on_tracer",
     "resolve_assumes",
+    "resolve_negotiator",
     "run_negotiation",
     "run_substrate_slice",
     "try_load_keturah_registry",

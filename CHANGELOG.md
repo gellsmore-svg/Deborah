@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-08-07
+
+**Content-aware critique negotiation.**
+
+- `critique_content_negotiator` — deterministic clarify / refuse / accept for
+  `milcah.critique` (underspecified-claim, domain-out-of-scope)
+- `resolve_negotiator("auto"|"accept"|"critique")` from plan ASSUMES
+- Slice + CLI `--negotiator` default `auto` (critique when ASSUMES milcah)
+
 ## [0.17.0] — 2026-08-07
 
 **Stage 0 spine wiring on the substrate slice.**

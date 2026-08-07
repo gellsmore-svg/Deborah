@@ -123,6 +123,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip pre-execution negotiation in --slice",
     )
+    parser.add_argument(
+        "--negotiator",
+        choices=["auto", "accept", "critique"],
+        default="auto",
+        help=(
+            "Slice negotiator: auto (critique when ASSUMES milcah), "
+            "accept (one-shot), critique (content rules for milcah.critique)"
+        ),
+    )
     args = parser.parse_args(argv)
 
     if args.input in (None, "-"):
@@ -192,6 +201,7 @@ def main(argv: list[str] | None = None) -> int:
             live=bool(args.estate_live),
             negotiate=not args.no_negotiate,
             max_rounds=args.max_rounds,
+            negotiator_name=args.negotiator,
             confidence_floor=args.confidence_floor,
             open_questions_path=args.open_questions,
             check_contracts=args.check_contracts or True,

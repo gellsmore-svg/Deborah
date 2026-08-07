@@ -16,7 +16,12 @@ from typing import Any
 
 from deborah.runtime.estate import interpret_with_estate
 from deborah.runtime.interpreter import RunResult
-from deborah.runtime.negotiate import NegotiationResult, Negotiator, run_negotiation
+from deborah.runtime.negotiate import (
+    NegotiationResult,
+    Negotiator,
+    resolve_negotiator,
+    run_negotiation,
+)
 from deborah.runtime.open_questions import (
     OpenQuestion,
     OpenQuestionStore,
@@ -66,6 +71,7 @@ def run_substrate_slice(
     negotiate: bool = True,
     max_rounds: int = 4,
     negotiator: Negotiator | None = None,
+    negotiator_name: str | None = "auto",
     confidence_floor: str = "low",
     open_questions_path: str | Path | None = None,
     open_questions_db: Any = None,
@@ -83,7 +89,10 @@ def run_substrate_slice(
     question:
         Overrides plan REQUEST/claim text for this run.
     negotiate:
-        When True, run bounded negotiation before interpret (default one-shot).
+        When True, run bounded negotiation before interpret.
+    negotiator_name:
+        ``auto`` (critique when ASSUMES milcah.*), ``accept``, or ``critique``.
+        Ignored when ``negotiator`` is injected.
     open_questions_path:
         JSONL path for local open-question persistence.
     open_questions_db:
@@ -103,6 +112,8 @@ def run_substrate_slice(
 
     negotiation: NegotiationResult | None = None
     if negotiate:
+        assumes = list(plan.get("assumes") or [])
+        neg = negotiator or resolve_negotiator(negotiator_name, assumes=assumes)
         _emit_negotiation(
             tracer,
             phase="started",
@@ -111,10 +122,11 @@ def run_substrate_slice(
         )
         negotiation = run_negotiation(
             intent=str(plan.get("intent") or claim or "framed critique"),
-            assumes=list(plan.get("assumes") or []),
+            assumes=assumes,
             claim=str(claim),
+            context=str(plan.get("context") or ""),
             max_rounds=max_rounds,
-            negotiator=negotiator,
+            negotiator=neg,
         )
         events.append({"type": "slice.negotiation.finished", **negotiation.to_dict()})
         _emit_negotiation(
