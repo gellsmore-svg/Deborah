@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
 **Date:** 2026-08-07 · **Status:** Phases A–D implemented · **Baseline:** package
-0.11.0+; language SPEC **v0.11**; contracts **1.0**; thin runtime
+**0.12.0**; language SPEC **v0.11**; contracts **1.0**; thin runtime
 
 This document:
 

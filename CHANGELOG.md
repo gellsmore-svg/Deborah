@@ -1,10 +1,21 @@
 # Changelog
 
 ## [Unreleased]
-- **Phase D — thin PLAN interpreter:** `deborah.runtime.interpret_plan`,
-  `StubHandler`, terminals `complete|open|refused|blocked`, allow-list from
-  `ASSUMES`, optional cognition contract checks, `max_steps` bound, CLI
-  `deborah-run`. Re-entry still off. No free-form re-planning.
+
+## [0.12.0] — 2026-08-07
+
+**Thin PLAN interpreter (Phase D).** Crystallised plans can be walked under
+allow-lists and bounds without free-form re-planning.
+
+- **`deborah.runtime.interpret_plan`** + **`StubHandler`** (injectable handlers
+  for estate capabilities later).
+- Terminals: `complete` | `open` | `refused` | `blocked` from step outcomes and
+  `ON_UNCERTAINTY`.
+- Allow-list from plan `ASSUMES` (or explicit set); `max_steps` hard bound.
+- Optional cognition contract checks on step results (`check_contracts`).
+- CLI **`deborah-run`** (`.cairn.md` or plan JSON; `--demo-results`,
+  `--check-contracts`, `--json`).
+- Re-entry remains **off**.
 
 ## [0.11.0] — 2026-08-07
 

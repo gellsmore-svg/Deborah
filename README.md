@@ -178,11 +178,11 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.11** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.11.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.12.0** |
 
-Package **0.11.0** ships with SPEC **v0.11**: process-semantic axes, progressive
-`COGNITION`, validate profiles (`full`/`core`/`strict`), and cognitive result
-contracts. See [CHANGELOG.md](CHANGELOG.md) and
+Package **0.12.0** adds the **thin PLAN interpreter** (`interpret_plan`,
+`deborah-run`) on top of SPEC **v0.11** framing, `COGNITION`, validate profiles,
+and result contracts. See [CHANGELOG.md](CHANGELOG.md) and
 [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
