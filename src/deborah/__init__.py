@@ -17,6 +17,7 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 
 from deborah.conformance import (
     CANONICAL_PLAN,
+    COGNITION_EXTENDED,
     COGNITION_MVP,
     COGNITION_RESERVED,
     COGNITION_VALUES,
@@ -79,6 +80,7 @@ except PackageNotFoundError:  # running straight from a source checkout
 
 __all__ = [
     "CANONICAL_PLAN",
+    "COGNITION_EXTENDED",
     "COGNITION_MVP",
     "COGNITION_RESERVED",
     "COGNITION_VALUES",

@@ -300,6 +300,17 @@ class Parser:
                     text = nested.text.strip().lstrip("- ").strip()
                     if text:
                         plan.reevaluate_when.append(text)
+            elif upper.startswith("EXPLORATION_BUDGET:") or upper.startswith("EXPLORATION-BUDGET:"):
+                self._advance()
+                raw = cur.text.split(":", 1)[1].strip()
+                try:
+                    plan.exploration_budget = int(raw)
+                except ValueError:
+                    self._error(f"EXPLORATION_BUDGET must be an integer, got {raw!r}", cur)
+            elif upper.startswith("REFLECTIVE_PASS:") or upper.startswith("REFLECTIVE-PASS:"):
+                self._advance()
+                raw = cur.text.split(":", 1)[1].strip().lower()
+                plan.reflective_pass = raw in {"1", "true", "yes", "on"}
             elif upper.startswith("PROCESS"):
                 plan.process = self._parse_process()
             else:

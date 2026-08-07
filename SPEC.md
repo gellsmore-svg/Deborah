@@ -1,6 +1,6 @@
 # Cairn — a process meta-language
 
-**Specification v0.11** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
+**Specification v0.12** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
 processes — especially **cross-LLM work** — so that humans and LLMs can read,
@@ -423,20 +423,29 @@ Optional progressive annotation: the **expected semantic product** of a step
 (process-semantic **PRODUCT** axis — §17). At most one per step.
 
 ```text
-COGNITION: observe | infer | evaluate | decide
+COGNITION: observe | infer | evaluate | decide | negotiate | learn | optimize
 ```
 
-| Value | Expected product (contract sketch; structured enforcement later) |
+| Value | Expected product (see `deborah.contracts`) |
 |---|---|
 | `observe` | Evidence with provenance — not conclusions |
 | `infer` | Claim(s) linked to evidence, assumptions, confidence bands |
 | `evaluate` | Criteria and scores/ranks — no commitment |
 | `decide` | Selected alternative and commitment |
+| `negotiate` | `status`: agreed\|partial\|unresolved; trade-offs; **no force_agreement** |
+| `learn` | `change`, `scope`, `reversible`; **auto_apply requires approved/human_gate** |
+| `optimize` | `objective`, `candidate`, **`stop_rule`** |
 
-Omit `COGNITION` → no product contract (document remains valid). Reserved for
-later language revisions (invalid in v0.11): `negotiate`, `learn`, `optimize`.
+Omit `COGNITION` → no product contract (document remains valid).
 
 Do **not** use the bare keyword `intent` for this axis.
+
+Optional PLAN fields (Phase F):
+
+- `EXPLORATION_BUDGET: <int>` — opt-in re-entry budget (interpreter must also
+  set `allow_reentry`)
+- `REFLECTIVE_PASS: true` — flag residual when infer/evaluate inference
+  confidence is low/unassessed
 
 ### STEP
 A single action. The default construct; the verb carries the meaning.
@@ -1053,9 +1062,12 @@ is versioned separately in `pyproject.toml` and `CHANGELOG.md` and tagged in git
 the two are not expected to match. See the Status section of [README.md](README.md)
 for the current pairing.
 
+- **v0.12** extends `COGNITION` with negotiate/learn/optimize (gated contracts);
+  optional PLAN `EXPLORATION_BUDGET` / `REFLECTIVE_PASS` for bounded reflective
+  policy (re-entry still opt-in at the interpreter).
 - **v0.11** adds process semantic axes (§17) and progressive `COGNITION`
   (observe|infer|evaluate|decide); clarifies crystallised ≠ all-deterministic
-  steps; defers behaviour multi-select and negotiate/learn/optimize contracts.
+  steps; defers behaviour multi-select.
 - **v0.10** states Deborah's role as framing cross-LLM caller↔capability work;
   adds PLAN fields `INTENT`, `OUTCOMES`, `ASSUMES`, `ON_UNCERTAINTY`,
   `REEVALUATE_WHEN`; terminal statuses `open` / `refused`; crystallisation

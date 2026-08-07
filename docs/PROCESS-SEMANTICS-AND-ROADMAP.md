@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
-**Date:** 2026-08-07 · **Status:** Phases A–E implemented · **Baseline:** package
-**0.13.0**; language SPEC **v0.11**; contracts **1.0**; thin runtime + estate hooks
+**Date:** 2026-08-07 · **Status:** Phases A–F implemented · **Baseline:** package
+**0.14.0**; language SPEC **v0.12**; contracts **1.1**; full programme
 
 This document:
 
@@ -325,11 +325,14 @@ Omit `COGNITION` → today’s behaviour (no product contract).
 - CLI: `deborah-run --estate-demo` and `--trace`
 - Hard deps remain none; keturah/galeed optional
 
-### Phase F — Deferred cognitions & policies
+### Phase F — Extended cognitions & policies — **DONE**
 
-- `negotiate` / `learn` / `optimize` contracts with explicit gates
-- Plan-level `exploration_budget` if still needed
-- Reflective post-pass as interpreter policy for evaluate/infer
+- `negotiate` / `learn` / `optimize` contracts with gates (no force_agreement;
+  learn auto_apply needs approval; optimize needs stop_rule)
+- PLAN `EXPLORATION_BUDGET` / `REFLECTIVE_PASS` parsed + exported
+- Interpreter: reflective residual on low inference confidence; opt-in re-entry
+  (`allow_reentry=True` + budget > 0, at most once per step)
+- CLI: `--reflective-pass`, `--allow-reentry`
 
 ### Explicit non-goals (unchanged + sharpened)
 

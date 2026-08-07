@@ -13,6 +13,7 @@ from deborah import (
     validate_confidence,
     validate_step_results,
 )
+# EXAMPLE_RESULTS includes Phase F cognitions
 from deborah.contracts import CONFIDENCE_BANDS, CONTRACT_VERSION
 from deborah.validate_cli import main as validate_main
 
@@ -21,7 +22,7 @@ GOLDEN = Path(__file__).resolve().parents[1] / "examples" / "cross-llm-critique.
 
 
 def test_contract_version() -> None:
-    assert CONTRACT_VERSION == "1.0"
+    assert CONTRACT_VERSION == "1.1"
     assert "high" in CONFIDENCE_BANDS
 
 
@@ -67,8 +68,26 @@ def test_unknown_cognition() -> None:
     assert any("unknown cognition" in e for e in validate_cognition_result("teleport", {}))
 
 
-def test_reserved_cognition() -> None:
-    assert any("reserved" in e for e in validate_cognition_result("learn", {}))
+def test_extended_cognition_learn_gate() -> None:
+    # soft empty ok; strict needs change/scope/reversible
+    assert validate_cognition_result("learn", {}, mode="soft") == []
+    errors = validate_cognition_result("learn", {"change": "x"}, mode="strict")
+    assert any("scope" in e for e in errors)
+    # auto_apply without approval is always a gate error
+    bad = {
+        "change": "prefer hybrid retrieval",
+        "scope": "session",
+        "reversible": True,
+        "auto_apply": True,
+    }
+    assert any("auto_apply" in e for e in validate_cognition_result("learn", bad, mode="soft"))
+    good = {**bad, "auto_apply": False}
+    assert validate_cognition_result("learn", good, mode="strict") == []
+
+
+def test_negotiate_and_optimize_examples() -> None:
+    assert validate_cognition_result("negotiate", EXAMPLE_RESULTS["negotiate"], mode="strict") == []
+    assert validate_cognition_result("optimize", EXAMPLE_RESULTS["optimize"], mode="strict") == []
 
 
 def test_validate_step_results_on_plan() -> None:

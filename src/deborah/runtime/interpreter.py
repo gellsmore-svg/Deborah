@@ -16,7 +16,7 @@ from deborah.conformance import (
     ON_UNCERTAINTY_POLICIES,
     validate_plan,
 )
-from deborah.contracts import validate_cognition_result
+from deborah.contracts import inference_confidence_band, validate_cognition_result
 
 # Terminal plan statuses the interpreter may emit.
 TERMINALS: frozenset[str] = frozenset({"complete", "open", "refused", "blocked"})
@@ -219,6 +219,8 @@ def interpret_plan(
     check_contracts: bool = False,
     contract_mode: str = "soft",
     max_steps: int | None = None,
+    allow_reentry: bool = False,
+    reflective_pass: bool | None = None,
 ) -> RunResult:
     """Walk ``plan`` under the framed control policy.
 
@@ -239,6 +241,13 @@ def interpret_plan(
         ``soft`` or ``strict`` for result contracts.
     max_steps:
         Hard cap on executed steps (default: len(steps) or plan metadata).
+    allow_reentry:
+        Phase F: if true **and** plan has ``exploration_budget`` > 0, at most
+        one re-dispatch of a low-inference infer/evaluate step (budget
+        decremented). Default false — no free re-planning.
+    reflective_pass:
+        Phase F: if true (or plan.reflective_pass), mark residual when
+        infer/evaluate reports low/unassessed inference confidence.
     """
     events: list[dict[str, Any]] = []
     errors: list[str] = []
@@ -278,6 +287,15 @@ def interpret_plan(
         bound = int(meta_max) if meta_max is not None else len(steps_in)
     bound = max(0, int(bound))
 
+    try:
+        exploration_budget = int(plan.get("exploration_budget") or 0)
+    except (TypeError, ValueError):
+        exploration_budget = 0
+    do_reflective = (
+        bool(plan.get("reflective_pass")) if reflective_pass is None else bool(reflective_pass)
+    )
+    reentry_used = 0
+
     context: dict[str, Any] = {
         "allow_list": allow,
         "plan_id": plan_id,
@@ -295,10 +313,18 @@ def interpret_plan(
             "plan_id": plan_id,
             "allow_list": sorted(allow) if allow is not None else None,
             "max_steps": bound,
+            "exploration_budget": exploration_budget,
+            "reflective_pass": do_reflective,
+            "allow_reentry": allow_reentry,
         }
     )
 
-    for step in _ready_order([s for s in steps_in if isinstance(s, dict)]):
+    worklist = _ready_order([s for s in steps_in if isinstance(s, dict)])
+    # Track which step ids already consumed a re-entry slot
+    reentered: set[str] = set()
+
+    while worklist:
+        step = worklist.pop(0)
         if executed >= bound:
             events.append({"type": "plan.bound_reached", "max_steps": bound})
             blocked = True
@@ -329,7 +355,48 @@ def interpret_plan(
                 status = "blocked"
                 reason = (reason or "") + "; contract: " + "; ".join(contract_errors)
 
-        if outcome.get("residual"):
+        step_residual = bool(outcome.get("residual"))
+        # Reflective post-pass: low/unassessed inference confidence on infer/evaluate
+        if (
+            do_reflective
+            and status == "completed"
+            and cognition
+            and str(cognition).lower() in {"infer", "evaluate"}
+        ):
+            band = inference_confidence_band(result if isinstance(result, dict) else None)
+            if band in {"low", "unassessed", None}:
+                # None = missing confidence counts as unassessed for reflective policy
+                if band is None:
+                    band = "unassessed"
+                step_residual = True
+                events.append(
+                    {
+                        "type": "plan.reflective.flagged",
+                        "id": sid,
+                        "cognition": cognition,
+                        "inference_confidence": band,
+                    }
+                )
+                # Bounded opt-in re-entry (at most once per step, consumes budget)
+                if (
+                    allow_reentry
+                    and exploration_budget > 0
+                    and sid not in reentered
+                    and executed + 1 < bound
+                ):
+                    exploration_budget -= 1
+                    reentered.add(sid)
+                    reentry_used += 1
+                    worklist.insert(0, step)  # re-dispatch same step once
+                    events.append(
+                        {
+                            "type": "plan.reentry.scheduled",
+                            "id": sid,
+                            "exploration_budget_remaining": exploration_budget,
+                        }
+                    )
+
+        if step_residual:
             residual = True
         if status == "refused":
             refused = True
@@ -352,7 +419,7 @@ def interpret_plan(
                 "id": sid,
                 "status": status,
                 "reason": reason,
-                "residual": bool(outcome.get("residual")),
+                "residual": step_residual,
             }
         )
         executed += 1
@@ -373,8 +440,17 @@ def interpret_plan(
         unresolved.append("residual uncertainty after interpretation")
     if terminal == "refused":
         unresolved.append("capability or policy refusal")
+    if reentry_used:
+        unresolved.append(f"reentry_used={reentry_used}")
 
-    events.append({"type": "plan.finished", "terminal": terminal})
+    events.append(
+        {
+            "type": "plan.finished",
+            "terminal": terminal,
+            "exploration_budget_remaining": exploration_budget,
+            "reentry_used": reentry_used,
+        }
+    )
     return RunResult(
         plan_id=plan_id,
         terminal=terminal,

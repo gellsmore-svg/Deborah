@@ -1,27 +1,30 @@
 """Cognitive product contracts for step results (SPEC process-semantic axes).
 
-Phase C: when a step declares ``COGNITION``, a structured *result* artifact can
-be checked against the expected product shape. Progressive:
+When a step declares ``COGNITION``, a structured *result* artifact can be checked
+against the expected product shape. Progressive:
 
 - omit cognition → no product contract
 - ``mode="soft"`` → type/shape issues only for fields that are present
-- ``mode="strict"`` → required keys must be present
+- ``mode="strict"`` → required keys must be present; **gates** enforced
 
 Confidence uses **ordinal bands**, not a single float as system of record.
 
-Re-entry policy (documented, not implemented here): process-level re-entry on
-low inference confidence is **opt-in**, requires an explicit bound (MAX / plan
-budget), and defaults to plan ``ON_UNCERTAINTY`` (``record`` / ``escalate``)
-rather than silent re-planning. See ``docs/PROCESS-SEMANTICS-AND-ROADMAP.md``.
+**Phase F** adds ``negotiate`` / ``learn`` / ``optimize`` with explicit gates
+(no auto-apply learning; negotiation may remain unresolved; optimize needs a
+stop rule).
+
+**Re-entry:** process-level re-entry on low inference confidence is **opt-in**
+via plan ``exploration_budget`` + interpreter ``allow_reentry=True``. Default
+is plan ``ON_UNCERTAINTY`` (record/escalate), not silent re-planning.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from deborah.conformance import COGNITION_MVP, COGNITION_RESERVED
+from deborah.conformance import COGNITION_EXTENDED, COGNITION_MVP, COGNITION_VALUES
 
-CONTRACT_VERSION = "1.0"
+CONTRACT_VERSION = "1.1"
 
 CONFIDENCE_BANDS: frozenset[str] = frozenset({"high", "medium", "low", "unassessed"})
 CONFIDENCE_DIMENSIONS: tuple[str, ...] = ("evidence", "inference", "execution")
@@ -33,6 +36,9 @@ REQUIRED_RESULT_KEYS: dict[str, tuple[str, ...]] = {
     "infer": ("claim", "evidence_refs"),
     "evaluate": ("criteria",),
     "decide": ("selected",),
+    "negotiate": ("status",),  # agreed | unresolved | partial
+    "learn": ("change", "scope"),
+    "optimize": ("objective", "candidate"),
 }
 
 
@@ -53,9 +59,10 @@ def validate_confidence(confidence: Any, *, path: str = "confidence") -> list[st
             errors.append(
                 f"{path}.{dim} must be one of {sorted(CONFIDENCE_BANDS)}, got {band!r}"
             )
-    # Reject lone float as the only form of confidence
     if set(confidence.keys()) <= {"value", "score"} or (
-        len(confidence) == 1 and "value" in confidence and isinstance(confidence["value"], (int, float))
+        len(confidence) == 1
+        and "value" in confidence
+        and isinstance(confidence["value"], (int, float))
     ):
         errors.append(
             f"{path}: use band dimensions {list(CONFIDENCE_DIMENSIONS)}, "
@@ -65,6 +72,19 @@ def validate_confidence(confidence: Any, *, path: str = "confidence") -> list[st
         if not isinstance(confidence["basis"], str):
             errors.append(f"{path}.basis must be a string when present")
     return errors
+
+
+def inference_confidence_band(result: dict[str, Any] | None) -> str | None:
+    """Return the inference confidence band from a result, if present."""
+    if not isinstance(result, dict):
+        return None
+    conf = result.get("confidence")
+    if not isinstance(conf, dict):
+        return None
+    band = conf.get("inference")
+    if band is None or band == "":
+        return None
+    return str(band).strip().lower()
 
 
 def _require_list(result: dict[str, Any], key: str, path: str, errors: list[str]) -> None:
@@ -91,12 +111,12 @@ def _validate_observe(result: dict[str, Any], path: str, *, strict: bool) -> lis
                 errors.append(
                     f"{path}.evidence[{i}] needs statement|text|content under strict mode"
                 )
-            # provenance encouraged but not required in soft
-            if strict and not (item.get("source") or item.get("provenance") or item.get("trace_ref")):
+            if strict and not (
+                item.get("source") or item.get("provenance") or item.get("trace_ref")
+            ):
                 errors.append(
                     f"{path}.evidence[{i}] needs source|provenance|trace_ref under strict mode"
                 )
-    # observe must not require a claim; if claim present, warn via soft? keep silent soft.
     if strict and result.get("claim") and not result.get("evidence"):
         errors.append(f"{path}: observe with claim but no evidence is not a pure observe product")
     return errors
@@ -132,7 +152,6 @@ def _validate_evaluate(result: dict[str, Any], path: str, *, strict: bool) -> li
         errors.append(f"{path}.ranking must be a list")
     if strict and not has_scores and not has_ranking:
         errors.append(f"{path}: evaluate requires scores or ranking under strict mode")
-    # evaluate must not require selected commitment
     errors.extend(validate_confidence(result.get("confidence"), path=f"{path}.confidence"))
     return errors
 
@@ -146,9 +165,71 @@ def _validate_decide(result: dict[str, Any], path: str, *, strict: bool) -> list
     if "committed" in result and result["committed"] is not None:
         if not isinstance(result["committed"], bool):
             errors.append(f"{path}.committed must be a boolean when present")
+    errors.extend(validate_confidence(result.get("confidence"), path=f"{path}.confidence"))
+    return errors
+
+
+def _validate_negotiate(result: dict[str, Any], path: str, *, strict: bool) -> list[str]:
+    """Negotiate: trade-off / agreement product. Unresolved is a valid outcome."""
+    errors: list[str] = []
+    status = str(result.get("status") or "").strip().lower()
+    allowed = {"agreed", "unresolved", "partial"}
+    if strict and status not in allowed:
+        errors.append(f"{path}: negotiate requires status in {sorted(allowed)}")
+    elif status and status not in allowed:
+        errors.append(f"{path}: negotiate status must be in {sorted(allowed)}, got {status!r}")
+    _require_list(result, "participants", path, errors)
+    _require_list(result, "offers", path, errors)
+    _require_list(result, "constraints", path, errors)
+    if status == "agreed" and strict and not (
+        result.get("agreement") or result.get("tradeoff") or result.get("selected")
+    ):
+        errors.append(f"{path}: negotiate status=agreed needs agreement|tradeoff|selected")
+    # Gate: auto-force agreement is not allowed as a silent field
+    if result.get("force_agreement") is True:
+        errors.append(f"{path}: negotiate gate — force_agreement is not permitted")
+    errors.extend(validate_confidence(result.get("confidence"), path=f"{path}.confidence"))
+    return errors
+
+
+def _validate_learn(result: dict[str, Any], path: str, *, strict: bool) -> list[str]:
+    """Learn: durable change product. Gate: no auto_apply without explicit approval."""
+    errors: list[str] = []
+    if strict:
+        if not str(result.get("change") or "").strip():
+            errors.append(f"{path}: learn requires change (what is learned)")
+        if not str(result.get("scope") or "").strip():
+            errors.append(
+                f"{path}: learn requires scope (e.g. session|plan|product|global)"
+            )
+    if "reversible" in result and result["reversible"] is not None:
+        if not isinstance(result["reversible"], bool):
+            errors.append(f"{path}.reversible must be a boolean when present")
     elif strict:
-        # default: selected implies commitment unless committed: false
-        pass
+        errors.append(f"{path}: learn requires reversible boolean under strict mode")
+    # Gate: cannot claim auto_apply without approved/human_gate
+    if result.get("auto_apply") is True:
+        if not (result.get("approved") is True or result.get("human_gate") is True):
+            errors.append(
+                f"{path}: learn gate — auto_apply requires approved=true or human_gate=true"
+            )
+    errors.extend(validate_confidence(result.get("confidence"), path=f"{path}.confidence"))
+    return errors
+
+
+def _validate_optimize(result: dict[str, Any], path: str, *, strict: bool) -> list[str]:
+    """Optimize: search product. Gate: must declare stop_rule under strict."""
+    errors: list[str] = []
+    if strict:
+        if not str(result.get("objective") or "").strip():
+            errors.append(f"{path}: optimize requires objective")
+        if result.get("candidate") in (None, ""):
+            errors.append(f"{path}: optimize requires candidate solution")
+        stop = result.get("stop_rule") or result.get("stopping")
+        if not stop:
+            errors.append(f"{path}: optimize requires stop_rule (or stopping)")
+    _require_list(result, "constraints", path, errors)
+    _require_list(result, "search_history", path, errors)
     errors.extend(validate_confidence(result.get("confidence"), path=f"{path}.confidence"))
     return errors
 
@@ -158,6 +239,9 @@ _VALIDATORS = {
     "infer": _validate_infer,
     "evaluate": _validate_evaluate,
     "decide": _validate_decide,
+    "negotiate": _validate_negotiate,
+    "learn": _validate_learn,
+    "optimize": _validate_optimize,
 }
 
 
@@ -168,21 +252,18 @@ def validate_cognition_result(
     mode: str = "soft",
     path: str = "result",
 ) -> list[str]:
-    """Validate a structured step result against a cognition product contract.
-
-    Returns a list of error strings (empty = ok). ``mode`` is ``soft`` or ``strict``.
-    """
+    """Validate a structured step result against a cognition product contract."""
     if mode not in CONTRACT_MODES:
         return [f"unknown contract mode {mode!r} (allowed: {sorted(CONTRACT_MODES)})"]
     if cognition is None or str(cognition).strip() == "":
         return []
     value = str(cognition).strip().lower()
-    if value in COGNITION_RESERVED:
+    if value not in COGNITION_VALUES:
         return [
-            f"{path}: cognition {value!r} is reserved; MVP allows {sorted(COGNITION_MVP)}"
+            f"{path}: unknown cognition {value!r} "
+            f"(allowed: {sorted(COGNITION_VALUES)}; core MVP: {sorted(COGNITION_MVP)}; "
+            f"extended: {sorted(COGNITION_EXTENDED)})"
         ]
-    if value not in COGNITION_MVP:
-        return [f"{path}: unknown cognition {value!r} (allowed: {sorted(COGNITION_MVP)})"]
     if result is None:
         if mode == "strict":
             return [f"{path}: strict mode requires a result object for cognition {value!r}"]
@@ -197,11 +278,7 @@ def validate_step_results(
     *,
     mode: str = "soft",
 ) -> list[str]:
-    """Validate ``result`` (or ``cognition_result``) on each plan step that has one.
-
-    Steps without a result object are skipped in soft mode; in strict mode, any
-    step with ``cognition`` set must include ``result``.
-    """
+    """Validate ``result`` on each plan step that has cognition and/or result."""
     if not isinstance(plan, dict):
         return ["plan must be an object"]
     steps = plan.get("steps")
@@ -231,7 +308,6 @@ def validate_step_results(
     return errors
 
 
-# Illustrative minimal fixtures (also used in tests).
 EXAMPLE_RESULTS: dict[str, dict[str, Any]] = {
     "observe": {
         "evidence": [
@@ -274,6 +350,41 @@ EXAMPLE_RESULTS: dict[str, dict[str, Any]] = {
             "inference": "low",
             "execution": "high",
             "basis": "critique marked underspecified",
+        },
+    },
+    "negotiate": {
+        "status": "partial",
+        "participants": ["cost_owner", "latency_owner"],
+        "constraints": ["latency < 100ms hard"],
+        "tradeoff": "accept +10% cost for -20% latency",
+        "confidence": {
+            "evidence": "medium",
+            "inference": "medium",
+            "execution": "high",
+        },
+    },
+    "learn": {
+        "change": "prefer retrieval mode=hybrid for claim-validation tasks",
+        "scope": "session",
+        "reversible": True,
+        "auto_apply": False,
+        "evidence_refs": ["obs_001"],
+        "confidence": {
+            "evidence": "medium",
+            "inference": "low",
+            "execution": "high",
+            "basis": "single session",
+        },
+    },
+    "optimize": {
+        "objective": "minimize(cost) subject to latency < 100ms",
+        "candidate": {"replicas": 3, "size": "m"},
+        "constraints": ["latency < 100ms", "availability > 99.9%"],
+        "stop_rule": "improvement < 0.01 OR iterations >= 20",
+        "confidence": {
+            "evidence": "high",
+            "inference": "medium",
+            "execution": "high",
         },
     },
 }

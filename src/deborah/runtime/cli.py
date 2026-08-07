@@ -69,6 +69,16 @@ def main(argv: list[str] | None = None) -> int:
         help="JSON map of step results (by id or by cognition key)",
     )
     parser.add_argument("--max-steps", type=int, default=None, help="Hard step cap")
+    parser.add_argument(
+        "--allow-reentry",
+        action="store_true",
+        help="Phase F: allow one re-dispatch of low-confidence infer/evaluate when exploration_budget > 0",
+    )
+    parser.add_argument(
+        "--reflective-pass",
+        action="store_true",
+        help="Phase F: flag residual when infer/evaluate inference confidence is low/unassessed",
+    )
     args = parser.parse_args(argv)
 
     if args.input in (None, "-"):
@@ -140,6 +150,8 @@ def main(argv: list[str] | None = None) -> int:
             check_contracts=args.check_contracts,
             contract_mode=args.contract_mode,
             max_steps=args.max_steps,
+            allow_reentry=args.allow_reentry,
+            reflective_pass=True if args.reflective_pass else None,
         )
         if tracer is not None:
             from deborah.runtime.estate import record_run_on_tracer

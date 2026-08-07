@@ -21,7 +21,7 @@ and review complex work across technical, psychological, organisational, and
 sociological dimensions — including iteration, recursion, non-determinism,
 sync/async, queuing, outcome review, error handling, and human context.
 
-**The specification lives in [SPEC.md](SPEC.md) (v0.11).**
+**The specification lives in [SPEC.md](SPEC.md) (v0.12).**
 
 Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
 distribution now installs a compatibility shim that re-exports from here.)
@@ -177,12 +177,14 @@ Deborah carries **two independent version numbers** (they are not meant to match
 
 | What | Where it lives | Current |
 |---|---|---|
-| **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.11** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.13.0** |
+| **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.14.0** |
 
-Package **0.13.0** adds optional **estate hooks** (ASSUMES resolution, CALL
-dispatch, Galeed tracing) on top of the thin interpreter (0.12) and SPEC
-**v0.11** language/contracts. See [CHANGELOG.md](CHANGELOG.md) and
+Package **0.14.0** completes process-semantics Phases A–F: extended
+`COGNITION` (`negotiate` / `learn` / `optimize` with gated contracts), PLAN
+`EXPLORATION_BUDGET` / `REFLECTIVE_PASS`, and opt-in reflective re-entry on
+top of estate hooks (0.13) and the thin interpreter (0.12). SPEC **v0.12**.
+See [CHANGELOG.md](CHANGELOG.md) and
 [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
@@ -190,7 +192,7 @@ Huldah where needed). Prefer `pip install deborah`.
 
 ## Repository
 
-- [SPEC.md](SPEC.md) — normative specification (**v0.11**).
+- [SPEC.md](SPEC.md) — normative specification (**v0.12**).
 - [GRAMMAR.md](GRAMMAR.md) — structural EBNF (including PLAN framing fields).
 - [examples/](examples/) — family systems and domain suites in `.cairn.md`.
 - [CHANGELOG.md](CHANGELOG.md) — package and language evolution.

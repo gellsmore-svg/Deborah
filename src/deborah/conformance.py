@@ -84,10 +84,13 @@ STEP_STATUSES: frozenset[str] = frozenset({"pending", "active", "completed", "bl
 ON_UNCERTAINTY_POLICIES: frozenset[str] = frozenset({"record", "escalate", "abort"})
 
 # Cognitive product contracts on steps (SPEC process-semantic axes). Progressive:
-# omit cognition = no product contract. MVP four; others reserved.
+# omit cognition = no product contract.
+# MVP core four; Phase F extends with negotiate/learn/optimize (gated contracts).
 COGNITION_MVP: frozenset[str] = frozenset({"observe", "infer", "evaluate", "decide"})
-COGNITION_RESERVED: frozenset[str] = frozenset({"negotiate", "learn", "optimize"})
-COGNITION_VALUES: frozenset[str] = COGNITION_MVP | COGNITION_RESERVED
+COGNITION_EXTENDED: frozenset[str] = frozenset({"negotiate", "learn", "optimize"})
+# Back-compat alias — no longer rejected; extended cognitions are first-class.
+COGNITION_RESERVED: frozenset[str] = frozenset()  # emptied in Phase F
+COGNITION_VALUES: frozenset[str] = COGNITION_MVP | COGNITION_EXTENDED
 
 # The cross-repo core contract: fields a Cairn plan/step consumer can rely on.
 REQUIRED_PLAN_FIELDS: tuple[str, ...] = (
@@ -108,6 +111,8 @@ OPTIONAL_PLAN_FIELDS: tuple[str, ...] = (
     "on_uncertainty",
     "reevaluate_when",
     "request",
+    "exploration_budget",
+    "reflective_pass",
 )
 REQUIRED_STEP_FIELDS: tuple[str, ...] = ("id", "action", "construct", "status")
 
@@ -222,15 +227,10 @@ def validate_plan(plan: Any, *, profile: str = "full") -> list[str]:
             cognition = step.get("cognition")
             if cognition is not None and cognition != "":
                 value = str(cognition).strip().lower()
-                if value in COGNITION_RESERVED:
-                    errors.append(
-                        f"step[{index}] cognition {value!r} is reserved; "
-                        f"MVP allows {sorted(COGNITION_MVP)}"
-                    )
-                elif value not in COGNITION_MVP:
+                if value not in COGNITION_VALUES:
                     errors.append(
                         f"step[{index}] unknown cognition {value!r} "
-                        f"(allowed: {sorted(COGNITION_MVP)})"
+                        f"(allowed: {sorted(COGNITION_VALUES)})"
                     )
                 elif profile == "strict":
                     has_output = bool(step.get("success_criteria")) or bool(

@@ -88,9 +88,28 @@ plan = document_to_plan(parse_document(open("examples/cross-llm-critique.cairn.m
 run = interpret_with_estate(plan, demo=True, check_contracts=True)
 ```
 
+**Phase F reflective policy** (off by default; requires plan fields and flags):
+
+```bash
+# PLAN may declare EXPLORATION_BUDGET / REFLECTIVE_PASS; interpreter still
+# needs explicit opt-in for re-entry:
+deborah-run plan.cairn.md --demo-results --reflective-pass --allow-reentry
+```
+
+```python
+run = interpret_plan(
+    plan,
+    handler=handler,
+    reflective_pass=True,   # residual when infer/evaluate confidence is low
+    allow_reentry=True,     # one re-dispatch if exploration_budget > 0
+)
+```
+
 Inject real Keturah registries and capability callables for production tools.
 Do **not** treat free-form multi-round tool chat as the long-term execution path;
-re-negotiation is a new REVISION.
+re-negotiation is a new REVISION. Extended cognitions (`negotiate` / `learn` /
+`optimize`) use gated contracts — learning never auto-applies without
+`approved`/`human_gate`.
 
 ## Mode 4: Embedded governance contract
 

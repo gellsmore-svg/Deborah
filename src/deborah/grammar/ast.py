@@ -138,6 +138,8 @@ class Plan:
     assumes: list[str] = field(default_factory=list)  # capability@version pins
     on_uncertainty: str = ""  # record | escalate | abort
     reevaluate_when: list[str] = field(default_factory=list)
+    exploration_budget: int | None = None  # Phase F: opt-in re-entry bound
+    reflective_pass: bool = False  # Phase F: flag low-confidence infer/evaluate
     process: Process | None = None
     lineno: int = 0
 

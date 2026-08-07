@@ -405,10 +405,11 @@ def _validate_construct_line(
     return errors
 
 
-# MVP cognitive product contracts (SPEC process-semantic axes). Progressive:
-# omit COGNITION = no product contract. Future: negotiate|learn|optimize.
-_COGNITION_MVP = frozenset({"observe", "infer", "evaluate", "decide"})
-_COGNITION_RESERVED = frozenset({"negotiate", "learn", "optimize"})
+# Cognitive product contracts (SPEC process-semantic axes). Progressive.
+# Core MVP + Phase F extended (negotiate|learn|optimize).
+_COGNITION_VALUES = frozenset(
+    {"observe", "infer", "evaluate", "decide", "negotiate", "learn", "optimize"}
+)
 
 
 def _validate_annotations(annotations: list[Annotation], declared_states: set[str], lineno: int) -> list[str]:
@@ -424,18 +425,15 @@ def _validate_annotations(annotations: list[Annotation], declared_states: set[st
         elif ann.keyword == "COGNITION":
             cognition_seen += 1
             value = ann.text.strip().lower().split()[0] if ann.text.strip() else ""
-            # Allow "infer  # comment" style: first token only.
             if not value:
-                errors.append(f"line {ann.lineno}: COGNITION requires a value (observe|infer|evaluate|decide)")
-            elif value in _COGNITION_RESERVED:
                 errors.append(
-                    f"line {ann.lineno}: COGNITION {value!r} is reserved for a later contract; "
-                    f"MVP allows {sorted(_COGNITION_MVP)}"
+                    f"line {ann.lineno}: COGNITION requires a value "
+                    f"({ '|'.join(sorted(_COGNITION_VALUES)) })"
                 )
-            elif value not in _COGNITION_MVP:
+            elif value not in _COGNITION_VALUES:
                 errors.append(
                     f"line {ann.lineno}: unknown COGNITION {value!r} "
-                    f"(allowed: {sorted(_COGNITION_MVP)})"
+                    f"(allowed: {sorted(_COGNITION_VALUES)})"
                 )
     if cognition_seen > 1:
         errors.append(f"line {lineno}: at most one COGNITION annotation per step")

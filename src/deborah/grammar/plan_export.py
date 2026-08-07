@@ -56,6 +56,10 @@ def _plan_to_dict(plan: Plan) -> dict[str, Any]:
         "revision_decision": "revise",
         "revision_reason": plan.trigger,
     }
+    if plan.exploration_budget is not None:
+        out["exploration_budget"] = plan.exploration_budget
+    if plan.reflective_pass:
+        out["reflective_pass"] = True
     # Capability refs on CALL steps (name@version or bare name) become allowed_tools
     # hints when the step text starts with CALL — runtime still owns enforcement.
     return out

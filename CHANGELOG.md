@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-08-07
+
+**Phase F — extended cognitions and reflective policy.** Completes the
+process-semantics programme (A–F).
+
+- `COGNITION`: `negotiate` | `learn` | `optimize` with gated contracts
+  (contracts **1.1**)
+- PLAN fields `EXPLORATION_BUDGET`, `REFLECTIVE_PASS`
+- Interpreter reflective post-pass; opt-in bounded re-entry
+- SPEC **v0.12**; CLI `--reflective-pass` / `--allow-reentry`
+
 ## [0.13.0] — 2026-08-07
 
 **Estate hooks (Phase E), optional.** Resolve ASSUMES and dispatch CALL tools

@@ -59,15 +59,17 @@ PROCESS P (INPUT: a; OUTPUT: b)
     assert any("unknown COGNITION" in e for e in errors)
 
 
-def test_reserved_cognition_rejected_in_mvp() -> None:
+def test_extended_cognition_learn_is_accepted() -> None:
+    """Phase F: negotiate/learn/optimize are first-class (gated in contracts)."""
     text = """\
 PROCESS P (INPUT: a; OUTPUT: b)
   1. STEP — update priors. [LLM]
      COGNITION: learn
+     OUTPUT: change record
 """
     doc = parse_document(text)
-    errors = validate_document(doc)
-    assert any("reserved" in e and "learn" in e for e in errors)
+    assert validate_document(doc) == []
+    assert doc.processes[0].steps[0].annotations[0].keyword == "COGNITION"
 
 
 def test_validate_plan_rejects_bad_cognition_on_dict() -> None:
