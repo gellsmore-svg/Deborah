@@ -178,10 +178,10 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.20.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.21.0** |
 
-Package **0.20.0** closes major slice gaps: **live infer**, **novel-concept**
-check (Mahalath), and **GATED decide** (`--decision accept|reject|open`). See
+Package **0.21.0** adds **untrusted-evidence marking**, Galeed
+``open_question.recorded``, and Milcah multi-tool evaluate surfaces. See
 [CHANGELOG.md](CHANGELOG.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and

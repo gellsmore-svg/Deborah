@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.21.0] — 2026-08-07
+
+**Trust marking, Milcah multi-tool surface, open-question spine events.**
+
+- Infer records untrusted evidence counts/assumptions from retrieve trust tags
+- Demo retrieve marks evidence ``trust.level=untrusted``
+- Slice emits Galeed ``open_question.recorded`` when tracer present
+- Integrates Milcah ``validate_against_intent`` / ``assess_confidence`` dispatch
+
 ## [0.20.0] — 2026-08-07
 
 **Close top orchestration gaps: infer, novel concepts, GATED decide.**

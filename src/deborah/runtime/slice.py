@@ -200,7 +200,7 @@ def run_substrate_slice(
             oq = open_question_from_run(
                 plan, run, reasons=[negotiation.reason or "negotiation refused"], claim=str(claim)
             )
-            _persist_oq(oq, open_questions_path, open_questions_db)
+            _persist_oq(oq, open_questions_path, open_questions_db, tracer=tracer)
             return SliceResult(
                 plan_id=run.plan_id,
                 run=run,
@@ -228,7 +228,7 @@ def run_substrate_slice(
                 reasons=[negotiation.reason or "max_rounds exhausted"],
                 claim=str(claim),
             )
-            _persist_oq(oq, open_questions_path, open_questions_db)
+            _persist_oq(oq, open_questions_path, open_questions_db, tracer=tracer)
             return SliceResult(
                 plan_id=run.plan_id,
                 run=run,
@@ -335,7 +335,7 @@ def run_substrate_slice(
         if run.terminal != "complete" and run.terminal not in {r for r in reasons}:
             reasons.append(f"terminal={run.terminal}")
         open_q = open_question_from_run(plan, run, reasons=reasons, claim=str(claim))
-        _persist_oq(open_q, open_questions_path, open_questions_db)
+        _persist_oq(open_q, open_questions_path, open_questions_db, tracer=tracer)
         events.append({"type": "slice.open_question.recorded", **open_q.to_dict()})
 
     selected = "open" if open_q is not None else (
@@ -392,11 +392,27 @@ def _persist_oq(
     oq: OpenQuestion,
     path: str | Path | None,
     db: Any,
+    *,
+    tracer: Any = None,
 ) -> None:
     if path is not None:
         OpenQuestionStore(path).record(oq)
     if db is not None:
         record_open_question_mongo(db, oq)
+    if tracer is not None:
+        try:
+            from galeed import record_open_question_event  # type: ignore[import-not-found]
+
+            record_open_question_event(
+                tracer=tracer,
+                open_question_id=oq.open_question_id,
+                question=oq.question,
+                reason=oq.reason,
+                plan_id=oq.plan_id,
+                run_terminal=oq.run_terminal,
+            )
+        except Exception:
+            pass
 
 
 def _emit_negotiation(tracer: Any, **kwargs: Any) -> None:

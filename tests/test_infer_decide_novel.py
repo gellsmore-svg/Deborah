@@ -17,10 +17,19 @@ def test_rule_based_infer_empty_evidence() -> None:
 def test_rule_based_infer_with_evidence() -> None:
     product = rule_based_infer(
         "Is substrate coherent?",
-        [{"statement": "Closed loops matter.", "source": "t:1", "trace_ref": "n1"}],
+        [
+            {
+                "statement": "Closed loops matter.",
+                "source": "t:1",
+                "trace_ref": "n1",
+                "trust": {"level": "untrusted", "channel": "memory_retrieval"},
+            }
+        ],
     )
     assert "n1" in product["evidence_refs"]
     assert product["confidence"]["evidence"] in {"low", "medium"}
+    assert product["evidence_trust"]["untrusted_count"] == 1
+    assert any("untrusted" in a for a in product["assumptions"])
 
 
 def test_infer_handler_reads_artifacts() -> None:
