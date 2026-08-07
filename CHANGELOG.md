@@ -1,11 +1,17 @@
 # Changelog
 
 ## [Unreleased]
-- **Phase E — estate hooks (optional):** `deborah.runtime.estate` —
-  `resolve_assumes`, `DictCapabilityIndex`, `EstateHandler`,
-  `interpret_with_estate`, demo retrieve/critique dispatch, optional Galeed
-  tracing. CLI `deborah-run --estate-demo` / `--trace`. No hard deps on
-  keturah/galeed.
+
+## [0.13.0] — 2026-08-07
+
+**Estate hooks (Phase E), optional.** Resolve ASSUMES and dispatch CALL tools
+without hard-depending on Keturah/Galeed/Tirzah/Milcah.
+
+- `resolve_assumes`, `DictCapabilityIndex`, Keturah `Registry` adapter
+- `EstateHandler` + `interpret_with_estate`
+- Demo retrieve/critique dispatch for the golden critique slice
+- Optional Galeed `Tracer` recording
+- CLI: `deborah-run --estate-demo` / `--trace`
 
 ## [0.12.0] — 2026-08-07
 

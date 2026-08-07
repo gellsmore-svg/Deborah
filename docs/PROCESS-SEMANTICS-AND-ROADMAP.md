@@ -1,7 +1,7 @@
 # Deborah process semantics and implementation roadmap
 
 **Date:** 2026-08-07 · **Status:** Phases A–E implemented · **Baseline:** package
-**0.12.0**+; language SPEC **v0.11**; contracts **1.0**; thin runtime + estate hooks
+**0.13.0**; language SPEC **v0.11**; contracts **1.0**; thin runtime + estate hooks
 
 This document:
 
