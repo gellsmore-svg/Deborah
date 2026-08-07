@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.16.0] — 2026-08-07
+
+**Substrate slice + taxonomy decision.**
+
+- Docs: [`docs/TAXONOMY-COGNITION-AND-PATTERNS.md`](docs/TAXONOMY-COGNITION-AND-PATTERNS.md)
+  — core vs gated extended cognitions; reflect is policy, not a product type
+- Example plan: `examples/answer-substrate-question.cairn.md`
+- `run_negotiation` (bounded max_rounds; control pattern)
+- `check_outcomes` (cited evidence + confidence floor)
+- `OpenQuestionStore` (JSONL) + optional Mongo
+- `run_substrate_slice` / CLI `--slice --question --open-questions --confidence-floor`
+
 ## [0.15.0] — 2026-08-07
 
 **Live Tirzah/Milcah estate adapters.** Optional real handlers for the golden

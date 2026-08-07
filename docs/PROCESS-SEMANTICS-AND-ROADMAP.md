@@ -334,6 +334,23 @@ Omit `COGNITION` → today’s behaviour (no product contract).
   (`allow_reentry=True` + budget > 0, at most once per step)
 - CLI: `--reflective-pass`, `--allow-reentry`
 
+### Taxonomy stance (post-F) — **DONE**
+
+See [`TAXONOMY-COGNITION-AND-PATTERNS.md`](TAXONOMY-COGNITION-AND-PATTERNS.md):
+
+- Core product: observe / infer / evaluate / decide  
+- Extended product (gated): negotiate / learn / optimize  
+- **Reflect is plan policy**, not a COGNITION  
+- Multi-round negotiate/search = control patterns + bounds  
+
+### Substrate slice (Stage 1 thin) — **DONE** (package ≥0.16)
+
+- Example: `examples/answer-substrate-question.cairn.md`
+- Bounded negotiation (`run_negotiation`, default one-shot accept)
+- `check_outcomes` (evidence + confidence floor)
+- Open-questions JSONL store + optional Mongo insert
+- CLI: `deborah-run --slice --open-questions PATH --question "…"`
+
 ### Explicit non-goals (unchanged + sharpened)
 
 - Hot-path multi-role free re-planning

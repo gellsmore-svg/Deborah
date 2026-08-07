@@ -178,13 +178,14 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.15.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.16.0** |
 
-Package **0.15.0** adds optional **live** Tirzah/Milcah estate adapters
-(`deborah-run --estate-live`) on top of Phase F (0.14), estate demo hooks
-(0.13), and the thin interpreter (0.12). SPEC **v0.12**. See
-[CHANGELOG.md](CHANGELOG.md) and
-[docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
+Package **0.16.0** adds the **substrate slice** (`deborah-run --slice`: bounded
+negotiation → interpret → outcome check → open-question record) and documents
+the cognition taxonomy stance (core four + gated negotiate/learn/optimize;
+reflect as policy). See [CHANGELOG.md](CHANGELOG.md),
+[docs/TAXONOMY-COGNITION-AND-PATTERNS.md](docs/TAXONOMY-COGNITION-AND-PATTERNS.md),
+and [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
 Huldah where needed). Prefer `pip install deborah`.
@@ -202,6 +203,10 @@ Huldah where needed). Prefer `pip install deborah`.
 - [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md)
   — three-layer process semantics (execution / behaviour / cognition) and
   phased implementation roadmap after 0.10.0.
+- [docs/TAXONOMY-COGNITION-AND-PATTERNS.md](docs/TAXONOMY-COGNITION-AND-PATTERNS.md)
+  — which cognitions are primitives vs higher-order patterns.
+- [examples/answer-substrate-question.cairn.md](examples/answer-substrate-question.cairn.md)
+  — Stage 1 vertical slice plan.
 - [okf/](okf/) — Open Knowledge Format concept bundle for the language.
 - [docs/future-usage-logging-spec.md](docs/future-usage-logging-spec.md) —
   notes on future touchpoint logging.

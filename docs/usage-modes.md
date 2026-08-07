@@ -102,6 +102,22 @@ run = interpret_with_estate(plan, live=True, check_contracts=True)
 # milcah.deborah.deborah_dispatch(run_fn=…) into dispatch=
 ```
 
+**Substrate slice** (negotiation → estate → outcomes → open questions):
+
+```bash
+deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
+  --check-contracts --open-questions /tmp/oq.jsonl \
+  --question "Is relational substrate coherence well-supported?"
+```
+
+```python
+from deborah.runtime import run_substrate_slice
+from deborah import document_to_plan, parse_document
+plan = document_to_plan(parse_document(open("examples/answer-substrate-question.cairn.md").read()))
+result = run_substrate_slice(plan, demo=True, open_questions_path="/tmp/oq.jsonl")
+print(result.terminal, result.outcomes.ok, result.open_question)
+```
+
 **Phase F reflective policy** (off by default; requires plan fields and flags):
 
 ```bash

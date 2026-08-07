@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "deborah"
-version = "0.15.0"
-description = "Deborah — Cairn process language, cognitive contracts, thin PLAN interpreter, and optional estate hooks."
+version = "0.16.0"
+description = "Deborah — Cairn process language, cognitive contracts, thin PLAN interpreter, estate hooks, and substrate slice."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"

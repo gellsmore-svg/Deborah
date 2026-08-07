@@ -31,22 +31,35 @@ from deborah.runtime.interpreter import (
     StubHandler,
     interpret_plan,
 )
+from deborah.runtime.negotiate import NegotiationResult, run_negotiation
+from deborah.runtime.open_questions import OpenQuestion, OpenQuestionStore, open_question_from_run
+from deborah.runtime.outcomes import OutcomeCheck, check_outcomes
+from deborah.runtime.slice import SliceResult, run_substrate_slice
 
 __all__ = [
     "AssumeResolution",
     "DictCapabilityIndex",
     "EstateHandler",
     "Handler",
+    "NegotiationResult",
+    "OpenQuestion",
+    "OpenQuestionStore",
+    "OutcomeCheck",
     "RunResult",
+    "SliceResult",
     "StepRecord",
     "StubHandler",
+    "check_outcomes",
     "demo_capability_index",
     "demo_critique_dispatch",
     "interpret_plan",
     "interpret_with_estate",
     "live_estate_available",
+    "open_question_from_run",
     "record_run_on_tracer",
     "resolve_assumes",
+    "run_negotiation",
+    "run_substrate_slice",
     "try_load_keturah_registry",
     "try_load_live_dispatch",
     "try_load_live_index",

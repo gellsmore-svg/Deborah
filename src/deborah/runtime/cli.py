@@ -88,6 +88,41 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Phase F: flag residual when infer/evaluate inference confidence is low/unassessed",
     )
+    parser.add_argument(
+        "--slice",
+        action="store_true",
+        help=(
+            "Substrate slice: bounded negotiation → estate interpret → outcome "
+            "check → open-question record when residual"
+        ),
+    )
+    parser.add_argument(
+        "--question",
+        metavar="TEXT",
+        help="Override plan REQUEST / claim for this run (slice or estate)",
+    )
+    parser.add_argument(
+        "--open-questions",
+        metavar="PATH",
+        help="JSONL path for open-question records (used with --slice)",
+    )
+    parser.add_argument(
+        "--confidence-floor",
+        choices=["high", "medium", "low"],
+        default="low",
+        help="Minimum inference band for slice outcome check (default low)",
+    )
+    parser.add_argument(
+        "--max-rounds",
+        type=int,
+        default=4,
+        help="Negotiation max rounds for --slice (default 4; 0 = skip loop, treat as agreed)",
+    )
+    parser.add_argument(
+        "--no-negotiate",
+        action="store_true",
+        help="Skip pre-execution negotiation in --slice",
+    )
     args = parser.parse_args(argv)
 
     if args.input in (None, "-"):
@@ -138,6 +173,62 @@ def main(argv: list[str] | None = None) -> int:
         from deborah.runtime.estate import try_make_tracer
 
         tracer = try_make_tracer(source="deborah-run")
+
+    if args.question:
+        plan = dict(plan)
+        plan["request"] = args.question
+
+    if args.slice:
+        from deborah.runtime.slice import run_substrate_slice
+
+        # Default estate demo for the slice unless live was requested.
+        demo = not args.estate_live
+        if args.estate_demo:
+            demo = True
+        slice_result = run_substrate_slice(
+            plan,
+            question=args.question,
+            demo=demo,
+            live=bool(args.estate_live),
+            negotiate=not args.no_negotiate,
+            max_rounds=args.max_rounds,
+            confidence_floor=args.confidence_floor,
+            open_questions_path=args.open_questions,
+            check_contracts=args.check_contracts or True,
+            contract_mode=args.contract_mode,
+            tracer=tracer,
+        )
+        if args.json:
+            print(json.dumps(slice_result.to_dict(), indent=2))
+        else:
+            print(
+                f"terminal: {slice_result.terminal}  plan_id={slice_result.plan_id}  "
+                f"outcomes_ok={slice_result.outcomes.ok}"
+            )
+            if slice_result.negotiation:
+                print(
+                    f"negotiation: {slice_result.negotiation.status} "
+                    f"rounds={slice_result.negotiation.rounds_used}/"
+                    f"{slice_result.negotiation.max_rounds}"
+                )
+            for step in slice_result.run.steps:
+                extra = f" ({step.reason})" if step.reason else ""
+                cog = f" [{step.cognition}]" if step.cognition else ""
+                print(f"  {step.id}: {step.status}{cog}{extra}")
+            if slice_result.outcomes.open_reasons:
+                print("open_reasons:")
+                for r in slice_result.outcomes.open_reasons:
+                    print(f"  - {r}")
+            if slice_result.open_question:
+                print(
+                    f"open_question: {slice_result.open_question.open_question_id} "
+                    f"— {slice_result.open_question.reason}"
+                )
+            if slice_result.run.errors:
+                for e in slice_result.run.errors:
+                    print(e, file=sys.stderr)
+        ok = slice_result.terminal in {"complete", "open"} and not slice_result.run.errors
+        return 0 if ok else 1
 
     if args.estate_demo or args.estate_live:
         run = interpret_with_estate(
