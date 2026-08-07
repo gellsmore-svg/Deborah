@@ -21,7 +21,7 @@ and review complex work across technical, psychological, organisational, and
 sociological dimensions — including iteration, recursion, non-determinism,
 sync/async, queuing, outcome review, error handling, and human context.
 
-**The specification lives in [SPEC.md](SPEC.md) (v0.10).**
+**The specification lives in [SPEC.md](SPEC.md) (v0.11).**
 
 Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
 distribution now installs a compatibility shim that re-exports from here.)
@@ -178,12 +178,11 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.11** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.10.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.11.0** |
 
-Package **0.10.0** shipped with SPEC v0.10 framing. **SPEC v0.11** (in-tree /
-Unreleased) adds process-semantic axes and progressive `COGNITION`
-(observe|infer|evaluate|decide); conformance **1.2**. See
-[CHANGELOG.md](CHANGELOG.md) and
+Package **0.11.0** ships with SPEC **v0.11**: process-semantic axes, progressive
+`COGNITION`, validate profiles (`full`/`core`/`strict`), and cognitive result
+contracts. See [CHANGELOG.md](CHANGELOG.md) and
 [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
@@ -191,7 +190,7 @@ Huldah where needed). Prefer `pip install deborah`.
 
 ## Repository
 
-- [SPEC.md](SPEC.md) — normative specification (**v0.10**).
+- [SPEC.md](SPEC.md) — normative specification (**v0.11**).
 - [GRAMMAR.md](GRAMMAR.md) — structural EBNF (including PLAN framing fields).
 - [examples/](examples/) — family systems and domain suites in `.cairn.md`.
 - [CHANGELOG.md](CHANGELOG.md) — package and language evolution.
@@ -233,8 +232,12 @@ embedding a private dialect:
 ```python
 import deborah
 
-# Runtime PLAN dict conformance (SPEC §4.5 / conformance 1.1)
-errors = deborah.validate_plan(plan_dict)   # [] when conformant
+# Runtime PLAN dict conformance (profiles: full | core | strict)
+errors = deborah.validate_plan(plan_dict, profile="strict")
+
+# Cognitive product contracts (Phase C)
+from deborah import validate_cognition_result, EXAMPLE_RESULTS
+assert validate_cognition_result("infer", EXAMPLE_RESULTS["infer"], mode="strict") == []
 
 # Structural grammar (GRAMMAR.md EBNF + SPEC §12 well-formedness)
 doc = deborah.parse_document(cairn_text_or_markdown)
@@ -245,10 +248,11 @@ plan = deborah.document_to_plan(doc)        # first PLAN or PROCESS → plan dic
 view = deborah.render_plan(cairn_text_or_markdown, profile="narrative_steps")
 deborah.CANONICAL_PLAN                      # known-good fixture
 deborah.CORE_CONSTRUCTS                     # execution-normative constructs
-deborah.PLAN_CONSTRUCTS                     # core + descriptive domain set
+deborah.COGNITION_MVP                       # observe|infer|evaluate|decide
 ```
 
-CLI: `deborah-validate examples/hoglah.cairn.md` · `deborah-render examples/hoglah.cairn.md`
+CLI: `deborah-validate examples/cross-llm-critique.cairn.md --profile strict` ·
+`deborah-render examples/hoglah.cairn.md`
 
 ### View composer (`deborah-serve`)
 

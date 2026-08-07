@@ -1,23 +1,24 @@
 # Changelog
 
 ## [Unreleased]
-- **Phase C — cognitive result contracts:** new `deborah.contracts` module
-  (`validate_cognition_result`, `validate_confidence`, `validate_step_results`)
-  with soft/strict modes for observe/infer/evaluate/decide; ordinal confidence
-  bands; fixtures; `deborah-validate --results` / `--results-mode`. Re-entry
-  policy documented, not implemented.
-- **Phase B — frame enforcement in tools:** `validate_plan(profile=full|core|strict)`
-  (core rejects extension constructs; strict requires OUTPUT for COGNITION and
-  CALL tools ⊆ assumes); `deborah-validate --profile`; render PLAN framing
-  (intent/assumes/uncertainty/outcomes) and step COGNITION in narrative /
-  operator / audit / executive; bridge projects PLAN-nested PROCESS steps;
-  conformance **1.3**.
-- **SPEC v0.11 / Phase A process semantics:** orthogonal axes HOW / PRODUCT /
-  FRAME / CONTROL; progressive `COGNITION:` (`observe|infer|evaluate|decide`);
-  crystallised ≠ all-deterministic steps. Parser, well-formedness, plan export
-  (`cognition`, `execution`, `purpose`), golden example
-  `examples/cross-llm-critique.cairn.md`. Behaviour multi-select and
-  negotiate/learn/optimize deferred (see
+
+## [0.11.0] — 2026-08-07
+
+**SPEC v0.11 + cognitive contracts.** Process-semantic axes, progressive
+`COGNITION`, plan validation profiles, and soft/strict result contracts.
+Thin interpretive runtime remains Phase D (future).
+
+- **SPEC v0.11 / Phase A:** axes HOW / PRODUCT / FRAME / CONTROL; progressive
+  `COGNITION:` (`observe|infer|evaluate|decide`); crystallised ≠
+  all-deterministic steps; golden example `examples/cross-llm-critique.cairn.md`.
+- **Phase B:** `validate_plan(profile=full|core|strict)`;
+  `deborah-validate --profile`; render PLAN framing + step COGNITION;
+  PLAN-nested PROCESS projection; conformance **1.3**.
+- **Phase C:** `deborah.contracts` (`validate_cognition_result`,
+  `validate_confidence`, `validate_step_results`); ordinal confidence bands;
+  `deborah-validate --results` / `--results-mode`; re-entry policy documented
+  only. Contracts version **1.0**.
+- Behaviour multi-select and negotiate/learn/optimize deferred (see
   `docs/PROCESS-SEMANTICS-AND-ROADMAP.md`).
 
 ## [0.10.0] — 2026-08-06
