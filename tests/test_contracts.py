@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from deborah import (
     EXAMPLE_RESULTS,
     document_to_plan,
