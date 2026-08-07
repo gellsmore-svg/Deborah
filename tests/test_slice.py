@@ -249,6 +249,17 @@ def test_substrate_slice_unresolved_negotiation(tmp_path: Path) -> None:
     assert "exhausted" in result.open_question.reason.lower() or result.negotiation
 
 
+def test_substrate_plan_includes_intent_and_confidence_calls() -> None:
+    plan = _plan()
+    actions = " ".join(str(s.get("action") or "") for s in plan.get("steps") or [])
+    assumes = " ".join(str(a) for a in (plan.get("assumes") or []))
+    assert "validate_against_intent" in actions or "validate_against_intent" in assumes
+    assert "assess_confidence" in actions or "assess_confidence" in assumes
+    assert "detect_novel" in actions or "detect_novel" in assumes
+    # Seven steps: novel, retrieve, infer, critique, intent, confidence, decide
+    assert len(plan.get("steps") or []) >= 7
+
+
 def test_cli_slice(tmp_path: Path) -> None:
     from deborah.runtime.cli import main
 

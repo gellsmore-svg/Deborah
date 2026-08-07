@@ -309,6 +309,18 @@ def demo_capability_index() -> DictCapabilityIndex:
     idx = DictCapabilityIndex()
     idx.add("tirzah.retrieve", product="tirzah", kind="tool")
     idx.add("milcah.critique", product="milcah", kind="tool", tags=["critique", "evaluate"])
+    idx.add(
+        "milcah.validate_against_intent",
+        product="milcah",
+        kind="tool",
+        tags=["intent", "evaluate"],
+    )
+    idx.add(
+        "milcah.assess_confidence",
+        product="milcah",
+        kind="tool",
+        tags=["confidence", "evaluate"],
+    )
     idx.add("deborah.infer", product="deborah", kind="tool", tags=["infer"])
     idx.add("mahalath.detect_novel", product="mahalath", kind="tool", tags=["novel"])
     return idx

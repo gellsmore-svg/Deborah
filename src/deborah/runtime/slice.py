@@ -246,11 +246,43 @@ def run_substrate_slice(
     if demo and not live:
         index = index or demo_capability_index()
         dispatch = {**demo_critique_dispatch(), **(dispatch or {})}
+        # Full Milcah portfolio (critique + intent + confidence) when installed
+        try:
+            from milcah.deborah import deborah_dispatch as milcah_dispatch  # type: ignore[import-not-found]
+
+            dispatch = {**milcah_dispatch(), **dispatch}
+        except Exception:
+            pass
+        try:
+            from mahalath.deborah import deborah_dispatch as mahalath_dispatch  # type: ignore[import-not-found]
+
+            dispatch = {**mahalath_dispatch(), **dispatch}
+        except Exception:
+            # Offline novel: treat all candidates as novel (fail open)
+            try:
+                from mahalath.deborah import make_novel_concept_handler  # type: ignore[import-not-found]
+
+                h = make_novel_concept_handler(db=None)
+                dispatch = {
+                    **dispatch,
+                    "mahalath.detect_novel": h,
+                    "detect_novel": h,
+                }
+            except Exception:
+                pass
         # Infer already in dispatch
         if index is not None and isinstance(index, DictCapabilityIndex):
             for stem in dispatch:
                 if index.find(stem) is None:
                     index.add(stem, product=stem.split(".")[0] if "." in stem else "demo")
+            for ref in plan.get("assumes") or []:
+                if isinstance(ref, str) and ref.strip():
+                    stem = ref.strip().split("@", 1)[0]
+                    if index.find(stem) is None:
+                        index.add(
+                            stem,
+                            product=stem.split(".")[0] if "." in stem else "demo",
+                        )
 
     # Prefer explicit decisions path through interpret_plan when we have custom dispatch
     if dispatch or decisions is not None:
@@ -273,6 +305,10 @@ def run_substrate_slice(
             context = dict(context)
             context.setdefault("request", claim_ctx)
             context.setdefault("claim", claim_ctx)
+            context.setdefault("intent", plan.get("intent") or claim_ctx)
+            context.setdefault("outcomes", plan.get("outcomes") or [])
+            context.setdefault("plan", plan)
+            context.setdefault("confidence_floor", confidence_floor)
             if decisions:
                 context.setdefault("decisions", dict(decisions))
             return handler(step, context)

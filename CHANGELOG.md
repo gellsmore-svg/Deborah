@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.22.0] — 2026-08-07
+
+**Substrate plan wires full Milcah evaluate portfolio.**
+
+- PLAN steps: detect_novel → retrieve → infer → critique →
+  ``validate_against_intent`` → ``assess_confidence`` → GATED decide
+- Demo estate loads milcah + mahalath dispatch when packages installed
+- Intent/outcomes/confidence_floor injected into step context
+
 ## [0.21.0] — 2026-08-07
 
 **Trust marking, Milcah multi-tool surface, open-question spine events.**
