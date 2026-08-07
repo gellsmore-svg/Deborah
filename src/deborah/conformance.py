@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-CONFORMANCE_VERSION = "1.2"
+CONFORMANCE_VERSION = "1.3"
 
 # Step-level constructs from SPEC §5 (the ones a PLAN step may *be*).
 #
@@ -125,8 +125,50 @@ def _validate_step(step: Any, index: int) -> list[str]:
     return errors
 
 
-def validate_plan(plan: Any) -> list[str]:
-    """Return a list of conformance errors for ``plan`` (empty list = conformant)."""
+VALIDATE_PROFILES: frozenset[str] = frozenset({"full", "core", "strict"})
+
+
+def _capability_stem(ref: str) -> str:
+    """``milcah.critique@1`` → ``milcah.critique``."""
+    return ref.strip().split("@", 1)[0].strip().lower()
+
+
+def _tools_from_step(step: dict[str, Any]) -> list[str]:
+    """Collect capability-like tool names from allowed_tools and CALL actions."""
+    tools: list[str] = []
+    allowed = step.get("allowed_tools")
+    if isinstance(allowed, list):
+        tools.extend(str(t).strip() for t in allowed if str(t).strip())
+    action = str(step.get("action") or "")
+    # "milcah.critique — …" or "Invoke milcah.critique" patterns after CALL construct
+    if step.get("construct") == "CALL":
+        # action may be "milcah.critique — Pressure-test…" or full phrase with tags
+        head = action.split("[", 1)[0].strip()
+        head = head.split("—", 1)[0].split("–", 1)[0].split("-", 1)[0].strip()
+        # drop leading "Invoke " style phrasing from render, keep first token-ish
+        parts = head.split()
+        if parts:
+            candidate = parts[0] if parts[0].lower() != "invoke" else (parts[1] if len(parts) > 1 else "")
+            if candidate and not candidate.endswith("."):
+                tools.append(candidate)
+            elif candidate:
+                tools.append(candidate.rstrip("."))
+    return tools
+
+
+def validate_plan(plan: Any, *, profile: str = "full") -> list[str]:
+    """Return a list of conformance errors for ``plan`` (empty list = conformant).
+
+    Profiles (Phase B):
+
+    - ``full`` — default structural contract (constructs, statuses, cognition MVP).
+    - ``core`` — as full, plus reject **extension** constructs (core profile only).
+    - ``strict`` — as full, plus COGNITION requires output/success_criteria;
+      when ``assumes`` is set, CALL/allowed_tools should reference assumed stems.
+    """
+    if profile not in VALIDATE_PROFILES:
+        return [f"unknown validate profile {profile!r} (allowed: {sorted(VALIDATE_PROFILES)})"]
+
     if not isinstance(plan, dict):
         return ["plan must be an object"]
 
@@ -147,6 +189,7 @@ def validate_plan(plan: Any) -> list[str]:
         )
 
     assumes = plan.get("assumes")
+    assume_stems: set[str] = set()
     if assumes is not None:
         if not isinstance(assumes, list):
             errors.append("assumes must be a list of capability refs (name or name@version)")
@@ -154,6 +197,8 @@ def validate_plan(plan: Any) -> list[str]:
             for index, ref in enumerate(assumes):
                 if not isinstance(ref, str) or not ref.strip():
                     errors.append(f"assumes[{index}] must be a non-empty string")
+                else:
+                    assume_stems.add(_capability_stem(ref))
 
     for list_field in ("outcomes", "stopping_conditions", "reevaluate_when"):
         value = plan.get(list_field)
@@ -168,6 +213,12 @@ def validate_plan(plan: Any) -> list[str]:
             errors.extend(_validate_step(step, index))
             if not isinstance(step, dict):
                 continue
+            construct = step.get("construct")
+            if profile == "core" and construct in EXTENSION_CONSTRUCTS:
+                errors.append(
+                    f"step[{index}] construct {construct!r} is not in the core profile "
+                    f"(use full profile or a CORE construct)"
+                )
             cognition = step.get("cognition")
             if cognition is not None and cognition != "":
                 value = str(cognition).strip().lower()
@@ -181,6 +232,16 @@ def validate_plan(plan: Any) -> list[str]:
                         f"step[{index}] unknown cognition {value!r} "
                         f"(allowed: {sorted(COGNITION_MVP)})"
                     )
+                elif profile == "strict":
+                    has_output = bool(step.get("success_criteria")) or bool(
+                        str(step.get("output") or "").strip()
+                    )
+                    # Also accept OUTPUT folded into action prose is too weak; require criteria.
+                    if not has_output:
+                        errors.append(
+                            f"step[{index}] strict: COGNITION {value!r} requires "
+                            f"success_criteria or output"
+                        )
             execution = step.get("execution")
             if execution is not None and execution != "":
                 if str(execution).strip().lower() not in {"deterministic", "stochastic"}:
@@ -188,6 +249,28 @@ def validate_plan(plan: Any) -> list[str]:
                         f"step[{index}] invalid execution {execution!r} "
                         f"(allowed: deterministic|stochastic)"
                     )
+
+            if profile == "strict" and assume_stems and construct == "CALL":
+                tools = _tools_from_step(step)
+                if not tools:
+                    errors.append(
+                        f"step[{index}] strict: CALL step should name a capability "
+                        f"in action or allowed_tools when assumes is set"
+                    )
+                else:
+                    for tool in tools:
+                        stem = _capability_stem(tool)
+                        # Allow tool if it matches an assumed stem or is a prefix/suffix segment.
+                        if stem not in assume_stems and not any(
+                            stem == a or stem.endswith("." + a.split(".")[-1]) or a.endswith("." + stem.split(".")[-1])
+                            for a in assume_stems
+                        ):
+                            # Soften: only error if no assume stem appears in the tool string
+                            if not any(a in stem or stem in a for a in assume_stems):
+                                errors.append(
+                                    f"step[{index}] strict: CALL tool {tool!r} not in "
+                                    f"assumes {sorted(assume_stems)}"
+                                )
 
     return errors
 

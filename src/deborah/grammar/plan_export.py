@@ -83,6 +83,7 @@ def _steps_to_dict(steps: list[Step], *, prefix: str = "s") -> list[dict[str, An
             criteria = [a.text for a in node.annotations if a.keyword == "OUTPUT"]
             if criteria:
                 entry["success_criteria"] = criteria
+                entry["output"] = criteria[0]
             purpose = next((a.text for a in node.annotations if a.keyword == "PURPOSE"), None)
             if purpose:
                 entry["purpose"] = purpose
@@ -92,6 +93,19 @@ def _steps_to_dict(steps: list[Step], *, prefix: str = "s") -> list[dict[str, An
                 token = cognition.strip().split()[0].lower() if cognition.strip() else ""
                 if token:
                     entry["cognition"] = token
+            # CALL target → allowed_tools hint for strict assumes checks.
+            if (node.construct or "").upper() == "CALL" or (
+                node.text and node.text.upper().startswith("CALL ")
+            ):
+                head = node.text
+                if head.upper().startswith("CALL "):
+                    head = head[5:]
+                target = head.split("—", 1)[0].split("–", 1)[0].strip()
+                target = target.split()[0] if target.split() else ""
+                if target:
+                    entry.setdefault("allowed_tools", [])
+                    if target not in entry["allowed_tools"]:
+                        entry["allowed_tools"] = list(entry.get("allowed_tools") or []) + [target]
             # Determinism tag → execution axis (HOW), when present.
             # Tags may arrive as one bracket group ("CODE, DETERMINISTIC").
             for raw in node.tags:

@@ -71,7 +71,13 @@ def document_to_render_model(doc: CairnDocument) -> ProcessDocument:
     narrative: list[StepNode] = []
 
     profile = doc.directives[-1].profile if doc.directives else None
-    for proc in doc.processes:
+    processes = list(doc.processes)
+    # PLAN-only documents nest PROCESS under PLAN — project those steps too.
+    for plan in doc.plans:
+        if plan.process and plan.process not in processes:
+            processes.append(plan.process)
+
+    for proc in processes:
         nodes = [_step_to_node(step) for step in proc.steps]
         mode = _process_mode(proc)
         if profile == "operator" or mode == "operator":
@@ -98,6 +104,11 @@ def document_to_render_model(doc: CairnDocument) -> ProcessDocument:
 
         try:
             render_doc.plan = document_to_plan(doc)
+            # PLAN-level OUTCOMES fill doc.outcomes when document-level OUTCOMES empty.
+            if not render_doc.outcomes and render_doc.plan.get("outcomes"):
+                render_doc.outcomes = list(render_doc.plan["outcomes"])
+            if not render_doc.title and render_doc.plan.get("intent"):
+                render_doc.title = str(render_doc.plan["intent"])[:80]
         except ValueError as exc:
             # Keep the render usable, but surface the loss of PLAN envelope
             # metadata so callers are not left with a silent gap (Deborah #10).

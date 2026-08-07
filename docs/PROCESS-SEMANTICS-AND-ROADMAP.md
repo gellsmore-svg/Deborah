@@ -277,13 +277,13 @@ Omit `COGNITION` → today’s behaviour (no product contract).
 - Interpreter
 - Confidence auto-recursion
 
-### Phase B — Frame enforcement in tools *(Deborah-only)*
+### Phase B — Frame enforcement in tools *(Deborah-only)* — **DONE**
 
-- Render PLAN framing + COGNITION in operator/audit/executive
-- `validate_plan(profile="core")`
-- ASSUMES ↔ allowed_tools consistency
+- Render PLAN framing + COGNITION in narrative/operator/audit/executive
+- `validate_plan(profile="full"|"core"|"strict")`
+- Strict: COGNITION requires output/success_criteria; CALL tools ⊆ assumes
 - `deborah-validate --profile core|full|strict`
-- strict: COGNITION without any OUTPUT/result warning
+- Bridge projects PLAN-nested PROCESS steps into the render model
 
 ### Phase C — Soft/strict result contracts
 

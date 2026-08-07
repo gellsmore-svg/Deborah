@@ -40,6 +40,7 @@ def _render_step_line(node: StepNode, language: str, depth: int, options: dict[s
 
 
 def _plan_header(doc: ProcessDocument, language: str) -> list[str]:
+    """Render PLAN envelope including framing fields (SPEC v0.10/v0.11)."""
     if not doc.plan:
         return []
     plan = doc.plan
@@ -47,15 +48,33 @@ def _plan_header(doc: ProcessDocument, language: str) -> list[str]:
     if language == "fr":
         lines.append(f"**Plan:** {plan.get('plan_id', '')} (révision {plan.get('revision', '?')})")
         lines.append(f"**Statut:** {plan.get('status', '')}")
+        intent_l, assumes_l, unc_l, out_l = "Intention", "Suppose", "Incertitude", "Résultats"
+        req_l = "Demande"
     elif language == "es":
         lines.append(f"**Plan:** {plan.get('plan_id', '')} (revisión {plan.get('revision', '?')})")
         lines.append(f"**Estado:** {plan.get('status', '')}")
+        intent_l, assumes_l, unc_l, out_l = "Intención", "Asume", "Incertidumbre", "Resultados"
+        req_l = "Solicitud"
     else:
         lines.append(f"**Plan:** {plan.get('plan_id', '')} (revision {plan.get('revision', '?')})")
         lines.append(f"**Status:** {plan.get('status', '')}")
-    if plan.get("objective"):
-        obj = "Objectif" if language == "fr" else "Objetivo" if language == "es" else "Objective"
-        lines.append(f"**{obj}:** {plan['objective']}")
+        intent_l, assumes_l, unc_l, out_l = "Intent", "Assumes", "On uncertainty", "Outcomes"
+        req_l = "Request"
+    if plan.get("request"):
+        lines.append(f"**{req_l}:** {plan['request']}")
+    intent = plan.get("intent") or plan.get("objective")
+    if intent:
+        lines.append(f"**{intent_l}:** {intent}")
+    assumes = plan.get("assumes") or []
+    if assumes:
+        lines.append(f"**{assumes_l}:** {', '.join(str(a) for a in assumes)}")
+    if plan.get("on_uncertainty"):
+        lines.append(f"**{unc_l}:** {plan['on_uncertainty']}")
+    outcomes = plan.get("outcomes") or plan.get("stopping_conditions") or []
+    if outcomes:
+        lines.append(f"**{out_l}:**")
+        for item in outcomes:
+            lines.append(f"- {item}")
     lines.append("")
     return lines
 
@@ -156,6 +175,14 @@ class SimpleProseProfile(RenderProfile):
         )
 
 
+def _step_cognition(node: StepNode) -> str | None:
+    """COGNITION product type from sub_blocks when present."""
+    raw = (node.sub_blocks or {}).get("COGNITION") or (node.sub_blocks or {}).get("cognition")
+    if not raw:
+        return None
+    return str(raw).strip().split()[0].lower() or None
+
+
 class OperatorProfile(RenderProfile):
     name = "operator"
 
@@ -164,6 +191,7 @@ class OperatorProfile(RenderProfile):
         if doc.title:
             lines.append(f"# {doc.title}")
             lines.append("")
+        lines.extend(_plan_header(doc, language))
 
         for node in _steps_for_profile(doc, self.name):
             body_text = node.text
@@ -171,9 +199,12 @@ class OperatorProfile(RenderProfile):
                 body_text = describe_queue(node.tags, language, node.parsed_modifiers)
             title = body_text.split(".")[0][:60] if body_text else f"Step {node.number}"
             block: list[str] = []
-            purpose = node.purpose or body_text
+            purpose = node.purpose or (node.sub_blocks or {}).get("PURPOSE") or body_text
+            cognition = _step_cognition(node)
             if language == "fr":
                 block.append(f"**Objectif :** {purpose}")
+                if cognition:
+                    block.append(f"**Cognition :** {cognition}")
                 if node.owner:
                     block.append(f"**Responsable :** {node.owner}")
                 if node.assisted_by:
@@ -186,6 +217,8 @@ class OperatorProfile(RenderProfile):
                     block.append(f"**Suivant :** {node.next_phase}")
             elif language == "es":
                 block.append(f"**Propósito:** {purpose}")
+                if cognition:
+                    block.append(f"**Cognición:** {cognition}")
                 if node.owner:
                     block.append(f"**Responsable:** {node.owner}")
                 if node.assisted_by:
@@ -198,6 +231,8 @@ class OperatorProfile(RenderProfile):
                     block.append(f"**Siguiente:** {node.next_phase}")
             else:
                 block.append(f"**Purpose:** {purpose}")
+                if cognition:
+                    block.append(f"**Cognition:** {cognition}")
                 if node.owner:
                     block.append(f"**Owner:** {node.owner}")
                 if node.assisted_by:
@@ -242,9 +277,10 @@ class ExecutiveProfile(RenderProfile):
         )
         lines.append(f"## {heading}")
         lines.append("")
+        lines.extend(_plan_header(doc, language))
 
-        objective = doc.plan.get("objective") if doc.plan else doc.title
-        if objective:
+        objective = (doc.plan or {}).get("intent") or (doc.plan or {}).get("objective") if doc.plan else doc.title
+        if objective and not doc.plan:
             label = "Objectif" if language == "fr" else "Objetivo" if language == "es" else "Objective"
             lines.append(f"**{label}:** {objective}")
             lines.append("")

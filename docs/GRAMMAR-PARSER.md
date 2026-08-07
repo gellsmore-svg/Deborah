@@ -31,6 +31,7 @@ CLI:
 
 ```bash
 deborah-validate examples/hoglah.cairn.md
+deborah-validate examples/cross-llm-critique.cairn.md --profile strict
 deborah-validate examples/hoglah.cairn.md --json
 deborah-validate plan.cairn.md --export-plan
 deborah-validate examples/hoglah.cairn.md --export-ast
@@ -45,7 +46,7 @@ deborah-validate examples/hoglah.cairn.md --export-ast
 | `document_to_plan(doc)` | `dict` | Export first `PLAN` or first `PROCESS` as a runtime plan |
 | `document_to_dict(doc)` | `dict` | JSON-serializable AST |
 | `extract_cairn_source(text)` | `(str, kind)` | Strip markdown sections/fences to skeleton text |
-| `validate_plan(plan_dict)` | `list[str]` | Runtime PLAN contract (conformance 1.1) |
+| `validate_plan(plan_dict, profile=…)` | `list[str]` | Runtime PLAN contract (conformance 1.3): `full` \| `core` \| `strict` |
 
 ## PLAN framing fields (SPEC v0.10)
 
