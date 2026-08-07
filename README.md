@@ -178,11 +178,10 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.22.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.23.3** |
 
-Package **0.22.0** runs the full substrate path including
-``validate_against_intent`` and ``assess_confidence`` before GATED decide. See
-[CHANGELOG.md](CHANGELOG.md).
+Package **0.23.3** adds strict ``decide``→``DECISION`` lint and
+``--list-open-questions``. See [CHANGELOG.md](CHANGELOG.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
 Huldah where needed). Prefer `pip install deborah`.
@@ -195,6 +194,8 @@ Huldah where needed). Prefer `pip install deborah`.
 - [CHANGELOG.md](CHANGELOG.md) — package and language evolution.
 - [MIGRATING.md](MIGRATING.md) — Cairn → Deborah / Huldah split.
 - [docs/usage-modes.md](docs/usage-modes.md) — CLI, library, embedded, CI modes.
+- [docs/GUIDE-HUMAN.md](docs/GUIDE-HUMAN.md) — operator / author guide (plain language).
+- [docs/GUIDE-AI.md](docs/GUIDE-AI.md) — AI planner / tool-runtime guide (contracts & APIs).
 - [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md) — executable grammar API.
 - [docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md) — render profiles and export.
 - [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md)
@@ -202,6 +203,10 @@ Huldah where needed). Prefer `pip install deborah`.
   phased implementation roadmap after 0.10.0.
 - [docs/TAXONOMY-COGNITION-AND-PATTERNS.md](docs/TAXONOMY-COGNITION-AND-PATTERNS.md)
   — which cognitions are primitives vs higher-order patterns.
+- [docs/PLAN-OWNERSHIP.md](docs/PLAN-OWNERSHIP.md) — Deborah interprets;
+  Tirzah authors/revises; shared `validate_plan` contract.
+- [tests/fixtures/tirzah_fallback_plan.json](tests/fixtures/tirzah_fallback_plan.json)
+  — frozen Tirzah `fallback_plan` for Deborah interop.
 - [examples/answer-substrate-question.cairn.md](examples/answer-substrate-question.cairn.md)
   — Stage 1 vertical slice plan.
 - [okf/](okf/) — Open Knowledge Format concept bundle for the language.
