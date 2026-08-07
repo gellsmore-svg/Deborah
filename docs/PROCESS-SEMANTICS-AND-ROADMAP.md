@@ -1,373 +1,379 @@
 # Deborah process semantics and implementation roadmap
 
-**Date:** 2026-08-07 · **Status:** agreed direction for planning (not yet fully
-implemented) · **Package baseline:** 0.10.0 / SPEC v0.10
+**Date:** 2026-08-07 · **Status:** refined after recursive review · **Baseline:**
+Deborah 0.10.0 / SPEC v0.10
 
-This plan merges:
+This document:
 
-1. The post-0.10.0 improvement backlog (enforce the frame, core profile, runtime
-   slice, Keturah pins, golden example).
-2. The ChatGPT **three-layer process semantics** proposal (execution / control
-   behaviour / cognitive intent), reconciled with Cairn’s existing tag system
-   and non-goals.
+1. Records a multi-pass critique of the ChatGPT three-layer proposal and the
+   first draft roadmap.
+2. States the **refined** semantic model (what we keep, cut, rename, defer).
+3. Sequences implementation so language, contracts, and runtime stay honest.
 
----
-
-## 0. Load-bearing principles (do not break these)
-
-1. **Orthogonal layers stay orthogonal.** Do not invent a single taxonomy that
-   mixes “how computation proceeds”, “how control loops behave”, and “what
-   cognitive product is expected”.
-2. **Deborah frames; it does not determinise models.** Stochastic steps stay
-   stochastic. Determinism is one *execution* value, not the purpose of the
-   language (SPEC opening role statement).
-3. **Annotations that claim runtime contracts must eventually be enforceable.**
-   Descriptive metadata that never affects validation or interpretation is a
-   dead dialect — either wire it or keep it progressive/optional.
-4. **Progressive formality.** Defaults remain terse. New axes are opt-in.
-5. **Crystallisation.** Multi-round negotiation and exploration belong at
-   *authoring* (or explicit REVISION); hot-path Level-4 free re-planning is out
-   of scope (SPEC §14, §17).
-6. **Name collisions avoided.**
-   - PLAN `INTENT` = *application success meaning* (already in SPEC).
-   - `PURPOSE:` = *why this step/process exists* (already in SPEC).
-   - **Cognitive intent** (observe/infer/…) = *expected semantic product of a
-     step* — must **not** reuse the word “intent” alone in the grammar. Proposed
-     surface: **`COGNITION:`** sub-block or a dedicated tag dimension
-     (`OBSERVE`, `INFER`, …).
+It replaces the earlier draft of the same path in spirit; treat this as the
+working plan.
 
 ---
 
-## 1. Three orthogonal layers (target model)
+## Part I — Recursive review (findings)
 
-### Layer A — Execution semantics
+### Pass 1 — Fit to Deborah’s actual role
 
-**Question:** How is the next state determined?
+**Claim under test:** Deborah should become a “process reasoning language” via
+execution × behaviour × cognitive intent.
 
-| Value | Meaning | Current Cairn home |
+**What holds**
+
+- Separating *how computation proceeds* from *what product a step owes* is
+  useful and currently underspecified.
+- Cognitive product types (observe → infer → evaluate → decide) match real
+  cross-LLM work (retrieve evidence, form claim, score options, commit).
+- Annotations that never affect validation or interpretation rot; contracts
+  should be enforceable *when claimed*.
+
+**What fails or overreaches**
+
+- Deborah’s settled role is **framing callers against capabilities** and
+  **crystallising** sequences — not hosting continuous multi-agent cognition on
+  the hot path (SPEC opening; roles-assessment executive decision).
+- Estate phrase *“runs deterministically thereafter”* means a **fixed
+  control graph + enforced bounds/allow-lists**, not “every step is
+  `[CODE, DETERMINISTIC]`”. Stochastic LLM steps remain valid *inside* a
+  crystallised plan. The ChatGPT write-up sometimes blurs that.
+- “Process reasoning language” is a long-term *aspiration*, not a licence to
+  grow three full runtime subsystems in one language revision.
+
+**Refinement:** Adopt the *axes*, not the maximal product vision. Ship only what
+strengthens framing and enforceable step contracts.
+
+---
+
+### Pass 2 — Orthogonality stress-test
+
+| Layer (ChatGPT) | Orthogonal in theory? | In Deborah practice |
 |---|---|---|
-| `deterministic` | Same state + inputs → same transition/output | Tag `DETERMINISTIC` (§7) |
-| `stochastic` | Sampling, generative models, probabilistic transitions | Tag `STOCHASTIC` (§7) |
+| Execution (det/stoch) | Yes vs other two | **Already** §7 tags; dual vocabulary would be harmful |
+| Control behaviour (5 types) | Claimed composable | **Collides** with constructs (`AWAIT`, `ITERATE`, `DECISION`, `RECURSE`, `RETRY`) and with crystallisation |
+| Cognitive intent (7 types) | Yes if defined as *output contract* | Strong; overlaps PURPOSE only if misnamed |
 
-**Decision:** Keep this **as the existing determinism tag dimension**. Do not
-add a parallel `execution:` key that duplicates it. Document the synonym:
+**Behaviour layer problems (material)**
+
+1. **Dual control languages.** `BEHAVIOUR: reactive` vs `AWAIT [EVENT:…]` —
+   authors will not know which is authoritative.
+2. **Scope confusion.** “Adaptive” and “exploratory” often describe *plan
+   policy* or *authoring-time search*, not a single step’s local property.
+3. **Combinatorial explosion.** Five multi-select behaviours × seven cognitions
+   × det/stoch × actor = untestable policy matrix if all are runtime-live.
+4. **Hot-path risk.** Unbounded adaptive/exploratory behaviour *is* Level-4
+   replanning under another name unless every use is bound and crystallised.
+
+**Refinement:** Do **not** ship five first-class composable behaviours on every
+step in v0.11. Split control into:
+
+- **Already structural** (constructs + bounds + GATED) — keep as source of truth.
+- **Narrow, enforceable step modifiers** only where they change contracts
+  without duplicating constructs (see Part II).
+- **Plan-level policy** for residual/uncertainty/exploration budget (extends
+  `ON_UNCERTAINTY`, not a behaviour soup).
+
+---
+
+### Pass 3 — Cognitive set: which seven earn a seat?
+
+| Cognition | Keep in MVP? | Why |
+|---|---|---|
+| **observe** | **Yes** | Evidence + provenance; matches retrieval/capability read |
+| **infer** | **Yes** | Claim + evidence link; core of LLM reasoning steps |
+| **evaluate** | **Yes** | Criteria + score without commitment; separates critique from decide |
+| **decide** | **Yes** | Commitment; maps to DECISION construct + human GATED |
+| negotiate | Defer | Wire protocol + crystallisation already cover multi-party; step-level later |
+| learn | Defer as *full* contract | Durable side-effect; belongs with gated evolution (Tirzah) / SIDE-EFFECT; partial: flag only |
+| optimize | Defer as *full* contract | Mostly a loop (ITERATE + evaluate + stop); not a single product shape |
+
+**Refinement:** MVP cognitive set = **`observe | infer | evaluate | decide`**.
+Reserve `negotiate | learn | optimize` as **documented future** values that
+parse as unknown→warning (or reject until defined), not half-implemented
+promises.
+
+---
+
+### Pass 4 — Confidence and automatic recursion
+
+ChatGPT’s auto-loop:
 
 ```text
-execution: deterministic  ≡  […, DETERMINISTIC]
-execution: stochastic     ≡  […, STOCHASTIC]
+low inference_confidence → observe or infer again
 ```
 
-Optional later: allow `EXECUTION: deterministic|stochastic` as a sub-block
-alias for readability; parser maps to the same dimension (one value per
-dimension rule still holds).
+**Risks**
 
-### Layer B — Control behaviour
+- Unbounded cost and non-reproducible graphs (estate evidence: pass^k collapse,
+  token blow-ups).
+- Float confidence is false precision (learning architecture: bands + basis).
 
-**Question:** How should the process behave while executing (orchestration
-around steps)?
+**Refinement**
 
-Composable (not exclusive):
+- Confidence: **ordinal bands** (`high|medium|low|unassessed`) with optional
+  `basis`, three dimensions: `evidence`, `inference`, `execution`.
+- Process-level re-entry only if **all** of:
+  1. step declares `COGNITION`,
+  2. plan or step declares a **bound** (`MAX` / plan budget),
+  3. plan policy allows re-entry (default: **off**; crystallised opt-in),
+  4. interpreter records each re-entry as a first-class event (Galeed later).
+- Default on low confidence: terminate **`open`** or **`escalate`** per
+  `ON_UNCERTAINTY` — not silent re-planning.
 
-| Behaviour | Meaning | Related existing constructs |
+---
+
+### Pass 5 — Naming and collisions
+
+| Term | Keep meaning | Do not use for |
 |---|---|---|
-| `reactive` | Event-driven; re-evaluate on input change | `AWAIT`, `SERVICE`, event triggers |
-| `adaptive` | Change routing/strategy from outcomes | `DECISION`, revision, learning *scope* |
-| `exploratory` | Expand search / hypotheses under cost bounds | `ITERATE`/`RECURSE` + MAX, open questions |
-| `reflective` | Reassess quality of prior steps/assumptions | `RECURSE` across steps, audit, residual |
-| `adversarial` | Seek falsification / counter-evidence | Future: challenge CALL; Milcah critique |
+| PLAN `INTENT` | Application success meaning | Cognitive product type |
+| `PURPOSE:` | Why the step/process exists (motivation) | Expected output schema |
+| Tag `DETERMINISTIC`/`STOCHASTIC` | Layer A execution | Control behaviour |
+| Tag `GATED` / `BLOCKING` | Human/control coupling | Cognitive evaluate |
+| **`COGNITION:`** (chosen) | Expected semantic product + contract | Business intent |
+| ChatGPT “intent:” | **Rejected as keyword** | — |
 
-**Decision:** Introduce as **optional composable annotations**, not five new
-top-level constructs.
-
-Proposed surface (v0.11 language):
+**PURPOSE vs COGNITION example**
 
 ```text
-3. Pressure-test the draft answer. [LLM, STOCHASTIC]
-   COGNITION: evaluate
-   BEHAVIOUR: reflective, adversarial
-   CRITERIA: groundedness, internal consistency
+PURPOSE: keep the operator informed of retrieval quality
+COGNITION: evaluate
 ```
 
-- `BEHAVIOUR:` comma-separated subset of the five values.
-- Runtime meaning is **policy hints** for the interpreter (when present): e.g.
-  `adversarial` prefers critique capabilities; `exploratory` requires a bound;
-  `reflective` may schedule a residual check after OUTPUT.
+Both valid; different questions.
 
-### Layer C — Cognitive intent (expected semantic product)
+---
 
-**Question:** What kind of cognitive transformation is this step attempting?
+### Pass 6 — Enforceability vs documentation theatre
 
-| Cognition | Expected product (contract sketch) |
+Principle: *if it is in the language as a contract, something must check it.*
+
+| Annotation | Enforceable without full agent runtime? | How |
+|---|---|---|
+| DETERMINISTIC/STOCHASTIC | Partially | Lint: CODE steps default det; LLM steps should not claim DETERMINISTIC without note |
+| COGNITION + structured result | **Yes** | Schema check on result artifact |
+| COGNITION alone | Soft | Warn if OUTPUT missing under strict profile |
+| BEHAVIOUR: exploratory | Yes if bound required | Fail validate without MAX/UNTIL on nearby loop |
+| BEHAVIOUR: adaptive | **Hard** without runtime metrics | Defer |
+| Auto confidence recursion | Only with interpreter + budget | Phase 3+ |
+
+**Refinement:** Phase order is **contracts before behaviours before auto-recursion**.
+
+---
+
+### Pass 7 — Conflict with crystallisation (authoring vs execution)
+
+| Activity | When | Stochastic LLM OK? |
+|---|---|---|
+| Negotiate capability use, explore surface | Authoring / REVISION | Yes (bounded) |
+| Execute crystallised PLAN | Runtime | Yes **on marked steps**; graph fixed |
+| Re-open exploration | New REVISION or explicit exploratory *loop construct with MAX* | Not implicit |
+
+**Refinement:** Document explicitly that **crystallised ≠ all-deterministic
+steps**. Crystallised means **versioned, allow-listed, bounded control**.
+
+---
+
+### Pass 8 — What the first roadmap got wrong
+
+| Earlier draft | Problem | Refined position |
+|---|---|---|
+| Five composable `BEHAVIOUR` values in Phase 0 | Too early; dual control language | Defer most; keep 0–2 modifiers later |
+| Seven cognitions at once | negotiate/learn/optimize undercooked | Four MVP |
+| Optional `EXECUTION:` alias soon | Noise | Spec synonym table only; no new syntax |
+| Thin runtime in same breath as axes | Couples large estate work to vocab | Language contracts first |
+| “Process reasoning language” as near-term | Overclaims | Framing + contracts; reasoning is emergent from enforced products |
+
+---
+
+## Part II — Refined semantic model
+
+### Layers (stable)
+
+```text
+HOW     → execution semantics     → tags DETERMINISTIC | STOCHASTIC  (exists)
+PRODUCT → cognitive contract      → COGNITION: observe|infer|evaluate|decide  (new)
+FRAME   → plan-level uncertainty  → INTENT, OUTCOMES, ASSUMES, ON_UNCERTAINTY  (0.10)
+CONTROL → constructs + bounds     → ITERATE/AWAIT/DECISION/… + MAX/GATED     (exists)
+```
+
+**Control behaviour** from ChatGPT is **not** a peer layer in v0.11. Pieces map:
+
+| ChatGPT behaviour | Refined home |
 |---|---|
-| `observe` | Evidence + provenance (not conclusions) |
-| `infer` | Claim(s) + supporting evidence + assumptions + confidence bands |
-| `evaluate` | Criteria + scores/ranks + comparison (no commitment) |
-| `decide` | Selected alternative + constraints + commitment |
-| `negotiate` | Agreement / residual disagreement + trade-offs |
-| `learn` | Named durable change + scope + reversibility |
-| `optimize` | Objective + constraints + candidate + stop rule |
+| reactive | `AWAIT` / `SERVICE` / evented plans |
+| adaptive | `DECISION` + plan REVISION; later policy |
+| exploratory | `ITERATE`/`RECURSE` **with MAX** + residual `open`; optional plan flag `exploration_budget` later |
+| reflective | post-condition: residual/assumption check when `COGNITION` ∈ {infer, evaluate, decide} under strict mode |
+| adversarial | capability choice: prefer critique/challenge tools when ASSUMES includes them; optional `COGNITION: evaluate` + criteria “adversarial” |
 
-**Decision:** First-class optional **`COGNITION:`** on steps (one value). This is
-the axis that most clearly upgrades Deborah from workflow text toward a
-**process reasoning language** — *if* the runtime enforces output contracts.
+### Cognitive contracts (MVP)
 
-Naming: **`COGNITION`**, never bare `intent` (reserved for PLAN application
-intent and PURPOSE prose).
+When `COGNITION` is set **and** a structured result is supplied (strict mode),
+require approximately:
 
-### Composition (independent axes)
+| COGNITION | Required product keys (illustrative) |
+|---|---|
+| `observe` | `evidence[]` (each with `source` / provenance), no mandatory `claim` |
+| `infer` | `claim`, `evidence_refs[]`, `assumptions[]?`, `confidence.inference` |
+| `evaluate` | `criteria[]`, `scores` or `ranking`, `confidence.evidence?` |
+| `decide` | `selected`, `alternatives[]?`, `constraints[]?`, commitment flag |
+
+Soft mode: annotation is metadata only + render.
+
+### Confidence (MVP)
 
 ```text
-[LLM, STOCHASTIC]          # Layer A
-BEHAVIOUR: exploratory     # Layer B
-COGNITION: infer           # Layer C
+confidence:
+  evidence: high|medium|low|unassessed
+  inference: high|medium|low|unassessed
+  execution: high|medium|low|unassessed
+  basis: short prose optional
 ```
 
-Means: stochastic computation, exploratory control, product is an inference
-with evidence→claim structure — not “a random exploratory inference type” as a
-single enum.
+No single float as the system of record.
 
----
-
-## 2. Mapping ChatGPT ideas onto Deborah’s existing spine
-
-| ChatGPT idea | Do this in Deborah | Do **not** do this |
-|---|---|---|
-| Deterministic vs stochastic | Keep §7 tags; document as Layer A | New competing vocabulary |
-| Control behaviours | `BEHAVIOUR:` optional multi-value | Five new constructs that bypass ITERATE/AWAIT |
-| Cognitive intents | `COGNITION:` + output contracts | Collapse into PURPOSE or PLAN INTENT |
-| Confidence dimensions | Structured OUTPUT / RESULT schema in runtime + optional sub-block | Single float confidence as truth |
-| Process-level recursion | IR policies: low inference confidence → re-enter observe/infer under MAX | Implicit unbounded re-planning every call |
-| Learn as first-class | `COGNITION: learn` + durable scope fields | Auto-write memory without gate (Tirzah evolution stays human-gated) |
-| Negotiate | Crystallisation + protocol (authoring); optional step cognition | Full ACL in the grammar |
-| “Process reasoning language” | Long-term product story | Boil the ocean in one release |
-
-### Confidence (layered, not one float)
-
-Align with learning-architecture bands where possible:
-
-| Dimension | Meaning |
-|---|---|
-| `evidence_confidence` | Quality/sufficiency of observations |
-| `inference_confidence` | Strength of claim given evidence |
-| `execution_confidence` | Did the step machinery complete as intended? |
-
-Optional later: `causal_confidence` (did the method cause the outcome?).
-
-Runtime recursion sketch (only when COGNITION + bounds present):
+### Surface syntax (proposed, progressive)
 
 ```text
-observe → infer → evaluate
-              ↓
-     inference_confidence low?
-         → if exploratory/reflective allowed and budget remains
-         → schedule observe or infer (MAX rounds)
-         → else terminal open / escalate per ON_UNCERTAINTY
+2. Form a hypothesis about the outage. [LLM, STOCHASTIC]
+   PURPOSE: narrow the incident class before paging
+   COGNITION: infer
+   OUTPUT: ...
 ```
 
-This is **process-level** recursion, distinct from `RECURSE` inside one step’s
-tool loop.
+Omit `COGNITION` → today’s behaviour (no product contract).
 
 ---
 
-## 3. Improvement backlog (from 0.10.0 review) — still in scope
+## Part III — Refined implementation roadmap
 
-| # | Work item | Depends on |
+### Principles for sequencing
+
+1. **No dead dialect** — only ship annotations we can validate or render usefully.
+2. **Four cognitions before seven.**
+3. **No behaviour multi-select in Phase 0.**
+4. **Runtime after contracts.**
+5. **Crystallisation story stays authoritative** for negotiation/exploration.
+
+### Phase A — Spec + parse + golden example *(Deborah-only, first)*
+
+**In**
+
+- SPEC: process semantic axes (HOW / PRODUCT / FRAME / CONTROL constructs)
+- SPEC: crystallised ≠ all-deterministic steps
+- `COGNITION:` parse + validate enum (MVP four)
+- Export on plan steps
+- Golden example: cross-LLM observe → infer → evaluate → decide/open
+- Tests; progressive (optional field)
+
+**Out**
+
+- BEHAVIOUR multi-select
+- negotiate/learn/optimize
+- Interpreter
+- Confidence auto-recursion
+
+### Phase B — Frame enforcement in tools *(Deborah-only)*
+
+- Render PLAN framing + COGNITION in operator/audit/executive
+- `validate_plan(profile="core")`
+- ASSUMES ↔ allowed_tools consistency
+- `deborah-validate --profile core|full|strict`
+- strict: COGNITION without any OUTPUT/result warning
+
+### Phase C — Soft/strict result contracts
+
+- `deborah.contracts` (or similar) schemas for four cognitions
+- Validate structured result fixtures
+- Confidence band shape
+- Document opt-in re-entry policy (not implemented)
+
+### Phase D — Thin interpreter
+
+- Walk core constructs; allow-list; ON_UNCERTAINTY terminals
+- Optional: if step has COGNITION and returns structured result, run contract check
+- Re-entry **off by default**; experimental flag later with MAX
+
+### Phase E — Estate integration
+
+- Keturah resolve ASSUMES
+- Galeed decision/residual events
+- One real slice (retrieve + critique)
+- Map adversarial evaluation to Milcah-style critique capability
+
+### Phase F — Deferred cognitions & policies
+
+- `negotiate` / `learn` / `optimize` contracts with explicit gates
+- Plan-level `exploration_budget` if still needed
+- Reflective post-pass as interpreter policy for evaluate/infer
+
+### Explicit non-goals (unchanged + sharpened)
+
+- Hot-path multi-role free re-planning
+- Learning store inside Cairn
+- Dual `execution:` syntax competing with tags
+- Five composable behaviours as Phase A
+- Float-only confidence
+- Auto-learn into production defaults
+
+---
+
+## Part IV — PR plan (refined)
+
+| PR | Content | Phase |
 |---|---|---|
-| B1 | Golden v0.10(+semantics) example + pytest | — |
-| B2 | Render INTENT / ASSUMES / OUTCOMES / (later COGNITION) in operator/executive/audit | B1 |
-| B3 | `validate_plan(..., profile="core")` | — |
-| B4 | Structured CALL / ASSUMES checks (tools ⊆ assumes when both present) | — |
-| B5 | Round-trip serialize PLAN framing (+ new fields) | semantics parse |
-| B6 | Thin Deborah runtime: walk plan, allow-list, ON_UNCERTAINTY, terminals | B1, B3 |
-| B7 | Keturah resolve for ASSUMES | B6 optional |
-| B8 | Outcome satisfaction ≠ step completion | B6 |
-| B9 | Estate STATUS note for consumers | release |
+| R1 | This document + SPEC section (axes, naming, crystallised≠det steps) | A |
+| R2 | Parser/validator/export `COGNITION` (4 values) | A |
+| R3 | Golden example + tests | A |
+| R4 | Render framing + cognition | B |
+| R5 | core/strict validate profiles; assumes/CALL checks | B |
+| R6 | Result contract schemas + fixtures | C |
+| R7 | Thin interpreter + terminals | D |
+| R8 | Keturah/Galeed slice | E |
+| R9 | Deferred cognitions + optional re-entry under MAX | F |
 
 ---
 
-## 4. Phased plan (PRs)
+## Part V — Key decisions (after review)
 
-### Phase 0 — Spec sketch only (no runtime)  
-**Goal:** Land the three-layer model in SPEC without breaking existing docs.
-
-**Deliverables**
-
-- SPEC § (new) **Process semantic axes**  
-  - Layer A = existing determinism tags  
-  - Layer B = `BEHAVIOUR:` (optional, multi)  
-  - Layer C = `COGNITION:` (optional, single)  
-  - Explicit non-collision with PLAN INTENT / PURPOSE  
-  - Progressive formality: omit = no extra contract  
-- GRAMMAR.md annotations  
-- Conformance: allow-list of cognition/behaviour tokens (validate if present)  
-- Parser + AST fields on `Step` (or annotations)  
-- Export into plan step dicts (`cognition`, `behaviour[]`, `execution` derived from tags)  
-- Golden example `examples/cross-llm-critique.cairn.md` (or similar)  
-- Tests  
-
-**Out of scope for Phase 0:** enforcing output schemas at runtime.
-
-**Acceptance:** parse/validate/export round-trip; existing examples still green;
-SPEC states orthogonality.
+1. **Keep three *ideas*, not three equal runtime layers.** HOW exists; PRODUCT
+   is the new language work; ChatGPT “behaviour” mostly maps to constructs +
+   plan policy.
+2. **MVP cognition = observe, infer, evaluate, decide.**
+3. **Name = `COGNITION:`** only.
+4. **Confidence = bands, three dimensions; re-entry opt-in and bounded.**
+5. **Default low-confidence path = `open` / `escalate`, not silent retry loops.**
+6. **Crystallised plans may contain stochastic steps.**
+7. **Contracts before interpreter before auto-recursion.**
+8. **Do not add `BEHAVIOUR:` multi-select in the first language cut.**
 
 ---
 
-### Phase 1 — Deborah-local polish (frame enforcement in *tools*)  
-**Goal:** Make 0.10 framing visible and checkable without a full interpreter.
+## Part VI — Open questions (narrowed)
 
-**Deliverables**
-
-- B2 render of PLAN framing (+ cognition/behaviour when present)  
-- B3 core-profile validation  
-- B4 structured CALL + assumes consistency  
-- B5 serialize round-trip  
-- `deborah-validate --profile core|full`  
-
-**Acceptance:** CI can gate `core` on selected examples; composer/JSON views show
-framing fields.
+1. **Strict profile default for CI examples?** Recommend `full` for corpus,
+   `strict` only for new cognitive examples.
+2. **Structured results in-document vs runtime-only?** Recommend runtime
+   artifacts first; optional fenced JSON under OUTPUT later.
+3. **Should `decide` require `DECISION` construct?** Recommend lint warning if
+   COGNITION=decide on a bare STEP without DECISION/GATED when human-owned.
+4. **Thin runtime package location:** `deborah.runtime` stub vs Tirzah extract —
+   still open; R7 can stub handlers.
 
 ---
 
-### Phase 2 — Cognitive contracts (static → soft runtime)  
-**Goal:** Each `COGNITION` value defines an **expected result shape** the
-validator/runtime can check *when structured OUTPUT is provided*.
+## Part VII — One-paragraph summary
 
-**Deliverables**
-
-- Result schema sketches per cognition (JSON Schema or typed dicts in
-  `deborah.contracts` or similar)  
-- Soft validation: if step claims `COGNITION: infer` and provides structured
-  result, require claim + evidence linkage keys  
-- Confidence object shape (`evidence` / `inference` / `execution` bands or
-  floats with basis — prefer bands for honesty)  
-- Document process-level recursion *policy* (when interpreter may re-enter)  
-
-**Acceptance:** fixture results validate; incomplete infer results warn/error
-under strict mode.
-
----
-
-### Phase 3 — Thin interpretive runtime (estate Stage 1)  
-**Goal:** Enforce the frame.
-
-**Deliverables**
-
-- Minimal IR from PLAN (core constructs only)  
-- Dispatch CALL under allow-list ∩ ASSUMES  
-- Apply `ON_UNCERTAINTY`  
-- Terminals: complete / open / refused / blocked  
-- Optional: behaviour-guided tool choice (adversarial → critique capability)  
-- Optional: cognition-triggered re-entry under MAX  
-- One end-to-end slice (e.g. question → retrieve → critique → open or answer)  
-- Galeed events for decisions and residuals (when available)  
-
-**Depends on:** architecture Stage 0 (Keturah/Galeed extensions) for full slice;
-can stub handlers for pure unit tests.
-
----
-
-### Phase 4 — Control behaviour policies  
-**Goal:** Behaviour annotations change scheduling, not just labels.
-
-| Behaviour | Runtime policy (initial) |
-|---|---|
-| reactive | Subscribe/await events; cancel/redirect only via explicit AWAIT/ERROR |
-| adaptive | Allow DECISION to use prior step metrics; no silent tool widening |
-| exploratory | Require MAX/UNTIL; cost budget; residual open on exhaustion |
-| reflective | After OUTPUT, run residual/assumption check before complete |
-| adversarial | Prefer registered challenge/critique capabilities; record counter-evidence |
-
-**Acceptance:** policy tests with stub capabilities; no unbounded loops.
-
----
-
-### Phase 5 — Learn / negotiate / optimize depth  
-**Goal:** Only after Phases 0–4 prove the axes.
-
-- `learn`: explicit artifact + scope + reversibility; **no auto-apply** to shared
-  memory without external gate (Tirzah evolution / human review)  
-- `negotiate`: step-level contract for multi-party trade-off; wire format stays
-  in negotiation protocol; crystallise to PLAN  
-- `optimize`: objective + stop rule required when cognition=optimize  
-
----
-
-## 5. What we explicitly defer
-
-- Multi-role adaptive replanning on every request (Level 4)  
-- Applicability profiles / exploration frontier *inside* Cairn (learning arch)  
-- Numeric confidence as the only truth (false precision)  
-- Replacing DETERMINISTIC/STOCHASTIC with a different word  
-- Encoding full FIPA performatives in the grammar  
-- Auto-promotion of `learn` outputs into operational defaults  
-
----
-
-## 6. Suggested PR sequence (implementation order)
-
-| PR | Title | Phase |
-|---|---|---|
-| P1 | docs: process semantic axes + roadmap (this file + SPEC draft section) | 0 |
-| P2 | feat: parse/validate COGNITION + BEHAVIOUR; export on steps | 0 |
-| P3 | test+example: golden cross-LLM critique plan with three layers | 0 |
-| P4 | feat: render PLAN framing + cognition/behaviour | 1 |
-| P5 | feat: validate_plan profile=core + assumes/CALL consistency | 1 |
-| P6 | feat: deborah-validate --profile; serialize round-trip | 1 |
-| P7 | feat: cognition result contracts (soft/strict) | 2 |
-| P8 | feat: minimal plan interpreter + terminals + ON_UNCERTAINTY | 3 |
-| P9 | feat: behaviour policies (exploratory/reflective/adversarial first) | 4 |
-| P10 | feat: learn/negotiate/optimize contracts | 5 |
-
-P1 can land immediately. P2–P6 stay inside Deborah. P8+ may touch estate
-repos (Keturah, Galeed, Tirzah handlers).
-
----
-
-## 7. Key decisions (summary)
-
-| Decision | Choice | Rationale |
-|---|---|---|
-| Three layers | Adopt as **orthogonal** axes | Matches ChatGPT insight; prevents taxonomy soup |
-| Execution layer | **Reuse** DETERMINISTIC/STOCHASTIC | Already shipped; dual vocabulary is harmful |
-| Cognitive axis name | **`COGNITION:`** not `intent` | Avoid clash with PLAN INTENT / PURPOSE |
-| Control axis | **`BEHAVIOUR:`** multi-value optional | Composable by design |
-| When contracts bind | Only if COGNITION present (progressive) | Human-first; no forced ceremony |
-| Runtime recursion | Bounded re-entry by confidence + MAX | Process-level recursion without Level 4 chaos |
-| Learn | Explicit durable change + external gate | Estate evidence: ungated reuse fails |
-| Priority vs runtime | Semantics in language **before** full runtime | Parse/validate first; enforce next |
-
----
-
-## 8. Open questions (resolve before Phase 2+)
-
-1. **Bands vs floats** for confidence — recommend ordinal bands first (learning
-   handoff); floats only if a real decision needs them.  
-2. **Where structured results live** — step OUTPUT as YAML/JSON fence vs
-   runtime-only artifact map?  
-3. **Default cognition** when omitted — none (no contract) vs infer from
-   construct (CALL→? STEP→?) — recommend **none**.  
-4. **Estate ownership of thin runtime** — `deborah.runtime` package now vs
-   extract from Tirzah later — recommend stub in Deborah with adapter to Tirzah
-   handlers for the first slice.  
-
----
-
-## 9. Success criteria (programme-level)
-
-Deborah has improved when:
-
-1. Authors can declare **how / behave / why** without overloading PURPOSE.  
-2. Validators catch **incoherent** combinations (e.g. `COGNITION: observe` with
-   decision-only OUTPUT under strict mode).  
-3. An interpreter can terminate with **open/refused** for the right cognitive
-   reasons, not only crash.  
-4. The language still reads human-first with axes omitted.  
-5. We have not recreated a 50-construct zoo for what belongs in policy/runtime.
-
----
-
-## 10. Immediate next step
-
-**Implement Phase 0 / P1–P3:** SPEC section + parser/validator + golden example,
-then Phase 1 polish — *before* building the thin runtime — so the three-layer
-model is real in the document format that 0.10 already established for framing.
+The ChatGPT model is directionally right that Deborah should separate **how
+steps compute**, **what products they owe**, and **how control is structured** —
+but the draft roadmap over-weighted a fifth “behaviour” taxonomy that duplicates
+existing constructs and threatens crystallisation. The refined plan reuses
+determinism tags, adds a progressive **`COGNITION`** contract for four products
+(observe/infer/evaluate/decide), keeps plan framing from 0.10, leaves control
+primarily to constructs and bounds, defers negotiate/learn/optimize and
+auto-recursion, and sequences **spec → parse → contracts → thin runtime →
+estate slice** so every annotation earns its keep.
