@@ -204,3 +204,26 @@ def test_cli_slice(tmp_path: Path) -> None:
         ]
     )
     assert code == 0
+
+
+def test_slice_with_tracer_records_decision_when_galeed_present() -> None:
+    try:
+        from galeed import EventType, Tracer
+    except ImportError:
+        import pytest
+
+        pytest.skip("galeed not installed")
+
+    tracer = Tracer(source="deborah-test", session_id="slice-test")
+    result = run_substrate_slice(
+        _plan(),
+        demo=True,
+        negotiate=True,
+        tracer=tracer,
+        check_contracts=True,
+    )
+    types = [e.type for e in tracer.events]
+    assert EventType.NEGOTIATION_STARTED in types
+    assert EventType.NEGOTIATION_FINISHED in types
+    assert EventType.DECISION_RECORDED in types
+    assert result.negotiation is not None

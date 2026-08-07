@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.17.0] — 2026-08-07
+
+**Stage 0 spine wiring on the substrate slice.**
+
+- Slice emits Galeed `negotiation.started/finished` and `decision.recorded`
+  when a tracer is available (`--trace`)
+- Full run also recorded via `record_run_on_tracer`
+- Aligns with Keturah 0.4 contract fields and Galeed 0.3 decision/token spine
+
 ## [0.16.0] — 2026-08-07
 
 **Substrate slice + taxonomy decision.**

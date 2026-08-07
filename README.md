@@ -178,14 +178,11 @@ Deborah carries **two independent version numbers** (they are not meant to match
 | What | Where it lives | Current |
 |---|---|---|
 | **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.16.0** |
+| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.17.0** |
 
-Package **0.16.0** adds the **substrate slice** (`deborah-run --slice`: bounded
-negotiation → interpret → outcome check → open-question record) and documents
-the cognition taxonomy stance (core four + gated negotiate/learn/optimize;
-reflect as policy). See [CHANGELOG.md](CHANGELOG.md),
-[docs/TAXONOMY-COGNITION-AND-PATTERNS.md](docs/TAXONOMY-COGNITION-AND-PATTERNS.md),
-and [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md).
+Package **0.17.0** wires Stage 0 Galeed spine events on the substrate slice
+(negotiation + decision recording with `--trace`). Builds on **0.16** slice and
+taxonomy stance. See [CHANGELOG.md](CHANGELOG.md).
 
 Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
 Huldah where needed). Prefer `pip install deborah`.

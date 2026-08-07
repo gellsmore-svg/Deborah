@@ -103,6 +103,12 @@ def run_substrate_slice(
 
     negotiation: NegotiationResult | None = None
     if negotiate:
+        _emit_negotiation(
+            tracer,
+            phase="started",
+            plan_id=str(plan.get("plan_id") or "unknown"),
+            max_rounds=max_rounds,
+        )
         negotiation = run_negotiation(
             intent=str(plan.get("intent") or claim or "framed critique"),
             assumes=list(plan.get("assumes") or []),
@@ -111,6 +117,15 @@ def run_substrate_slice(
             negotiator=negotiator,
         )
         events.append({"type": "slice.negotiation.finished", **negotiation.to_dict()})
+        _emit_negotiation(
+            tracer,
+            phase="finished",
+            plan_id=str(plan.get("plan_id") or "unknown"),
+            status=negotiation.status,
+            rounds_used=negotiation.rounds_used,
+            max_rounds=negotiation.max_rounds,
+            reason=negotiation.reason,
+        )
         if negotiation.status == "refused":
             run = RunResult(
                 plan_id=str(plan.get("plan_id") or "unknown"),
@@ -209,6 +224,46 @@ def run_substrate_slice(
         _persist_oq(open_q, open_questions_path, open_questions_db)
         events.append({"type": "slice.open_question.recorded", **open_q.to_dict()})
 
+    selected = "open" if open_q is not None else (
+        "accept" if run.terminal == "complete" else run.terminal
+    )
+    for step in run.steps:
+        if (
+            str(step.cognition or "").lower() == "decide"
+            and isinstance(step.result, dict)
+            and step.result.get("selected") is not None
+        ):
+            selected = str(step.result.get("selected")).lower()
+            break
+    if open_q is not None and selected not in {"open", "reject"}:
+        selected = "open"
+
+    _emit_decision(
+        tracer,
+        selected=selected,
+        plan_id=str(plan.get("plan_id") or run.plan_id),
+        basis=(
+            open_q.reason
+            if open_q is not None
+            else ("; ".join(outcomes.open_reasons) if outcomes.open_reasons else "outcomes ok")
+        ),
+        confidence=outcomes.min_band_seen,
+        open_question_id=open_q.open_question_id if open_q else None,
+        rejected=(
+            [x for x in ("accept", "reject", "open") if x != selected]
+            if selected
+            else []
+        ),
+    )
+    if tracer is not None:
+        try:
+            from deborah.runtime.estate import record_run_on_tracer
+
+            record_run_on_tracer(run, tracer)
+            events.append({"type": "galeed.recorded", "ok": True})
+        except Exception:
+            pass
+
     return SliceResult(
         plan_id=str(plan.get("plan_id") or run.plan_id),
         run=run,
@@ -228,3 +283,25 @@ def _persist_oq(
         OpenQuestionStore(path).record(oq)
     if db is not None:
         record_open_question_mongo(db, oq)
+
+
+def _emit_negotiation(tracer: Any, **kwargs: Any) -> None:
+    if tracer is None:
+        return
+    try:
+        from galeed import record_negotiation  # type: ignore[import-not-found]
+
+        record_negotiation(tracer=tracer, **kwargs)
+    except Exception:
+        pass
+
+
+def _emit_decision(tracer: Any, **kwargs: Any) -> None:
+    if tracer is None:
+        return
+    try:
+        from galeed import record_decision  # type: ignore[import-not-found]
+
+        record_decision(tracer=tracer, **kwargs)
+    except Exception:
+        pass
