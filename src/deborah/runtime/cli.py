@@ -129,6 +129,14 @@ def main(argv: list[str] | None = None) -> int:
         help="Skip pre-execution negotiation in --slice",
     )
     parser.add_argument(
+        "--no-post-retrieve-negotiate",
+        action="store_true",
+        help=(
+            "Skip mid-slice post-retrieve gate (observe/infer → evidence gate → "
+            "critique). Default is on when the plan has a critique CALL."
+        ),
+    )
+    parser.add_argument(
         "--negotiator",
         choices=["auto", "accept", "critique"],
         default="auto",
@@ -148,11 +156,63 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Use Ollama for infer step when reachable (else rule-based)",
     )
+    parser.add_argument(
+        "--list-open-questions",
+        metavar="PATH",
+        help="List open questions from a JSONL store (no plan run); optional --json",
+    )
+    parser.add_argument(
+        "--plan-id",
+        metavar="ID",
+        help="Filter --list-open-questions by plan_id",
+    )
     args = parser.parse_args(argv)
 
+    if args.list_open_questions:
+        from deborah.runtime.open_questions import OpenQuestionStore
+
+        store = OpenQuestionStore(args.list_open_questions)
+        rows = store.list(plan_id=args.plan_id, limit=200)
+        if args.json:
+            print(json.dumps([r.to_dict() for r in rows], indent=2))
+        else:
+            if not rows:
+                print("no open questions")
+            for r in rows:
+                print(
+                    f"{r.open_question_id}  plan={r.plan_id or '-'}  "
+                    f"terminal={r.run_terminal or '-'}  {r.reason}"
+                )
+                print(f"  Q: {r.question}")
+        return 0
+
     if args.input in (None, "-"):
-        raw = sys.stdin.read()
-        source_path = None
+        # --slice without a file used to hang on stdin (review F4). Prefer the
+        # bundled substrate example when --slice or --estate-demo is set.
+        if getattr(args, "slice", False) or getattr(args, "estate_demo", False):
+            default = (
+                Path(__file__).resolve().parents[3]
+                / "examples"
+                / "answer-substrate-question.cairn.md"
+            )
+            # Installed wheel: examples may sit next to package or under share.
+            if not default.is_file():
+                alt = Path(__file__).resolve().parents[2] / "examples" / "answer-substrate-question.cairn.md"
+                default = alt if alt.is_file() else default
+            if default.is_file():
+                source_path = default
+                raw = default.read_text(encoding="utf-8")
+            else:
+                print(
+                    "deborah-run --slice requires a process file "
+                    "(examples/answer-substrate-question.cairn.md not found); "
+                    "pass the path as the first argument.",
+                    file=sys.stderr,
+                )
+                return 2
+        else:
+            raw = sys.stdin.read()
+            source_path = None
     else:
         source_path = Path(args.input)
         raw = source_path.read_text(encoding="utf-8")
@@ -228,6 +288,7 @@ def main(argv: list[str] | None = None) -> int:
             negotiate=not args.no_negotiate,
             max_rounds=args.max_rounds,
             negotiator_name=args.negotiator,
+            post_retrieve_negotiate=not args.no_post_retrieve_negotiate,
             confidence_floor=args.confidence_floor,
             open_questions_path=args.open_questions,
             use_live_open_questions=bool(args.open_questions_mongo or args.estate_live),
@@ -250,6 +311,12 @@ def main(argv: list[str] | None = None) -> int:
                     f"rounds={slice_result.negotiation.rounds_used}/"
                     f"{slice_result.negotiation.max_rounds}"
                 )
+            if slice_result.post_retrieve_negotiation:
+                prn = slice_result.post_retrieve_negotiation
+                print(
+                    f"post_retrieve: {prn.status} "
+                    f"rounds={prn.rounds_used}/{prn.max_rounds}"
+                )
             for step in slice_result.run.steps:
                 extra = f" ({step.reason})" if step.reason else ""
                 cog = f" [{step.cognition}]" if step.cognition else ""
@@ -269,6 +336,16 @@ def main(argv: list[str] | None = None) -> int:
         ok = slice_result.terminal in {"complete", "open"} and not slice_result.run.errors
         return 0 if ok else 1
 
+    decisions = None
+    if args.decision:
+        decisions = {"default": args.decision}
+        for step in plan.get("steps") or []:
+            if isinstance(step, dict) and (
+                str(step.get("cognition") or "").lower() == "decide"
+                or str(step.get("construct") or "").upper() == "DECISION"
+            ):
+                decisions[str(step.get("id"))] = args.decision
+
     if args.estate_demo or args.estate_live:
         run = interpret_with_estate(
             plan,
@@ -282,6 +359,7 @@ def main(argv: list[str] | None = None) -> int:
             fallback_results_by_cognition=results_by_cog or EXAMPLE_RESULTS,
             allow_reentry=args.allow_reentry,
             reflective_pass=True if args.reflective_pass else None,
+            decisions=decisions,
         )
     else:
         handler = StubHandler(results_by_id=results_by_id, results_by_cognition=results_by_cog)
@@ -294,6 +372,7 @@ def main(argv: list[str] | None = None) -> int:
             max_steps=args.max_steps,
             allow_reentry=args.allow_reentry,
             reflective_pass=True if args.reflective_pass else None,
+            decisions=decisions,
         )
         if tracer is not None:
             from deborah.runtime.estate import record_run_on_tracer

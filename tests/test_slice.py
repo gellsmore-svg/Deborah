@@ -279,6 +279,18 @@ def test_cli_slice(tmp_path: Path) -> None:
     assert code == 0
 
 
+def test_cli_list_open_questions(tmp_path: Path) -> None:
+    from deborah.runtime.cli import main
+    from deborah.runtime.open_questions import OpenQuestion, OpenQuestionStore
+
+    path = tmp_path / "oq.jsonl"
+    OpenQuestionStore(path).record(
+        OpenQuestion(question="Is X true?", reason="no evidence", plan_id="p1")
+    )
+    code = main(["--list-open-questions", str(path), "--plan-id", "p1"])
+    assert code == 0
+
+
 def test_slice_with_tracer_records_decision_when_galeed_present() -> None:
     try:
         from galeed import EventType, Tracer
@@ -300,3 +312,13 @@ def test_slice_with_tracer_records_decision_when_galeed_present() -> None:
     assert EventType.NEGOTIATION_FINISHED in types
     assert EventType.DECISION_RECORDED in types
     assert result.negotiation is not None
+    # Mid-slice phase markers + post-retrieve note on negotiation spine
+    assert "slice.phase.split" in types
+    assert "slice.phase.evidence_stats" in types
+    post_neg = [
+        e
+        for e in tracer.events
+        if e.type == EventType.NEGOTIATION_FINISHED
+        and (e.metadata or {}).get("note") == "post_retrieve"
+    ]
+    assert post_neg, "expected post_retrieve negotiation.finished on Galeed"

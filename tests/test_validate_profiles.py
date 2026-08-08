@@ -41,6 +41,27 @@ def test_strict_requires_output_for_cognition() -> None:
     assert any("requires success_criteria or output" in e for e in errors)
 
 
+def test_strict_decide_requires_decision_construct() -> None:
+    plan = dict(CANONICAL_PLAN)
+    plan["steps"] = [
+        {
+            "id": "s1",
+            "action": "Pick accept or open",
+            "construct": "STEP",
+            "status": "pending",
+            "cognition": "decide",
+            "success_criteria": ["verdict selected"],
+            "output": "selected",
+        }
+    ]
+    errors = validate_plan(plan, profile="strict")
+    assert any("DECISION" in e and "decide" in e for e in errors)
+    # full profile still accepts (progressive)
+    assert validate_plan(plan, profile="full") == []
+    plan["steps"][0]["construct"] = "DECISION"
+    assert validate_plan(plan, profile="strict") == []
+
+
 def test_strict_assumes_vs_call_tools() -> None:
     plan = dict(CANONICAL_PLAN)
     plan["assumes"] = ["milcah.critique@1"]

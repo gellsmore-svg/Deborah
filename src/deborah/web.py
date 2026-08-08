@@ -343,8 +343,15 @@ def _render_preview(source: str, recipe: dict[str, Any]) -> dict[str, Any]:
     except ValueError as exc:
         return {"ok": False, "error": str(exc)}
     if not source.strip():
-        return {"ok": True, "output": "", "format": clean["output_format"],
-                "warnings": [], "line_count": 0}
+        # Empty body after a present field — not an API success (review F6/M7).
+        return {
+            "ok": False,
+            "error": "empty source produced no renderable content",
+            "output": "",
+            "format": clean["output_format"],
+            "warnings": [],
+            "line_count": 0,
+        }
 
     fmt = clean["output_format"]
     options = {k: v for k, v in clean.items() if k not in ("profile", "language", "output_format")}
@@ -389,7 +396,15 @@ def create_app(store: TemplateStore | None = None):
 
     @app.post("/api/render")
     async def render_view(payload: dict[str, Any]) -> dict[str, Any]:
-        return _render_preview(str(payload.get("source", "")), payload.get("recipe") or {})
+        if not isinstance(payload, dict) or "source" not in payload:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": "missing required field 'source' (Cairn document text)",
+                },
+                status_code=400,
+            )
+        return _render_preview(str(payload.get("source") or ""), payload.get("recipe") or {})
 
     @app.get("/api/templates")
     def list_templates() -> list[dict[str, Any]]:

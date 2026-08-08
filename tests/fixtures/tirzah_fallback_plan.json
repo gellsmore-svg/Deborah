@@ -1,0 +1,56 @@
+{
+  "plan_id": "plan_tirzah_fallback_interop",
+  "revision": 1,
+  "parent_revision": null,
+  "request": "Research relational substrate coherence",
+  "trigger": "initial_request",
+  "objective": "Research relational substrate coherence",
+  "status": "active",
+  "steps": [
+    {
+      "id": "1",
+      "construct": "STEP",
+      "action": "Interpret the request and preserve its constraints.",
+      "success_criteria": ["Intent and boundaries are explicit."],
+      "status": "pending",
+      "depends_on": [],
+      "allowed_tools": []
+    },
+    {
+      "id": "2",
+      "construct": "CALL",
+      "action": "Gather relevant repository or web evidence through Tirzah's validated retrieval pipeline.",
+      "depends_on": ["1"],
+      "allowed_tools": ["tirzah_retrieval"],
+      "status": "pending"
+    },
+    {
+      "id": "3",
+      "construct": "CALL",
+      "action": "Synthesize a grounded answer from the retrieved context package.",
+      "depends_on": ["2"],
+      "allowed_tools": ["answer_adapter"],
+      "status": "pending"
+    },
+    {
+      "id": "4",
+      "construct": "RECURSE",
+      "action": "Evaluate new evidence and revise this plan when it changes required work.",
+      "depends_on": ["3"],
+      "success_criteria": [
+        "Stop when stable, complete, blocked, or at the revision limit."
+      ],
+      "status": "pending",
+      "allowed_tools": []
+    }
+  ],
+  "stopping_conditions": [
+    "The request is complete.",
+    "The plan is stable.",
+    "Required authority or information is unavailable.",
+    "The configured revision limit is reached."
+  ],
+  "unresolved_questions": [],
+  "revision_decision": "revise",
+  "revision_reason": "planner fallback: interop fixture (mirrors tirzah.planning.recursive.fallback_plan)"
+}

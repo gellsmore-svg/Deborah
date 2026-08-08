@@ -191,7 +191,7 @@ def test_try_load_live_failsoft() -> None:
 
     # Must not raise whether or not packages are installed.
     avail = live_estate_available()
-    assert set(avail) == {"tirzah", "milcah"}
+    assert {"tirzah", "milcah", "mahalath"} <= set(avail)
     dispatch = try_load_live_dispatch()
     assert isinstance(dispatch, dict)
 
@@ -216,3 +216,32 @@ def test_keturah_registry_optional() -> None:
     idx = registry_as_index(reg)
     assert idx.find("milcah.critique") is not None
     assert idx.find("critique") is not None or idx.find("milcah.critique") is not None
+
+
+def test_interpret_with_estate_forwards_decisions() -> None:
+    """GATED decide accepts injected verdict via interpret_with_estate."""
+    from deborah import document_to_plan, parse_document
+    from deborah.runtime.estate import interpret_with_estate
+    from pathlib import Path
+
+    plan = document_to_plan(
+        parse_document(
+            (Path(__file__).resolve().parents[1] / "examples" / "answer-substrate-question.cairn.md")
+            .read_text(encoding="utf-8")
+        )
+    )
+    run = interpret_with_estate(
+        plan,
+        demo=True,
+        check_contracts=True,
+        decisions={"default": "open"},
+    )
+    decide_steps = [
+        s
+        for s in run.steps
+        if str(s.cognition or "").lower() == "decide"
+        or str(s.construct or "").upper() == "DECISION"
+    ]
+    assert decide_steps, "expected a decide step"
+    result = decide_steps[-1].result or {}
+    assert str(result.get("selected") or "").lower() == "open"

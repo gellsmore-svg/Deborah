@@ -326,79 +326,69 @@ def demo_capability_index() -> DictCapabilityIndex:
     return idx
 
 
+# Products that may expose a Deborah dispatch/index module (review M1).
+# Discovery is by importlib over this list rather than hard-coding call sites;
+# adding a fourth product means one entry here, not six import blocks.
+_ESTATE_PRODUCTS = ("tirzah", "milcah", "mahalath")
+
+
 def try_load_live_dispatch() -> dict[str, CapabilityDispatch]:
-    """Import real Tirzah/Milcah Deborah adapters when those packages are installed.
+    """Load capability dispatch handlers from installed estate products.
 
-    Fail-soft: missing package or import error → empty/partial dispatch.
-    Live handlers may still block at call time if Mongo/Hoglah are unavailable;
-    inject search/run_fn in those packages' factories for offline tests.
+    Prefer each product's ``deborah_dispatch()`` via importlib (M1). Fail-soft
+    per product. Deborah's own infer dispatch is always attempted last.
     """
+    import importlib
+
     dispatch: dict[str, CapabilityDispatch] = {}
-    try:
-        from tirzah.deborah import deborah_dispatch as tirzah_dispatch  # type: ignore[import-not-found]
-
-        dispatch.update(tirzah_dispatch())
-    except Exception:
-        pass
-    try:
-        from milcah.deborah import deborah_dispatch as milcah_dispatch  # type: ignore[import-not-found]
-
-        dispatch.update(milcah_dispatch())
-    except Exception:
-        pass
+    for product in _ESTATE_PRODUCTS:
+        try:
+            mod = importlib.import_module(f"{product}.deborah")
+            factory = getattr(mod, "deborah_dispatch", None)
+            if callable(factory):
+                dispatch.update(factory())
+        except Exception:
+            continue
     try:
         from deborah.runtime.infer import deborah_infer_dispatch
 
         dispatch.update(deborah_infer_dispatch(use_llm=False))
     except Exception:
         pass
-    try:
-        from mahalath.deborah import deborah_dispatch as mahalath_dispatch  # type: ignore[import-not-found]
-
-        dispatch.update(mahalath_dispatch())
-    except Exception:
-        pass
     return dispatch
 
 
 def try_load_live_index() -> DictCapabilityIndex | None:
-    """Build a capability index from installed Tirzah/Milcah entry helpers."""
+    """Build a capability index from installed estate product entry helpers."""
+    import importlib
+
     idx = DictCapabilityIndex()
     loaded = False
-    try:
-        from tirzah.deborah import capability_index_entries as tirzah_entries  # type: ignore[import-not-found]
-
-        for name, meta in tirzah_entries().items():
-            idx.add(name, **{k: v for k, v in meta.items() if k != "name"})
-            loaded = True
-    except Exception:
-        pass
-    try:
-        from milcah.deborah import capability_index_entries as milcah_entries  # type: ignore[import-not-found]
-
-        for name, meta in milcah_entries().items():
-            idx.add(name, **{k: v for k, v in meta.items() if k != "name"})
-            loaded = True
-    except Exception:
-        pass
+    for product in _ESTATE_PRODUCTS:
+        try:
+            mod = importlib.import_module(f"{product}.deborah")
+            entries_fn = getattr(mod, "capability_index_entries", None)
+            if not callable(entries_fn):
+                continue
+            for name, meta in entries_fn().items():
+                idx.add(name, **{k: v for k, v in meta.items() if k != "name"})
+                loaded = True
+        except Exception:
+            continue
     return idx if loaded else None
 
 
 def live_estate_available() -> dict[str, bool]:
     """Which live adapters import cleanly (does not probe Mongo/Hoglah)."""
-    out = {"tirzah": False, "milcah": False}
-    try:
-        import tirzah.deborah  # noqa: F401
+    import importlib
 
-        out["tirzah"] = True
-    except Exception:
-        pass
-    try:
-        import milcah.deborah  # noqa: F401
-
-        out["milcah"] = True
-    except Exception:
-        pass
+    out = {p: False for p in _ESTATE_PRODUCTS}
+    for product in _ESTATE_PRODUCTS:
+        try:
+            importlib.import_module(f"{product}.deborah")
+            out[product] = True
+        except Exception:
+            out[product] = False
     return out
 
 
@@ -482,6 +472,7 @@ def interpret_with_estate(
     fallback_results_by_cognition: dict[str, dict[str, Any]] | None = None,
     allow_reentry: bool = False,
     reflective_pass: bool | None = None,
+    decisions: dict[str, str] | None = None,
 ) -> RunResult:
     """Interpret a plan with optional registry resolution and Galeed tracing.
 
@@ -492,6 +483,9 @@ def interpret_with_estate(
     ``milcah.deborah`` when those packages are importable (still fail-soft at
     call time if Mongo or Hoglah are down). Explicit ``dispatch`` / ``index``
     override or extend the live load.
+
+    ``decisions`` is forwarded to :func:`interpret_plan` for GATED DECISION steps
+    (step id → ``accept`` | ``reject`` | ``open``, plus optional ``default`` key).
     """
     if demo:
         index = index or demo_capability_index()
@@ -558,6 +552,8 @@ def interpret_with_estate(
         context = dict(context)
         context.setdefault("request", context_claim)
         context.setdefault("claim", context_claim)
+        if decisions:
+            context.setdefault("decisions", dict(decisions))
         return inner(step, context)
 
     run = interpret_plan(
@@ -570,6 +566,7 @@ def interpret_with_estate(
         max_steps=max_steps,
         allow_reentry=allow_reentry,
         reflective_pass=reflective_pass,
+        decisions=decisions,
     )
     if tracer is not None:
         record_run_on_tracer(run, tracer)

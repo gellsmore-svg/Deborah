@@ -343,13 +343,21 @@ See [`TAXONOMY-COGNITION-AND-PATTERNS.md`](TAXONOMY-COGNITION-AND-PATTERNS.md):
 - **Reflect is plan policy**, not a COGNITION  
 - Multi-round negotiate/search = control patterns + bounds  
 
-### Substrate slice (Stage 1 thin) — **DONE** (package ≥0.16)
+### Substrate slice (Stage 1 thin) — **DONE** (package ≥0.16; current ≥0.23)
 
 - Example: `examples/answer-substrate-question.cairn.md`
 - Bounded negotiation (`run_negotiation`, default one-shot accept)
 - `check_outcomes` (evidence + confidence floor)
 - Open-questions JSONL store + optional Mongo insert
-- CLI: `deborah-run --slice --open-questions PATH --question "…"`
+- CLI: `deborah-run examples/answer-substrate-question.cairn.md --slice --open-questions PATH --question "…"`
+  (without a process file, `--slice` defaults to that example when present)
+- **Post-0.16 closes (still Stage 1 frame, no free re-plan):**
+  - Content-aware critique negotiator; live Tirzah/Milcah/Mahalath estate
+  - Rule infer + GATED decide; trust tags on retrieve
+  - Mid-slice post-retrieve evidence/novel gate (`post_retrieve_negotiator`)
+  - Galeed spine: negotiation / decision / open_question / `slice.phase.*`
+  - Plan ownership: [`PLAN-OWNERSHIP.md`](PLAN-OWNERSHIP.md); Tirzah interop fixture
+  - Mizpah filters: Phases + post-retrieve meta chips
 
 ### Explicit non-goals (unchanged + sharpened)
 
@@ -396,13 +404,14 @@ See [`TAXONOMY-COGNITION-AND-PATTERNS.md`](TAXONOMY-COGNITION-AND-PATTERNS.md):
 ## Part VI — Open questions (narrowed)
 
 1. **Strict profile default for CI examples?** Recommend `full` for corpus,
-   `strict` only for new cognitive examples.
+   `strict` only for new cognitive examples. *(stance held)*
 2. **Structured results in-document vs runtime-only?** Recommend runtime
-   artifacts first; optional fenced JSON under OUTPUT later.
-3. **Should `decide` require `DECISION` construct?** Recommend lint warning if
-   COGNITION=decide on a bare STEP without DECISION/GATED when human-owned.
-4. **Thin runtime package location:** `deborah.runtime` stub vs Tirzah extract —
-   still open; R7 can stub handlers.
+   artifacts first; optional fenced JSON under OUTPUT later. *(stance held)*
+3. **Should `decide` require `DECISION` construct?** **DONE** in `strict`
+   profile (package ≥0.23.3, conformance 1.4): `COGNITION: decide` must use
+   construct `DECISION`. Full profile remains progressive.
+4. **Thin runtime package location:** **DONE** — lives in `deborah.runtime`
+   (not Tirzah). Tirzah authors plans; Deborah interprets (see PLAN-OWNERSHIP).
 
 ---
 

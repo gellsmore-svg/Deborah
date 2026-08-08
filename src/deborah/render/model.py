@@ -37,6 +37,8 @@ class ProcessDocument:
     # Alternate backbones from multi-profile Cairn docs (formal / operator / narrative).
     operator_steps: list[StepNode] = field(default_factory=list)
     narrative_steps: list[StepNode] = field(default_factory=list)
+    # Named PROCESS blocks kept separate so multi-process docs keep hierarchy (F3).
+    process_sections: list[tuple[str, list[StepNode]]] = field(default_factory=list)
 
 
 @dataclass

@@ -239,6 +239,60 @@ def default_caller_responder(
     )
 
 
+def post_retrieve_negotiator(
+    proposal: dict[str, Any],
+    history: list[NegotiationMessage],
+    round_index: int,
+) -> NegotiationMessage:
+    """Second-phase gate after observe/infer — uses evidence_count / novel flags.
+
+    Does **not** re-open free chat. Deterministic:
+    - novel_detected → partial (proceed with residual risk)
+    - evidence_count == 0 → partial (empty evidence allowed, flagged)
+    - otherwise → acceptance
+    """
+    assumes = proposal.get("assumes") or []
+    try:
+        count = int(proposal.get("evidence_count") or 0)
+    except (TypeError, ValueError):
+        count = 0
+    novel = bool(proposal.get("novel_detected"))
+    novel_terms = proposal.get("novel_terms") or []
+
+    if novel or novel_terms:
+        return NegotiationMessage(
+            type="partial",
+            role="capability",
+            payload={
+                "note": "novel concepts present; critique may remain open",
+                "novel_terms": list(novel_terms)[:12],
+                "evidence_count": count,
+                "assumes": assumes,
+                "failure_mode": "unmodelled-concept",
+            },
+        )
+    if count == 0:
+        return NegotiationMessage(
+            type="partial",
+            role="capability",
+            payload={
+                "note": "empty retrieve set; critique under thin evidence",
+                "evidence_count": 0,
+                "assumes": assumes,
+                "failure_mode": "insufficient_evidence",
+            },
+        )
+    return NegotiationMessage(
+        type="acceptance",
+        role="capability",
+        payload={
+            "note": "post-retrieve: evidence present, proceed to critique",
+            "evidence_count": count,
+            "assumes": assumes,
+        },
+    )
+
+
 def resolve_negotiator(
     name: str | None,
     *,

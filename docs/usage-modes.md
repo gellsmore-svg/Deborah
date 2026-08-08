@@ -63,7 +63,8 @@ Typical flow:
 3. Author or emit a `.cairn.md` PLAN with `INTENT`, `OUTCOMES`, `ASSUMES`,
    `ON_UNCERTAINTY`, and optional step `COGNITION`.
 4. Validate with `deborah-validate --profile strict`.
-5. Interpret with the **thin runtime**:
+5. Interpret with the **thin runtime** (substrate slice may also run a second
+   post-retrieve evidence/novel gate before critique — still no free re-plan):
 
 ```bash
 deborah-run examples/cross-llm-critique.cairn.md --demo-results --check-contracts

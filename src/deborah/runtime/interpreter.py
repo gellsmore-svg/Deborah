@@ -122,7 +122,7 @@ class StubHandler:
         if allow is not None and tools:
             for tool in tools:
                 stem = tool.split("@", 1)[0].lower()
-                if stem not in allow and not any(stem in a or a in stem for a in allow):
+                if not _stem_allowed(stem, allow):
                     return {
                         "status": "blocked",
                         "reason": f"tool {tool!r} not in allow-list {sorted(allow)}",
@@ -150,18 +150,44 @@ class StubHandler:
         return out
 
 
+def _stem_allowed(stem: str, allow: set[str]) -> bool:
+    """Exact allow-list match (review H1).
+
+    Bidirectional substring matching accepted single-char and
+    ``evilmilcah.critique``-style extensions. Allow:
+
+    - exact stem equality after ``@`` strip
+    - namespace child: ``stem.startswith(allowed + ".")``
+    """
+    stem = stem.lower().split("@", 1)[0]
+    if stem in allow:
+        return True
+    for a in allow:
+        a = a.lower().split("@", 1)[0]
+        if stem == a or stem.startswith(a + "."):
+            return True
+    return False
+
+
 def _step_tools(step: dict[str, Any]) -> list[str]:
     tools: list[str] = []
     allowed = step.get("allowed_tools")
     if isinstance(allowed, list):
         tools.extend(str(t).strip() for t in allowed if str(t).strip())
+    # Prefer explicit allowed_tools (review M5 / F5). Only infer from action
+    # when the author did not declare tools.
     if (step.get("construct") or "").upper() == "CALL" and not tools:
         action = str(step.get("action") or "")
         head = action.split("[", 1)[0].strip()
         head = head.split("—", 1)[0].split("–", 1)[0].strip()
         parts = head.split()
         if parts:
-            tools.append(parts[0])
+            # Prefer dotted capability names (milcah.critique) over prose.
+            candidate = parts[0]
+            if candidate.lower() == "invoke" and len(parts) > 1:
+                candidate = parts[1]
+            if "." in candidate or candidate.isidentifier():
+                tools.append(candidate)
     return tools
 
 
@@ -170,6 +196,13 @@ def _allow_list_from_plan(plan: dict[str, Any], explicit: set[str] | None) -> se
         return {a.lower() for a in explicit}
     assumes = plan.get("assumes")
     if not assumes:
+        # Default-open when assumes is absent — explicit decision (review M6).
+        import logging
+
+        logging.getLogger("deborah.runtime").debug(
+            "plan %s has empty/missing assumes; tool allow-list unrestricted",
+            plan.get("plan_id"),
+        )
         return None  # unrestricted
     stems: set[str] = set()
     for ref in assumes:
@@ -178,12 +211,24 @@ def _allow_list_from_plan(plan: dict[str, Any], explicit: set[str] | None) -> se
     return stems or None
 
 
-def _ready_order(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Topological order by depends_on; fall back to document order on cycles."""
-    by_id = {str(s.get("id")): s for s in steps if isinstance(s, dict) and s.get("id")}
+def _ready_order(
+    steps: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Topological order by depends_on.
+
+    Returns ``(ordered_steps, cycle_errors)``. On a cycle, remaining steps are
+    appended in sorted id order *and* an error is reported (review H4) — no
+    silent reordering.
+    """
+    by_id = {
+        str(s.get("id")): s
+        for s in steps
+        if isinstance(s, dict) and s.get("id") is not None and str(s.get("id")).strip()
+    }
     pending = set(by_id)
     done: set[str] = set()
     ordered: list[dict[str, Any]] = []
+    errors: list[str] = []
     # Safety: at most n² picks
     for _ in range(len(by_id) * len(by_id) + 1):
         if not pending:
@@ -201,15 +246,20 @@ def _ready_order(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 done.add(sid)
                 progressed = True
         if not progressed:
-            # Cycle or missing deps — append remaining in sorted id order
-            for sid in sorted(pending):
+            remaining = sorted(pending)
+            errors.append(
+                f"dependency cycle or unresolvable depends_on among steps: {remaining}"
+            )
+            for sid in remaining:
                 ordered.append(by_id[sid])
             break
-    # Steps without ids (shouldn't happen) append at end
+    # Steps without ids append at end (track by object id, not dict value — L1)
+    seen_ids = {id(s) for s in ordered}
     for s in steps:
-        if isinstance(s, dict) and s not in ordered:
+        if isinstance(s, dict) and id(s) not in seen_ids:
             ordered.append(s)
-    return ordered
+            seen_ids.add(id(s))
+    return ordered, errors
 
 
 def interpret_plan(
@@ -224,6 +274,7 @@ def interpret_plan(
     allow_reentry: bool = False,
     reflective_pass: bool | None = None,
     decisions: dict[str, str] | None = None,
+    initial_artifacts: dict[str, Any] | None = None,
 ) -> RunResult:
     """Walk ``plan`` under the framed control policy.
 
@@ -254,6 +305,9 @@ def interpret_plan(
     decisions:
         Optional map of step id → selected verdict for GATED DECISION steps
         (``accept`` | ``reject`` | ``open``).
+    initial_artifacts:
+        Optional pre-seeded ``context["artifacts"]`` (e.g. phase-1 slice results
+        carried into a post-retrieve critique phase).
     """
     events: list[dict[str, Any]] = []
     errors: list[str] = []
@@ -305,7 +359,7 @@ def interpret_plan(
     context: dict[str, Any] = {
         "allow_list": allow,
         "plan_id": plan_id,
-        "artifacts": {},  # step_id → result
+        "artifacts": dict(initial_artifacts or {}),  # step_id → result
         "decisions": dict(decisions or {}),
     }
     records: list[StepRecord] = []
@@ -326,7 +380,15 @@ def interpret_plan(
         }
     )
 
-    worklist = _ready_order([s for s in steps_in if isinstance(s, dict)])
+    worklist, order_errors = _ready_order(
+        [s for s in steps_in if isinstance(s, dict)]
+    )
+    if order_errors:
+        errors.extend(order_errors)
+        events.append({"type": "plan.dependency_errors", "errors": list(order_errors)})
+        # Cycles are terminal: do not silently reorder and complete (H4).
+        blocked = True
+        worklist = []
     # Track which step ids already consumed a re-entry slot
     reentered: set[str] = set()
 

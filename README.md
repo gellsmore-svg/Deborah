@@ -197,6 +197,8 @@ Huldah where needed). Prefer `pip install deborah`.
 - [docs/GUIDE-HUMAN.md](docs/GUIDE-HUMAN.md) — operator / author guide (plain language).
 - [docs/GUIDE-AI.md](docs/GUIDE-AI.md) — AI planner / tool-runtime guide (contracts & APIs).
 - [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md) — executable grammar API.
+- [docs/review-2026-08-08.md](docs/review-2026-08-08.md) — functional + code
+  review of 0.23.3 (point-in-time; findings not yet actioned).
 - [docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md) — render profiles and export.
 - [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md)
   — three-layer process semantics (execution / behaviour / cognition) and

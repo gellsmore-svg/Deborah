@@ -195,16 +195,36 @@ def test_document_to_dict_is_json_serializable() -> None:
 
 
 def test_examples_well_formed() -> None:
-    known_issues = {
-        "mahalath.cairn.md",
-        "round-robin-debate.cairn.md",
-        "tirzah-recursive-planning.cairn.md",
-        "tirzah.cairn.md",
-    }
     for path in sorted(EXAMPLES.glob("*.cairn.md")):
         doc = parse_document(path.read_text(encoding="utf-8"))
         wf = [e for e in validate_document(doc) if e not in doc.parse_errors]
-        if path.name in known_issues:
-            # pre-existing LLM bound issues in old examples; domain is clean
-            wf = [e for e in wf if "must declare MAX" not in e and "MAX_DEPTH" not in e]
         assert wf == [], f"{path.name}: {wf[:5]}"
+
+
+def test_iterate_bracket_bound_form_validates() -> None:
+    """SPEC form: ITERATE [UNTIL: …; MAX: n] → CALL … [LLM] (review H3/M4)."""
+    text = """
+PROCESS P (INPUT: x; OUTPUT: y)
+  1. ITERATE [UNTIL: consensus; MAX: 10] → CALL Critic(draft) [LLM]
+"""
+    doc = parse_document(text)
+    errors = validate_document(doc)
+    assert not any("must declare MAX" in e for e in errors), errors
+
+
+def test_prose_step_not_captured_as_construct() -> None:
+    """Ordinary English must not be re-typed as ROLE/CALL/… (review H2/F1)."""
+    from deborah import document_to_plan
+
+    doc = parse_document(
+        "PROCESS — T.\n  1. Role clarity improves retention.\n  2. Call the customer back.\n"
+    )
+    assert doc.processes
+    steps = doc.processes[0].steps
+    assert (steps[0].construct or "STEP") == "STEP" or steps[0].construct is None
+    assert "Role clarity" in (steps[0].text or "")
+    plan = document_to_plan(doc)
+    assert plan["steps"][0]["construct"] == "STEP"
+    assert plan["steps"][0]["action"].startswith("Role")
+    assert plan["steps"][1]["construct"] == "STEP"
+    assert "allowed_tools" not in plan["steps"][1]

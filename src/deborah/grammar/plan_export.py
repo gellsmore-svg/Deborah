@@ -98,18 +98,22 @@ def _steps_to_dict(steps: list[Step], *, prefix: str = "s") -> list[dict[str, An
                 if token:
                     entry["cognition"] = token
             # CALL target → allowed_tools hint for strict assumes checks.
-            if (node.construct or "").upper() == "CALL" or (
-                node.text and node.text.upper().startswith("CALL ")
-            ):
-                head = node.text
-                if head.upper().startswith("CALL "):
+            # Only when the step is a real CALL construct (uppercase notation),
+            # never from prose that merely begins with "Call …" (review H2/F1).
+            if (node.construct or "").upper() == "CALL":
+                head = node.text or ""
+                if head.startswith("CALL "):
                     head = head[5:]
                 target = head.split("—", 1)[0].split("–", 1)[0].strip()
-                target = target.split()[0] if target.split() else ""
-                if target:
-                    entry.setdefault("allowed_tools", [])
-                    if target not in entry["allowed_tools"]:
-                        entry["allowed_tools"] = list(entry.get("allowed_tools") or []) + [target]
+                token = target.split()[0] if target.split() else ""
+                # Prefer dotted capability names over prose first-words.
+                if token and ("." in token or token.replace("_", "").isalnum()):
+                    if "." in token or token.isidentifier():
+                        entry.setdefault("allowed_tools", [])
+                        if token not in entry["allowed_tools"]:
+                            entry["allowed_tools"] = list(entry.get("allowed_tools") or []) + [
+                                token
+                            ]
             # Determinism tag → execution axis (HOW), when present.
             # Tags may arrive as one bracket group ("CODE, DETERMINISTIC").
             for raw in node.tags:

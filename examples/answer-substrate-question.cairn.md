@@ -13,7 +13,8 @@ See `docs/TAXONOMY-COGNITION-AND-PATTERNS.md` and
 - **Caller** — operator asking whether a relational-substrate claim holds.
 - **Capabilities** — Tirzah retrieve, Mahalath novel check, Deborah infer,
   Milcah critique / intent / confidence (Keturah-pinned).
-- **Frame** — fixed graph; negotiation (if any) is bounded *before* interpret.
+- **Frame** — fixed graph; bounded negotiation *before* interpret and a second
+  evidence/novel gate *after* retrieve/infer (before critique). No free re-plan.
 
 ## OUTCOMES
 
@@ -82,13 +83,17 @@ PLAN plan_answer_substrate_question REVISION 1 [STATUS: draft]
 ## Run
 
 ```bash
-# Demo adapters (no Mongo / Hoglah)
+# Demo adapters (no Mongo / Hoglah); post-retrieve gate on by default
 deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
   --check-contracts --negotiator accept
 
 # Operator commits after gated decide
 deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
   --decision accept --negotiator accept --check-contracts
+
+# Single-pass interpret (skip mid-slice evidence gate)
+deborah-run examples/answer-substrate-question.cairn.md --slice --estate-demo \
+  --no-post-retrieve-negotiate --negotiator accept
 
 # Live Tirzah Mongo + open questions
 deborah-run examples/answer-substrate-question.cairn.md --slice --estate-live \

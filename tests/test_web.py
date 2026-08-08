@@ -60,7 +60,9 @@ def test_render_preview_is_single_pass(monkeypatch) -> None:
 
 def test_render_preview_empty_source() -> None:
     out = _render_preview("   ", {"profile": "audit"})
-    assert out["ok"] is True and out["output"] == ""
+    # Empty source is not a successful render (review F6/M7).
+    assert out["ok"] is False and out["output"] == ""
+    assert "empty" in (out.get("error") or "").lower()
 
 
 def test_index_and_meta(tmp_path) -> None:

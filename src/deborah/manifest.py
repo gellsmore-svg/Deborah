@@ -81,11 +81,12 @@ def build_manifest() -> Manifest:
         "deborah",
         version=_version(),
         description=(
-            "Process meta-language: plan/template grammar and a machine-readable "
-            "conformance surface. Library capabilities map to the console tools: "
-            "validate_document/parse_document ≈ deborah-validate; render_plan ≈ "
-            "deborah-render. The interactive composer (deborah-serve) and its "
-            "template store are operator-only CLIs — not MCP tools."
+            "Process meta-language: plan/template grammar, machine-readable "
+            "conformance, and a thin PLAN interpreter (crystallised walks). "
+            "Library capabilities map to console tools: validate_document/"
+            "parse_document ≈ deborah-validate; render_plan ≈ deborah-render; "
+            "interpret_plan ≈ deborah-run. The interactive composer "
+            "(deborah-serve) is operator-only — not an MCP tool."
         ),
         capabilities=[
             capability(
@@ -100,6 +101,33 @@ def build_manifest() -> Manifest:
                     "properties": {"errors": {"type": "array", "items": {"type": "string"}}},
                 },
                 tags=["validation", "plan", "cli:deborah-validate"],
+            ),
+            capability(
+                "interpret_plan",
+                "Walk a crystallised PLAN under the thin interpreter "
+                "(order, allow-list, bounds, terminals). Does not re-plan. "
+                "CLI: deborah-run [--slice] [--check-contracts].",
+                input_schema={
+                    "type": "object",
+                    "properties": {
+                        "plan": {"type": "object", "description": "validate_plan-compatible PLAN"},
+                        "profile": {
+                            "type": "string",
+                            "enum": ["full", "core", "strict"],
+                            "description": "validate_plan profile before interpret",
+                        },
+                    },
+                    "required": ["plan"],
+                },
+                output_schema={
+                    "type": "object",
+                    "properties": {
+                        "terminal": {"type": "string"},
+                        "errors": {"type": "array", "items": {"type": "string"}},
+                        "steps": {"type": "array"},
+                    },
+                },
+                tags=["runtime", "plan", "cli:deborah-run"],
             ),
             capability(
                 "render_plan",

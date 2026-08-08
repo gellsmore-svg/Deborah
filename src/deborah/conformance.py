@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-CONFORMANCE_VERSION = "1.3"
+CONFORMANCE_VERSION = "1.4"
 
 # Step-level constructs from SPEC §5 (the ones a PLAN step may *be*).
 #
@@ -139,24 +139,27 @@ def _capability_stem(ref: str) -> str:
 
 
 def _tools_from_step(step: dict[str, Any]) -> list[str]:
-    """Collect capability-like tool names from allowed_tools and CALL actions."""
+    """Collect capability-like tool names from allowed_tools and CALL actions.
+
+    Prefer ``allowed_tools`` when present so prose actions like
+    ``Synthesise an answer…`` are not treated as tool names (review F5/M5).
+    """
     tools: list[str] = []
     allowed = step.get("allowed_tools")
     if isinstance(allowed, list):
         tools.extend(str(t).strip() for t in allowed if str(t).strip())
+        if tools:
+            return tools
     action = str(step.get("action") or "")
     # "milcah.critique — …" or "Invoke milcah.critique" patterns after CALL construct
-    if step.get("construct") == "CALL":
+    if str(step.get("construct") or "").upper() == "CALL":
         # action may be "milcah.critique — Pressure-test…" or full phrase with tags
         head = action.split("[", 1)[0].strip()
-        head = head.split("—", 1)[0].split("–", 1)[0].split("-", 1)[0].strip()
-        # drop leading "Invoke " style phrasing from render, keep first token-ish
+        head = head.split("—", 1)[0].split("–", 1)[0].strip()
         parts = head.split()
         if parts:
             candidate = parts[0] if parts[0].lower() != "invoke" else (parts[1] if len(parts) > 1 else "")
-            if candidate and not candidate.endswith("."):
-                tools.append(candidate)
-            elif candidate:
+            if candidate and ("." in candidate or candidate.replace("_", "").isalnum()):
                 tools.append(candidate.rstrip("."))
     return tools
 
@@ -242,6 +245,13 @@ def validate_plan(plan: Any, *, profile: str = "full") -> list[str]:
                             f"step[{index}] strict: COGNITION {value!r} requires "
                             f"success_criteria or output"
                         )
+                    # Human-owned decide should use DECISION (not bare STEP) —
+                    # roadmap Part VI #3; GATED lives on DECISION.
+                    if value == "decide" and str(construct or "").upper() != "DECISION":
+                        errors.append(
+                            f"step[{index}] strict: COGNITION decide should use "
+                            f"construct DECISION (got {construct!r})"
+                        )
             execution = step.get("execution")
             if execution is not None and execution != "":
                 if str(execution).strip().lower() not in {"deterministic", "stochastic"}:
@@ -260,17 +270,95 @@ def validate_plan(plan: Any, *, profile: str = "full") -> list[str]:
                 else:
                     for tool in tools:
                         stem = _capability_stem(tool)
-                        # Allow tool if it matches an assumed stem or is a prefix/suffix segment.
+                        # Exact stem or namespace child of an assumed capability.
                         if stem not in assume_stems and not any(
-                            stem == a or stem.endswith("." + a.split(".")[-1]) or a.endswith("." + stem.split(".")[-1])
+                            stem == a or stem.startswith(a + ".")
                             for a in assume_stems
                         ):
-                            # Soften: only error if no assume stem appears in the tool string
-                            if not any(a in stem or stem in a for a in assume_stems):
-                                errors.append(
-                                    f"step[{index}] strict: CALL tool {tool!r} not in "
-                                    f"assumes {sorted(assume_stems)}"
-                                )
+                            errors.append(
+                                f"step[{index}] strict: CALL tool {tool!r} not in "
+                                f"assumes {sorted(assume_stems)}"
+                            )
+
+        # Graph integrity (review H4) — always, all profiles.
+        errors.extend(_validate_step_graph(steps))
+
+    # Scalar plan fields that must be well-typed.
+    revision = plan.get("revision")
+    if revision is not None and not isinstance(revision, int):
+        errors.append(f"revision must be an int (got {type(revision).__name__})")
+    max_steps = plan.get("max_steps")
+    if max_steps is not None:
+        try:
+            if int(max_steps) < 0:
+                errors.append("max_steps must be >= 0")
+        except (TypeError, ValueError):
+            errors.append(f"max_steps must be an int (got {max_steps!r})")
+
+    return errors
+
+
+def _validate_step_graph(steps: list[Any]) -> list[str]:
+    """Id uniqueness, dangling/self depends_on, and cycles (review H4)."""
+    errors: list[str] = []
+    ids: list[str] = []
+    by_id: dict[str, dict[str, Any]] = {}
+    for index, step in enumerate(steps):
+        if not isinstance(step, dict):
+            continue
+        sid = step.get("id")
+        if sid is None or str(sid).strip() == "":
+            errors.append(f"step[{index}] missing id")
+            continue
+        sid = str(sid)
+        if sid in by_id:
+            errors.append(f"duplicate step id {sid!r}")
+        by_id[sid] = step
+        ids.append(sid)
+
+    # depends_on integrity
+    for sid, step in by_id.items():
+        deps = step.get("depends_on") or []
+        if not isinstance(deps, list):
+            errors.append(f"step {sid!r} depends_on must be a list")
+            continue
+        for dep in deps:
+            dep_s = str(dep)
+            if dep_s == sid:
+                errors.append(f"step {sid!r} has a self-dependency")
+            elif dep_s not in by_id:
+                errors.append(f"step {sid!r} depends_on missing step {dep_s!r}")
+
+    # Cycle detection (DFS)
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = {sid: WHITE for sid in by_id}
+    cycle_nodes: list[str] = []
+
+    def visit(u: str) -> bool:
+        color[u] = GRAY
+        deps = by_id[u].get("depends_on") or []
+        if not isinstance(deps, list):
+            deps = []
+        for dep in deps:
+            v = str(dep)
+            if v not in by_id:
+                continue
+            if color[v] == GRAY:
+                cycle_nodes.append(v)
+                return True
+            if color[v] == WHITE and visit(v):
+                return True
+        color[u] = BLACK
+        return False
+
+    for sid in by_id:
+        if color[sid] == WHITE and visit(sid):
+            errors.append(
+                f"dependency cycle involving step {cycle_nodes[0]!r}"
+                if cycle_nodes
+                else "dependency cycle in plan steps"
+            )
+            break
 
     return errors
 

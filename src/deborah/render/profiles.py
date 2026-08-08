@@ -32,7 +32,9 @@ def _indent(depth: int) -> str:
 def _render_step_line(node: StepNode, language: str, depth: int, options: dict[str, Any]) -> list[str]:
     include_tags = options.get("include_tags", False)
     text = phrase_construct(node.construct, node.text, language, node.tags, getattr(node, "parsed_modifiers", {}))
-    line = f"{_indent(depth)}{node.number}. {text}"
+    # number is already hierarchical ("2.1"); do not inject spaces that yield "2. 1".
+    num = str(node.number or "").strip().rstrip(".")
+    line = f"{_indent(depth)}{num}. {text}"
     lines = [line]
     if include_tags and node.tags:
         lines.append(f"{_indent(depth)}   _(tags: {', '.join(node.tags)})_")
@@ -110,21 +112,36 @@ class NarrativeStepsProfile(RenderProfile):
 
     def render(self, doc: ProcessDocument, language: str, options: dict[str, Any]) -> RenderResult:
         lines: list[str] = []
-        if doc.title:
-            lines.append(f"## {doc.title}")
-            lines.append("")
         lines.extend(_plan_header(doc, language))
 
-        steps = _steps_for_profile(doc, self.name)
-        step_lines = _walk_steps(steps, language, 0, options)
-        if options.get("boxed"):
-            for node in steps:
-                block = _render_step_line(node, language, 0, options)
-                block.extend(_walk_steps(node.children, language, 1, options))
-                lines.extend(_boxed(f"Step {node.number}", block))
+        # Multi-PROCESS documents: one heading per process (review F3/M3).
+        sections = list(doc.process_sections or [])
+        if len(sections) > 1:
+            for name, nodes in sections:
+                lines.append(f"## {name}")
+                lines.append("")
+                if options.get("boxed"):
+                    for node in nodes:
+                        block = _render_step_line(node, language, 0, options)
+                        block.extend(_walk_steps(node.children, language, 1, options))
+                        lines.extend(_boxed(f"Step {node.number}", block))
+                        lines.append("")
+                else:
+                    lines.extend(_walk_steps(nodes, language, 0, options))
                 lines.append("")
         else:
-            lines.extend(step_lines)
+            if doc.title:
+                lines.append(f"## {doc.title}")
+                lines.append("")
+            steps = _steps_for_profile(doc, self.name)
+            if options.get("boxed"):
+                for node in steps:
+                    block = _render_step_line(node, language, 0, options)
+                    block.extend(_walk_steps(node.children, language, 1, options))
+                    lines.extend(_boxed(f"Step {node.number}", block))
+                    lines.append("")
+            else:
+                lines.extend(_walk_steps(steps, language, 0, options))
 
         footnotes = []
         if options.get("include_footnotes") and doc.requirements:

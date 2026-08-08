@@ -521,7 +521,15 @@ def _check_iteration_bound(step: Step, lineno: int) -> list[str]:
         parsed = getattr(cline, "parsed_modifiers", {}) or {}
         if _has_iteration_bound(cline.modifiers, cline.text, [], parsed):
             return []
-    if _has_iteration_bound([], step.text, step.tags):
+    # Thread the step's own modifiers (SPEC: ITERATE [UNTIL: …; MAX: …] → …)
+    # — previously discarded, causing false positives on documented form (H3/F2).
+    parsed_step = getattr(step, "parsed_modifiers", {}) or {}
+    if _has_iteration_bound(
+        list(getattr(step, "modifiers", None) or []),
+        step.text,
+        list(getattr(step, "tags", None) or []),
+        parsed_step,
+    ):
         return []
     need = "MAX_DEPTH" if step.construct == "RECURSE" else "MAX"
     return [f"line {lineno}: {step.construct} with LLM involvement must declare {need} or UNTIL"]

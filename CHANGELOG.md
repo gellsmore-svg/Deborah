@@ -2,6 +2,79 @@
 
 ## [Unreleased]
 
+## [0.24.0] — 2026-08-08
+
+**Action the 2026-08-08 functional/code review**
+([docs/review-2026-08-08.md](docs/review-2026-08-08.md)).
+
+### Fixed
+- **H2/F1** — construct matching is case-sensitive (uppercase notation only);
+  ordinary English no longer becomes ROLE/CALL/… with the first word stripped
+- **H3/F2/M4** — iteration bounds on the step's own modifiers are recognised
+  (SPEC form `ITERATE [UNTIL: …; MAX: n]`); removed the example allow-list that
+  hid the bug
+- **H1** — allow-list uses exact / namespace-prefix match (no bidirectional `in`)
+- **H4** — `validate_plan` checks id uniqueness, dangling/self depends_on, and
+  cycles; interpreter reports dependency errors and does not complete on cycles
+- **F5** — `CANONICAL_PLAN` passes `strict` (prefer `allowed_tools` over prose)
+- **F4** — `deborah-run --slice` without a file defaults to the bundled substrate
+  example instead of hanging on stdin
+- **F6/M7** — `POST /api/render` returns 400 when `source` is missing; empty
+  source is `ok: false`
+- **F3/M3** — multi-PROCESS narrative render keeps one heading per process
+- **M2** — manifest advertises `interpret_plan`
+- **M1** — estate dispatch/index discovery via importlib over product list
+- **M5/M6/L1** — CALL tool inference prefers declared tools; empty assumes logs
+  unrestricted policy; step membership uses object identity
+
+### Added
+- Regression suite `tests/test_review_2026_08_08.py`
+- Prior uncommitted Stage 1 closes (0.23.x work: plan ownership docs, phased
+  slice, Tirzah interop fixture) ship in this release
+
+## [0.23.3] — 2026-08-07
+
+**Strict decide lint + open-question list CLI.**
+
+- Conformance **1.4**: ``strict`` profile requires ``COGNITION: decide`` on
+  construct ``DECISION`` (roadmap Part VI #3)
+- CLI: ``deborah-run --list-open-questions PATH [--plan-id ID] [--json]``
+- Docs: Stage 1 closes recorded; thin runtime location + decide lint resolved
+
+## [0.23.2] — 2026-08-07
+
+**Spine visibility for mid-slice phases.**
+
+- Emit Galeed ``slice.phase.*`` events (split / pre_complete / evidence_stats)
+- Post-retrieve negotiation carries ``note=post_retrieve`` + evidence stats
+  on the negotiation spine (Galeed ≥0.3.2)
+- CLI / SliceResult already expose post_retrieve; spine now matches
+
+## [0.23.1] — 2026-08-07
+
+**Hygiene release after 0.23.0 mid-slice work.**
+
+- Docs: [`docs/PLAN-OWNERSHIP.md`](docs/PLAN-OWNERSHIP.md) — Deborah thin
+  interpreter vs Tirzah recursive planner (shared PLAN format, no dual runtime)
+- Live smoke tests inject fast retrieve by default (set
+  ``DEBORAH_LIVE_REAL_RETRIEVE=1`` for real Hoglah/embedding path)
+- ``interpret_with_estate(..., decisions=…)`` + non-slice CLI ``--decision``
+- Slice text summary prints ``post_retrieve:`` status when mid-gate ran
+
+## [0.23.0] — 2026-08-07
+
+**Post-retrieve mid-slice negotiation + Tirzah plan interop fixture.**
+
+- Split crystallised plans at the first critique CALL
+  (``split_plan_at_critique``); run observe/infer, then a deterministic
+  evidence/novel gate (``post_retrieve_negotiator``), then critique→decide
+  with carried ``initial_artifacts`` — no free re-planning
+- CLI: ``--no-post-retrieve-negotiate`` to skip the mid gate (default on)
+- SliceResult records ``post_retrieve_negotiation``; phase events for
+  inspectors / Galeed
+- Shared fixture: Tirzah ``fallback_plan`` shape validates and thin-interprets
+  under Deborah (``tests/fixtures/tirzah_fallback_plan.json``)
+
 ## [0.22.0] — 2026-08-07
 
 **Substrate plan wires full Milcah evaluate portfolio.**

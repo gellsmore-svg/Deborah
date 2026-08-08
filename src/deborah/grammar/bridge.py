@@ -80,6 +80,7 @@ def document_to_render_model(doc: CairnDocument) -> ProcessDocument:
     for proc in processes:
         nodes = [_step_to_node(step) for step in proc.steps]
         mode = _process_mode(proc)
+        render_doc.process_sections.append((proc.name or "Process", nodes))
         if profile == "operator" or mode == "operator":
             operator.extend(nodes)
         elif mode == "narrative":

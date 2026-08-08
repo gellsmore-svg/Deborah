@@ -34,11 +34,17 @@ from deborah.runtime.interpreter import (
 from deborah.runtime.negotiate import (
     NegotiationResult,
     critique_content_negotiator,
+    post_retrieve_negotiator,
     resolve_negotiator,
     run_negotiation,
 )
 from deborah.runtime.open_questions import OpenQuestion, OpenQuestionStore, open_question_from_run
 from deborah.runtime.outcomes import OutcomeCheck, check_outcomes
+from deborah.runtime.phased import (
+    evidence_stats_from_artifacts,
+    merge_run_results,
+    split_plan_at_critique,
+)
 from deborah.runtime.live import prepare_live_slice, try_open_questions_db, try_tirzah_db
 from deborah.runtime.slice import SliceResult, run_substrate_slice
 
@@ -59,16 +65,20 @@ __all__ = [
     "critique_content_negotiator",
     "demo_capability_index",
     "demo_critique_dispatch",
+    "evidence_stats_from_artifacts",
     "interpret_plan",
     "interpret_with_estate",
     "live_estate_available",
+    "merge_run_results",
     "open_question_from_run",
+    "post_retrieve_negotiator",
     "prepare_live_slice",
     "record_run_on_tracer",
     "resolve_assumes",
     "resolve_negotiator",
     "run_negotiation",
     "run_substrate_slice",
+    "split_plan_at_critique",
     "try_load_keturah_registry",
     "try_load_live_dispatch",
     "try_load_live_index",
