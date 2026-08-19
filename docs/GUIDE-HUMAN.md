@@ -88,7 +88,13 @@ RETRY, AWAIT, BREAK, CONTINUE, MILESTONE, ERROR
 
 REGULATION, APPRAISAL, DUAL_PROCESS, METACOGNITION, ALIGN, COALITION,
 RESISTANCE, REINFORCEMENT, CASCADE, VISION, SOCIALIZE, INSTITUTIONALIZE,
-SYMBOLIC_INTERACTION, CONFLICT, ACCOMMODATE, ASSIMILATE, ROLE, FEEDBACK, MACRO
+SYMBOLIC_INTERACTION, CONFLICT, ACCOMMODATE, ASSIMILATE, ROLE, FEEDBACK, MACRO,
+SAMPLE, VIEW
+
+`SAMPLE` describes several isolated attempts at the same problem (they must not
+read each other). `VIEW` describes what a later attempt is allowed to see.
+`MERGE [RULE: admissibility]` means “keep constraints and open questions,” not
+“pick a winner.”
 
 ### 3.4 Tags and modifiers (common)
 

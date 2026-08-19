@@ -170,7 +170,12 @@ RETRY, AWAIT, BREAK, CONTINUE, MILESTONE, ERROR
 **EXTENSION constructs:**  
 REGULATION, APPRAISAL, DUAL_PROCESS, METACOGNITION, ALIGN, COALITION,  
 RESISTANCE, REINFORCEMENT, CASCADE, VISION, SOCIALIZE, INSTITUTIONALIZE,  
-SYMBOLIC_INTERACTION, CONFLICT, ACCOMMODATE, ASSIMILATE, ROLE, FEEDBACK, MACRO  
+SYMBOLIC_INTERACTION, CONFLICT, ACCOMMODATE, ASSIMILATE, ROLE, FEEDBACK, MACRO,  
+SAMPLE, VIEW  
+
+`SAMPLE` = isolated reconstructions from one source (not `BATCH`, not `QUEUE`).  
+`VIEW` = bounded information projection into a later sample.  
+`MERGE [RULE: winner|vote|synthesis|admissibility|none]` — `admissibility` is not a verdict.  
 
 **COGNITION MVP:** observe, infer, evaluate, decide  
 **COGNITION extended:** negotiate, learn, optimize  

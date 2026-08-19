@@ -1,4 +1,4 @@
-# Cairn — structural grammar (v0.12)
+# Cairn — structural grammar (v0.13)
 
 A minimal EBNF for the **structural skeleton** of a Cairn description. It defines
 *shape*, not meaning: the prose in step descriptions, CONTEXT, ACCEPTANCE, etc. is
@@ -92,12 +92,13 @@ emergent-satisfies = "EMERGENT" ( satisfies | attrs ) NL { TEXT NL } ;   (* e.g.
 (* a step may *be* a construct, or a construct may stand on its own line *)
 construct       = "STEP" | "MILESTONE" | "ITERATE" | "RECURSE" | "QUEUE"
                 | "PARALLEL" | "SERVICE" | "DECISION" | "RETRY"
-                | "ERROR" | "AWAIT" | "CALL"
+                | "ERROR" | "AWAIT" | "CALL" | "MERGE"
                 | "REGULATION" | "APPRAISAL" | "DUAL_PROCESS" | "METACOGNITION"
                 | "ALIGN" | "COALITION" | "RESISTANCE" | "REINFORCEMENT"
                 | "CASCADE" | "VISION" | "SOCIALIZE" | "INSTITUTIONALIZE"
                 | "SYMBOLIC_INTERACTION" | "CONFLICT" | "ACCOMMODATE"
-                | "ASSIMILATE" | "ROLE" | "FEEDBACK" | "MACRO" ;
+                | "ASSIMILATE" | "ROLE" | "FEEDBACK" | "MACRO"
+                | "SAMPLE" | "VIEW" ;
 construct-line  = ( "MILESTONE" | "ITERATE" | "RECURSE" | "QUEUE" | "PARALLEL"
                   | "SERVICE" | "CONCURRENT" | "DECISION" | "RETRY" | "ERROR"
                   | "AWAIT" | "CALL" | "MERGE" | "BREAK" | "CONTINUE" | "ATOMIC"
@@ -105,7 +106,8 @@ construct-line  = ( "MILESTONE" | "ITERATE" | "RECURSE" | "QUEUE" | "PARALLEL"
                   | "ALIGN" | "COALITION" | "RESISTANCE" | "REINFORCEMENT"
                   | "CASCADE" | "VISION" | "SOCIALIZE" | "INSTITUTIONALIZE"
                   | "SYMBOLIC_INTERACTION" | "CONFLICT" | "ACCOMMODATE"
-                  | "ASSIMILATE" | "ROLE" | "FEEDBACK" | "MACRO" )
+                  | "ASSIMILATE" | "ROLE" | "FEEDBACK" | "MACRO"
+                  | "SAMPLE" | "VIEW" )
                   [ modifiers ] [ "→" TEXT ] TEXT? NL ;
 modifiers       = "[" mod { ";" mod } "]" ;
 mod             = key ":" TEXT | flag ;        (* e.g. UNTIL: …; MAX: 5 *)
@@ -153,6 +155,9 @@ Beyond grammar, a description is well-formed if:
 9. Domain constructs (REGULATION, COALITION, SOCIALIZE, FEEDBACK, MACRO, etc.) are encouraged when using matching tags for psych/org/socio work in human systems.
 10. Human-facing high-load steps should expose human demand (ORIENT / ACT / CLOSE), support, trust, recovery, and change impact where relevant.
 11. New render profiles: `therapeutic`, `change_leader`, `human_demand`, and `human_factors` for domain-focused views.
+12. `SAMPLE` declares `N` or `MAX`. `VIEW` declares `ROLE`, `EXPOSE`, or `WITHHOLD`.
+    `MERGE [RULE: …]` uses a named rule (`winner` / `vote` / `synthesis` /
+    `admissibility` / `none`) or omits `RULE` for free-text.
 
 This grammar is deliberately permissive about prose — it constrains the
 *scaffolding*, so a human stays free to write each step in plain language.

@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.25.0] — 2026-08-19
+
+**Describe independent reconstruction without pretending to execute it.**
+
+- SPEC **v0.13**: `SAMPLE`, `VIEW`, and named `MERGE [RULE: …]` values
+  (`winner` / `vote` / `synthesis` / `admissibility` / `none`)
+- Conformance **1.5**: `SAMPLE` and `VIEW` are **extension** constructs (a core
+  runtime may skip them; a skip is not isolation)
+- Grammar / parser / well-formedness: `SAMPLE` needs `N` or `MAX`; `VIEW` needs
+  `ROLE`, `EXPOSE`, or `WITHHOLD`
+- Example: `examples/independent-reconstruction.cairn.md`
+- Deborah does not own or run Multipath Reasoning. The example describes the
+  process class; the skill remains in `gellsmore-svg/multipath-reasoning`.
+
 ## [0.24.0] — 2026-08-08
 
 **Action the 2026-08-08 functional/code review**

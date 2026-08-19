@@ -57,6 +57,7 @@ recursive validation.
 | [`milcah.cairn.md`](milcah.cairn.md) | Milcah | Recursive coherence-pressure rounds |
 | [`relational-substrate.cairn.md`](relational-substrate.cairn.md) | Relational Substrate | Grammar sandbox, sequence traces, sweep |
 | [`round-robin-debate.cairn.md`](round-robin-debate.cairn.md) | (pattern) | QUEUE ROUND_ROBIN — turn-based multi-LLM debate |
+| [`independent-reconstruction.cairn.md`](independent-reconstruction.cairn.md) | (pattern) | SAMPLE + VIEW + MERGE RULE: admissibility — isolated reconstructions, not a debate |
 
 ## Psychological Process Examples
 - [`psych-gross-emotion-regulation.cairn.md`](psych-gross-emotion-regulation.cairn.md) — Emotion regulation via Gross process model (situation selection through response modulation).

@@ -39,6 +39,8 @@ CONSTRUCT_PHRASES: dict[str, dict[str, str]] = {
         "ROLE": "Role",
         "FEEDBACK": "Feedback",
         "MACRO": "Macro",
+        "SAMPLE": "Sample independently",
+        "VIEW": "Project a view",
     },
     "fr": {
         "STEP": "",
@@ -63,6 +65,8 @@ CONSTRUCT_PHRASES: dict[str, dict[str, str]] = {
         "BREAK": "Arrêter quand",
         "CONTINUE": "Continuer vers",
         "MILESTONE": "Jalon",
+        "SAMPLE": "Échantillonner indépendamment",
+        "VIEW": "Projeter une vue",
     },
     "es": {
         "STEP": "",
@@ -81,6 +85,8 @@ CONSTRUCT_PHRASES: dict[str, dict[str, str]] = {
         "MILESTONE": "Hito",
         "FEEDBACK": "Retroalimentación",
         "MACRO": "Macro",
+        "SAMPLE": "Muestrear de forma independiente",
+        "VIEW": "Proyectar una vista",
     },
 }
 

@@ -25,6 +25,8 @@ _PSYCH_CONSTRUCTS = frozenset({"REGULATION", "APPRAISAL", "DUAL_PROCESS", "METAC
 _ORG_CONSTRUCTS = frozenset({"ALIGN", "COALITION", "RESISTANCE", "REINFORCEMENT", "CASCADE", "VISION"})
 _SOCIO_CONSTRUCTS = frozenset({"SOCIALIZE", "INSTITUTIONALIZE", "SYMBOLIC_INTERACTION", "CONFLICT", "ACCOMMODATE", "ASSIMILATE", "ROLE"})
 _ALL_DOMAIN_CONSTRUCTS = _PSYCH_CONSTRUCTS | _ORG_CONSTRUCTS | _SOCIO_CONSTRUCTS | {"MACRO"}
+_SAMPLE_BOUND_KEYS = frozenset({"N", "MAX"})
+_MERGE_RULES = frozenset({"winner", "vote", "synthesis", "admissibility", "none"})
 
 
 def validate_document(doc: CairnDocument) -> list[str]:
@@ -304,6 +306,35 @@ def _validate_step_tree(
             if not keys and not step.text:
                 errors.append(f"line {step.lineno}: FEEDBACK should specify what is fed back (e.g. [FROM: emotion] or text)")
 
+    if construct == "SAMPLE":
+        parsed = getattr(step, "parsed_modifiers", {}) or {}
+        keys = _bound_keys_from(
+            list(getattr(step, "modifiers", None) or []),
+            step.text,
+            list(getattr(step, "tags", None) or []),
+            parsed,
+        )
+        if not (keys & _SAMPLE_BOUND_KEYS):
+            errors.append(f"line {step.lineno}: SAMPLE must declare N or MAX")
+    if construct == "VIEW":
+        parsed = getattr(step, "parsed_modifiers", {}) or {}
+        keys = _bound_keys_from(
+            list(getattr(step, "modifiers", None) or []),
+            step.text,
+            list(getattr(step, "tags", None) or []),
+            parsed,
+        )
+        if not keys & {"ROLE", "EXPOSE", "WITHHOLD"}:
+            errors.append(f"line {step.lineno}: VIEW must declare ROLE, EXPOSE, or WITHHOLD")
+    if construct == "MERGE":
+        parsed = getattr(step, "parsed_modifiers", {}) or {}
+        rule = str(parsed.get("RULE") or parsed.get("rule") or "").strip().lower()
+        if rule and rule not in _MERGE_RULES:
+            errors.append(
+                f"line {step.lineno}: MERGE RULE {rule!r} is unknown; "
+                f"use one of {sorted(_MERGE_RULES)} or omit RULE"
+            )
+
     new_loop_depth = loop_depth
     if construct in _LOOP_CONSTRUCTS:
         new_loop_depth = loop_depth + 1
@@ -374,6 +405,26 @@ def _validate_construct_line(
         keys = _bound_keys_from(cline.modifiers, cline.text, [], parsed)
         if not keys and not parsed and not cline.text:
             errors.append(f"line {cline.lineno}: FEEDBACK should specify what is fed back (e.g. [FROM: emotion] or text)")
+    if cline.construct == "SAMPLE":
+        parsed = getattr(cline, "parsed_modifiers", {}) or {}
+        keys = _bound_keys_from(cline.modifiers, cline.text, [], parsed)
+        if not (keys & _SAMPLE_BOUND_KEYS) and "N" not in parsed:
+            errors.append(f"line {cline.lineno}: SAMPLE must declare N or MAX")
+    if cline.construct == "VIEW":
+        parsed = getattr(cline, "parsed_modifiers", {}) or {}
+        keys = {k.upper() for k in parsed} | _bound_keys_from(cline.modifiers, cline.text, [], parsed)
+        if not keys & {"ROLE", "EXPOSE", "WITHHOLD"} and "ROLE" not in parsed:
+            errors.append(
+                f"line {cline.lineno}: VIEW must declare ROLE, EXPOSE, or WITHHOLD"
+            )
+    if cline.construct == "MERGE":
+        parsed = getattr(cline, "parsed_modifiers", {}) or {}
+        rule = str(parsed.get("RULE") or parsed.get("rule") or "").strip().lower()
+        if rule and rule not in _MERGE_RULES:
+            errors.append(
+                f"line {cline.lineno}: MERGE RULE {rule!r} is unknown; "
+                f"use one of {sorted(_MERGE_RULES)} or omit RULE"
+            )
 
     # Domain-specific modifier validation for new constructs (core grammar improvement)
     parsed = getattr(cline, "parsed_modifiers", {}) or {}
@@ -506,7 +557,7 @@ def _bound_keys_from(modifiers: list[str], text: str, tags: list[str], parsed_mo
             part = part.strip()
             if ":" in part:
                 keys.add(part.split(":", 1)[0].strip().upper())
-    for token in re.findall(r"\b(MAX|MAX_DEPTH|UNTIL|OVER|TIMEOUT)\s*:", text, re.I):
+    for token in re.findall(r"\b(MAX|MAX_DEPTH|UNTIL|OVER|TIMEOUT|N|ROLE|EXPOSE|WITHHOLD|RULE)\s*:", text, re.I):
         keys.add(token.upper())
     return keys
 

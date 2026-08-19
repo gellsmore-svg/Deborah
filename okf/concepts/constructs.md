@@ -20,8 +20,11 @@ The constructs that build a PROCESS ([document mode](document-modes.md)):
   self-call; don't write both).
 - **QUEUE** `[ORDER: FIFO|PRIORITY|ROUND_ROBIN; ONE_AT_A_TIME]` — ordered work.
 - **PARALLEL … MERGE** `[STATE: isolated|shared]` — concurrency that **joins**.
-  **SERVICE** — concurrency that **never joins** (a long-running consumer/ingester);
-  run a set with `CONCURRENT { … }`.
+  Named merge rules: `winner` / `vote` / `synthesis` / `admissibility` / `none`.
+  **SAMPLE** `[N; STATE: isolated; FROM]` — independent reconstructions from one
+  source; not `BATCH` and not `QUEUE`. **VIEW** `[ROLE; EXPOSE; WITHHOLD]` —
+  what a later sample is allowed to see. **SERVICE** — concurrency that **never
+  joins**; run a set with `CONCURRENT { … }`.
 - **DECISION** — a branch. **RETRY** — bounded re-attempt. **ERROR** — a failure
   path. **AWAIT** — wait on an external event/result.
 - **CALL** — invoke another process by [signature](composition.md).

@@ -21,7 +21,7 @@ and review complex work across technical, psychological, organisational, and
 sociological dimensions — including iteration, recursion, non-determinism,
 sync/async, queuing, outcome review, error handling, and human context.
 
-**The specification lives in [SPEC.md](SPEC.md) (v0.12).**
+**The specification lives in [SPEC.md](SPEC.md) (v0.13).**
 
 Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
 distribution now installs a compatibility shim that re-exports from here.)

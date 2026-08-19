@@ -1,6 +1,6 @@
 # Cairn — a process meta-language
 
-**Specification v0.12** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
+**Specification v0.13** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
 processes — especially **cross-LLM work** — so that humans and LLMs can read,
@@ -490,11 +490,50 @@ Serialized / turn-based flow (e.g. agents taking turns).
 
 ### PARALLEL … MERGE
 Concurrent sub-branches that **join** at a MERGE.
-- Formal: `PARALLEL [STATE: isolated|shared] … MERGE [<rule>]`
+- Formal: `PARALLEL [STATE: isolated|shared] … MERGE [RULE: <rule>]`
   - `STATE` default `isolated` (branches do **not** see each other's
     `STATE UPDATE`s until MERGE). `MERGE` states how outputs combine.
+- Named `RULE` values (SPEC v0.13). Custom prose is still allowed if `RULE` is omitted:
+  - `winner` — one branch's output becomes the result
+  - `vote` — majority / mode
+  - `synthesis` — a single combined prose answer
+  - `admissibility` — constraints, open alternatives, and disagreements; **not** a verdict
+  - `none` — no join; the parent keeps the full record
+- `winner`, `vote`, and `synthesis` make the join an ancestor of later steps.
+  That is a false-attractor risk if those later steps are meant to reconstruct
+  independently. Prefer `admissibility` or `none` in that case.
 - Branches use letters: `3a.`, `3b.`, then a `MERGE` step.
 - For concurrency that **never joins** (long-running services), use SERVICE.
+
+### SAMPLE
+An **independent reconstruction population**: N stochastic attempts from the
+**same source**, in isolated contexts, that must **not** see sibling answers.
+
+- Formal: `SAMPLE [N: <n>; STATE: isolated; FROM: <source>]`
+- `N` (or `MAX`) is required. `STATE` default `isolated`. `FROM` names the
+  persistent source that every branch receives verbatim.
+- Distinct from:
+  - **`BATCH [n]`** — many *similar* calls, still one step, one product
+  - **`QUEUE`** — serial turns on a *shared* transcript (a debate)
+  - **`PARALLEL`** — concurrent branches that typically `MERGE` into a combined result
+- A later `SAMPLE` may receive the original source plus a `VIEW`, never a winner
+  paragraph from the previous merge.
+- **Descriptive (extension profile).** A core-profile runtime may skip `SAMPLE`
+  with a trace; skipping is not isolated execution. Do not treat a parse as
+  independence.
+
+### VIEW
+A **bounded information projection** into a subsequent `SAMPLE` or `PARALLEL`
+branch. Same next step, different information.
+
+- Formal: `VIEW [ROLE: <name>; EXPOSE: <fields>; WITHHOLD: <fields>]`
+- At least one of `ROLE`, `EXPOSE`, `WITHHOLD` is required.
+- Typical roles for independent reconstruction: `blind` (source + hard
+  constraints only), `constraint` (also open questions — a hypothesis-test, not
+  a blind probe), `retained`, `dissent`, `full`.
+- A `VIEW` is not a verdict. It must not smuggle a parent conclusion into
+  fields every branch is told to respect.
+- **Descriptive (extension profile).** Same skip rule as `SAMPLE`.
 
 ### SERVICE
 A long-running, concurrent activity that does **not** join — e.g. a worker loop,
@@ -987,7 +1026,7 @@ needs) execution semantics in a minimal interpreter.
 | Profile | Constructs | Runtime duty |
 |---|---|---|
 | **Core (execution-normative)** | `STEP`, `CALL`, `ITERATE`, `DECISION`, `RECURSE`, `QUEUE`, `PARALLEL`, `MERGE`, `SERVICE`, `RETRY`, `AWAIT`, `BREAK`, `CONTINUE`, `MILESTONE`, `ERROR` | Must be interpretable under §4.6 |
-| **Descriptive (documentation)** | Domain constructs (`REGULATION`, `SOCIALIZE`, `SYMBOLIC_INTERACTION`, …) | May render and validate as structure; a core-profile runtime may skip with trace rather than invent behaviour |
+| **Descriptive (documentation)** | Domain constructs (`REGULATION`, `SOCIALIZE`, `SYMBOLIC_INTERACTION`, …) and reconstruction constructs (`SAMPLE`, `VIEW`) | May render and validate as structure; a core-profile runtime may skip with trace rather than invent behaviour |
 
 Producers that target portable execution SHOULD prefer the core profile.
 Descriptive constructs remain valuable for human-systems modelling; they are not
