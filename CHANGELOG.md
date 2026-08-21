@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.25.1] — 2026-08-21
+
+### Added
+- ``python -m deborah`` and ``deborah-validate --version``.
+
 ## [0.25.0] — 2026-08-19
 
 **Describe independent reconstruction without pretending to execute it.**

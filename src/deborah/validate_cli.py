@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 
+from deborah import __version__
 from deborah.conformance import VALIDATE_PROFILES, validate_plan
 from deborah.contracts import CONTRACT_MODES, validate_step_results
 from deborah.grammar import document_to_dict, document_to_plan, parse_document, validate_document
@@ -19,6 +20,12 @@ def main(argv: list[str] | None = None) -> int:
             "Validate a Cairn description against GRAMMAR.md and SPEC well-formedness; "
             "optionally validate the exported plan under a conformance profile."
         ),
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"deborah {__version__}",
     )
     parser.add_argument("input", nargs="?", help="Path to .cairn.md or raw Cairn text (stdin with '-')")
     parser.add_argument("--json", action="store_true", help="Emit JSON report")
