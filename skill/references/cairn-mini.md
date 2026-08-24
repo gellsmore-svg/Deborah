@@ -2,6 +2,9 @@
 
 Normative: `SPEC.md`, `GRAMMAR.md`. This is only a writing aid.
 
+Fence as a `cairn` block or save `name.cairn.md`. Progressive: numbered prose
+first; tags when actors/determinism matter; PLAN fields only for a walk.
+
 ## Document modes (any mix)
 
 ```
@@ -41,11 +44,61 @@ PLAN Name REVISION 1 [STATUS: draft]
 
 Statuses: `draft` | `active` | `stable` | `complete` | `blocked` | `open` | `refused`.
 `ON_UNCERTAINTY`: `record` | `escalate` | `abort`.
+`open` is an honest residual terminal, not a crash.
+
+Optional PLAN policy (omit unless the walk needs them; see SPEC):
+`EXPLORATION_BUDGET`, `REFLECTIVE_PASS`. Reflect is plan policy, not a
+cognition.
+
+## Skeletons
+
+Business-process documentation (default formality):
+
+```
+CONTEXT
+  Trigger, systems, roles.
+
+REQUIREMENTS
+R1. Policy invariant. [MUST]
+   ACCEPTANCE: observable check.
+
+PROCESS Name (INPUT: request; OUTPUT: record)
+  1. Capture the request.
+  2. Apply the policy.
+  3. DECISION Approve or return. [HUMAN, GATED]
+  4. Record the outcome.
+```
+
+Code as abstract logic (same language, not a programming dialect):
+
+```
+CONTEXT
+  Components and stores — not import lists.
+
+REQUIREMENTS
+R1. Claim is idempotent. [MUST]
+   ACCEPTANCE: a retried claim does not double-apply.
+
+PROCESS WorkerClaim (INPUT: lease; OUTPUT: result)
+  1. Claim the job. [CODE, DETERMINISTIC]
+  2. CALL Run the adapter. [CODE, DETERMINISTIC]
+  3. Persist the result. [CODE, DETERMINISTIC]
+     STATE UPDATE: job store
+  4. RETRY On failure, retry or dead-letter.
+```
 
 ## Core constructs (runtime must understand)
 
 `STEP` `CALL` `ITERATE` `DECISION` `RECURSE` `QUEUE` `PARALLEL` `MERGE`
 `SERVICE` `RETRY` `AWAIT` `BREAK` `CONTINUE` `MILESTONE` `ERROR`
+
+Plain numbered lines are STEP. After the number, an optional CORE name as a
+bare word (do not wrap it in `[ ]` — brackets are for tags), then prose:
+
+`1. DECISION Approve. [HUMAN, GATED]`
+
+`BREAK` and `CONTINUE` stand on their own line, not in the step-id slot.
+Do not inline another process’s graph — `CALL` / `SERVICE` it.
 
 ## Extension constructs (docs; core walker may skip)
 
@@ -56,6 +109,18 @@ Psych/org/socio: `REGULATION` `APPRAISAL` `DUAL_PROCESS` `METACOGNITION`
 
 Isolated reconstruction: `SAMPLE` (needs `N` or `MAX`), `VIEW` (needs
 `ROLE`, `EXPOSE`, or `WITHHOLD`), `MERGE [RULE: admissibility|winner|vote|synthesis|none]`.
+
+`SAMPLE` is not debate and not a batch loop. Debate / turn-taking uses
+`QUEUE` (see `examples/round-robin-debate.cairn.md`). Fan-out/join uses
+`PARALLEL` then `MERGE`.
+
+## Do not write
+
+- Invented constructs or tags
+- `CONCURRENT` → use `PARALLEL`
+- `BATCH` → `ITERATE` / `QUEUE`, or `SAMPLE` for isolated reconstructions
+- A programming dialect (types, functions, source order)
+- Family product names as constructs (Huldah, Keturah, Galeed, Multipath)
 
 ## Common tags
 
@@ -68,12 +133,29 @@ First token only: `observe` | `infer` | `evaluate` | `decide` |
 `negotiate` | `learn` | `optimize`.
 
 Omit COGNITION when the step is ordinary prose. `decide` → construct
-`DECISION`. Reflect is plan policy `REFLECTIVE_PASS`, not a cognition.
+`DECISION`. Empty-observe / learn / optimize must-nots: SKILL.
 
 ## Useful annotations
 
 `PURPOSE:` `OUTPUT:` `CONSTRAINTS:` `STATE UPDATE:` `RISKS:`
 `HUMAN_DEMAND:` `HUMAN_FACTORS:` `SUPPORT:` `FAILURE_MODE:`
+
+STATE is for durable/shared data (`scope: process|session|global`, `dir:`).
+
+## Patterns (CORE only)
+
+```
+  1. PARALLEL Do A and B.
+  2. MERGE Combine.
+
+  1. DECISION Approve. [HUMAN, GATED]
+
+  1. CALL Hand off.
+  1. AWAIT Wait for a worker.
+  1. QUEUE Enqueue.
+  1. RETRY Retry a failed attempt.
+  1. ERROR Dead-letter.
+```
 
 ## Code → Cairn (abstract logic)
 
@@ -90,7 +172,7 @@ Omit COGNITION when the step is ordinary prose. `decide` → construct
 ## Validate
 
 ```bash
-deborah-validate FILE.cairn.md --strict
-deborah-validate FILE.cairn.md --profile core    # reject extension constructs
+deborah-validate FILE.cairn.md --strict           # non-zero exit; force profile strict
+deborah-validate FILE.cairn.md --profile core     # reject extension constructs
 deborah-validate FILE.cairn.md --profile strict --export-plan
 ```
