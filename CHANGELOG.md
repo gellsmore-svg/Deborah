@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- Harness skill ``skill/`` (``/deborah``) for authoring and validating Cairn
+  without knowing the language; copied into ``.grok/skills/deborah``.
+
 ## [0.25.1] — 2026-08-21
 
 ### Added

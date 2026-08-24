@@ -31,6 +31,11 @@ Optional extras:
 - `pip install 'deborah[web]'` — `deborah-serve` interactive composer
 - `pip install 'deborah[export]'` — HTML / DOCX / PDF export (python-docx + fpdf2)
 
+**Agent skill** (author Cairn without memorising the language): copy
+[`skill/`](skill/) to `~/.grok/skills/deborah/` (and `~/.claude/skills/deborah/`
+if you use Claude Code). Invoke with `/deborah`. In this repo Grok also loads
+`.grok/skills/deborah`.
+
 ## What it looks like
 
 A small slice, in the readable **Narrative** style:
