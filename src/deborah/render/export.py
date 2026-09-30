@@ -13,6 +13,7 @@ Example:
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from html import escape
 from io import BytesIO
@@ -23,6 +24,14 @@ from deborah.render.model import RenderResult
 Exporter = Callable[[RenderResult, dict[str, Any]], bytes]
 
 _EXPORTERS: dict[str, Exporter] = {}
+_LANGUAGE_TAG = re.compile(r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$")
+
+
+def _language_attr(language: str) -> str:
+    """A language tag safe to place in an HTML attribute."""
+    if _LANGUAGE_TAG.fullmatch(language or ""):
+        return escape(language, quote=True)
+    return "en"
 
 
 def _html_exporter(result: RenderResult, options: dict[str, Any]) -> bytes:
@@ -34,7 +43,7 @@ def _html_exporter(result: RenderResult, options: dict[str, Any]) -> bytes:
     else:
         notes = ""
     html = f"""<!DOCTYPE html>
-<html lang="{result.language}">
+<html lang="{_language_attr(result.language)}">
 <head>
 <meta charset="utf-8">
 <title>{escape(title)}</title>

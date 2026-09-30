@@ -164,12 +164,26 @@ def test_export_view_requires_registered_exporter():
     # html is built-in
     html = export_view(result, "html")
     assert b"<!DOCTYPE html>" in html
+    assert b'lang="en"' in html
 
     # docx/pdf require extra, raise ImportError when called
     with pytest.raises(ImportError, match="python-docx is required"):
         export_view(result, "docx")
     with pytest.raises(ImportError, match="fpdf2 is required"):
         export_view(result, "pdf")
+
+
+def test_html_lang_attribute_stays_a_language_tag():
+    from deborah.render import export_view
+    from deborah.render.model import RenderResult
+
+    html = export_view(
+        RenderResult(profile="x", language='en"><script>', format="markdown", body="hi"),
+        "html",
+    ).decode()
+    assert 'lang="en"' in html
+    assert 'lang="en"><script>' not in html
+    assert "&lt;script&gt;" in html
 
 
 def test_manifest_lists_render_plan():

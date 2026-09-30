@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- HTML export uses a language tag for the `lang` attribute. Any other language string is escaped on the visible line, and the attribute is `en`.
+
 ### Added
 - Harness skill ``skill/`` (``/deborah``) for authoring and validating Cairn
   without knowing the language; copied into ``.grok/skills/deborah``.
