@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-CONFORMANCE_VERSION = "1.5"
+CONFORMANCE_VERSION = "1.6"
 
 # Step-level constructs from SPEC §5 (the ones a PLAN step may *be*).
 #
@@ -65,6 +65,22 @@ EXTENSION_CONSTRUCTS: frozenset[str] = frozenset(
         "MACRO",
         "SAMPLE",
         "VIEW",
+        "AVOIDANCE",
+        "HABIT",
+        "ATTENTION",
+        "INTERPERSONAL",
+        "FRAME",
+        "NUDGE",
+        "ACCOUNT",
+        "DISCOUNT",
+        "GAME",
+        "PLAY",
+        "EQUILIBRIUM",
+        "SIGNAL",
+        "CHOICE",
+        "GULF",
+        "AFFORDANCE",
+        "FORAGE",
     }
 )
 

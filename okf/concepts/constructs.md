@@ -30,9 +30,12 @@ The constructs that build a PROCESS ([document mode](document-modes.md)):
 - **CALL** — invoke another process by [signature](composition.md).
 
 **Domain extensions (see proposals):**
-- Psychological: `REGULATION`, `APPRAISAL`, `DUAL_PROCESS`, `METACOGNITION`, `FEEDBACK`
+- Psychological: `REGULATION`, `APPRAISAL`, `DUAL_PROCESS`, `METACOGNITION`, `FEEDBACK`, `AVOIDANCE`, `HABIT`, `ATTENTION`, `INTERPERSONAL`
 - Organisational: `ALIGN`, `COALITION`, `RESISTANCE`, `REINFORCEMENT`, `CASCADE`, `VISION`
 - Sociological: `SOCIALIZE`, `INSTITUTIONALIZE`, `SYMBOLIC_INTERACTION`, `CONFLICT`, `ACCOMMODATE`, `ASSIMILATE`, `ROLE`
+- Behavioural economics: `FRAME`, `NUDGE`, `ACCOUNT`, `DISCOUNT`
+- Game theory: `GAME`, `PLAY`, `EQUILIBRIUM`, `SIGNAL`
+- HCI: `CHOICE`, `GULF`, `AFFORDANCE`, `FORAGE`
 
 New: `FEEDBACK` for loops in human systems.
 

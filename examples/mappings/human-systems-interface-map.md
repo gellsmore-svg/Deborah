@@ -38,7 +38,7 @@ corporate, and augmentation processes.
 ### Governance, Risk, Compliance, And Speak-Up
 - **Cues**: ambiguous accountability, fear of blame or retaliation, audit findings, regulatory change, model risk, policy exceptions, legal holds.
 - **Process interface**: AI governance boards, privacy incidents, audit remediation, third-party risk, speak-up channels, policy waivers, crisis exercises, and assurance review.
-- **Cairn constructs**: `HUMAN_DEMAND`, `HUMAN_RISK`, `GAME_THEORY`, `AUGMENTATION_PROCESS`, `HCI_TOUCHPOINT`, `FUNCTIONAL_LAYOUT_LOAD`.
+- **Cairn constructs**: `HUMAN_DEMAND`, `HUMAN_RISK`, `GAME` / `PLAY` / `EQUILIBRIUM` / `SIGNAL`, `HCI_TOUCHPOINT`, informal `AUGMENTATION_PROCESS` / `FUNCTIONAL_LAYOUT_LOAD`.
 - **Mitigations**: visible decision rights, dissent capture, confidential routes, evidence adjacency, expiry and re-review, independent verification, and non-punitive escalation.
 
 ## Relations

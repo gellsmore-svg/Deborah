@@ -24,6 +24,11 @@ revision. Since then, **SPEC v0.10** adds *optional* PLAN framing fields
 terminal statuses `open` / `refused`. Existing documents remain valid; new fields
 are additive.
 
+**SPEC v0.14** (package 0.26.0) adds four-area EXTENSION verbs and parses
+`HCI_TOUCHPOINT:`. Informal `GAME_THEORY:` is still dropped unless rewritten to
+`GAME`/`PLAY`/`EQUILIBRIUM`/`SIGNAL`. `DECISION [RULE:]` must share the first
+bracket with `[ON:]`. Existing documents remain valid.
+
 ## Nothing breaks on day one
 
 `pip install cairn-lang` still works and now installs a shim. Existing code

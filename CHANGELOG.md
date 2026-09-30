@@ -5,9 +5,37 @@
 ### Fixed
 - HTML export uses a language tag for the `lang` attribute. Any other language string is escaped on the visible line, and the attribute is `en`.
 
+## [0.26.0] — 2026-08-25
+
+**Four-area EXTENSION: transdiagnostic psych, behavioural economics, game theory, HCI.**
+
 ### Added
+- SPEC **v0.14** / conformance **1.6**: sixteen additive EXTENSION verbs at equal
+  grain — psych `AVOIDANCE` `HABIT` `ATTENTION` `INTERPERSONAL`; BE `FRAME`
+  `NUDGE` `ACCOUNT` `DISCOUNT`; GT `GAME` `PLAY` `EQUILIBRIUM` `SIGNAL`; HCI
+  `CHOICE` `GULF` `AFFORDANCE` `FORAGE`.
+- Optional CORE modifier `DECISION [ON: …; RULE: satisfice | maximize]` (same
+  first bracket as `ON`; runtime ignores RULE).
+- Domain tags: `TRANSDIAGNOSTIC` `INTERPERSONAL` `AVOIDANT` · `HEURISTIC`
+  `FRAMED` `NUDGED` · `INCENTIVE` `COMMON_KNOWLEDGE` `RECIPROCAL` ·
+  `INTERACTIVE` `OVERLOAD` `DISCOVERABLE`.
+- Annotations: `CONDITION_MAP:` (bibliographic, not a diagnosis), `BIAS:`,
+  `PAYOFF:`, `INFORMATION:`, `CHOICE_COMPLEXITY:`, `HCI_TOUCHPOINT:` (now
+  parsed; was silently dropped).
+- Mapping docs: `examples/mappings/psych-condition-map.md` (DSM-5-TR chapters,
+  ICD-11 Ch.06, HiTOP/RDoC, patterns), `be-bias-map.md`, `gt-game-map.md`,
+  `hci-heuristic-map.md`.
+- Examples: 4 psych + 7 BE + 7 GT + 7 HCI + 2 cross-area; informal
+  `GAME_THEORY:` rewritten to GT verbs in psych/socio/GRC suites.
+- Proposal: `docs/proposals/four-area-process-language.md`.
 - Harness skill ``skill/`` (``/deborah``) for authoring and validating Cairn
   without knowing the language; copied into ``.grok/skills/deborah``.
+
+### Notes
+- Diagnoses are **maps**, not constructs. Psychological examples remain
+  descriptive, not clinical protocols. Core runtime may skip EXTENSION with
+  trace. Do not tag GAME `STRATEGIC` (org). Hick–Hyman is not “fewer is always
+  faster”; visual search is `FORAGE`.
 
 ## [0.25.1] — 2026-08-21
 

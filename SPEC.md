@@ -1,6 +1,6 @@
 # Cairn — a process meta-language
 
-**Specification v0.13** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
+**Specification v0.14** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
 processes — especially **cross-LLM work** — so that humans and LLMs can read,
@@ -546,6 +546,7 @@ once over **shared** state and continue until stopped.
 ### DECISION
 A branch point.
 - Inline (one-liners): `DECISION [ON: <value>] → <branch-A> | <branch-B> | …`
+- Optional decision rule, **same first bracket** as `ON`: `DECISION [ON: <value>; RULE: satisfice | maximize]`. Omit `RULE` = unspecified. This is documentation of Simon satisficing vs maximising; a core runtime **ignores** `RULE` and must not grow a satisficing policy. Do **not** write a second bracket (`DECISION [ON: x] [RULE: satisfice]`) — the parser takes only the first `[…]` as modifiers.
 - With **branch bodies** (multi-step): name branches with letters and nest their
   steps, like PARALLEL — `2a.` … / `2b.` … under the DECISION.
 - Narrative: *"If <…>, then …; otherwise …."*
@@ -607,6 +608,36 @@ These are first-class for richer domain modeling. They parse as constructs with 
 - `CONFLICT`
 - `ACCOMMODATE | ASSIMILATE`
 - `ROLE [CONFLICT | TAKING]`
+
+**Psychological (transdiagnostic add, v0.14):** keep the four above. Add process verbs that those four cannot name. Do **not** mint one construct per DSM/ICD diagnosis — map conditions in `examples/mappings/psych-condition-map.md`. Examples are descriptive, not clinical protocols.
+- `AVOIDANCE [MODE: experiential | behavioral | safety]`
+- `HABIT [PHASE: cue | routine | reward]` — individual cue–routine–reward; **not** organisational `REINFORCEMENT`
+- `ATTENTION [MODE: select | sustain | shift | bias]` — attention as the process, not `REGULATION [TARGET: attention]`
+- `INTERPERSONAL [PATTERN: attachment | rank | validation | mentalization]` — individual interpersonal process, not socio `SOCIALIZE` / `ROLE`
+
+**Behavioural economics:**
+- `FRAME [VALENCE: gain | loss] [REF: …]`
+- `NUDGE [TOOL: default | friction | salience | social_proof | commitment | messenger | incentive | affect | timing | …]`
+- `ACCOUNT [KIND: mental | fungible]` — mental accounting; **not** time preference
+- `DISCOUNT [SHAPE: hyperbolic | exponential] [REF: now | later]` — present bias
+
+**Game theory:**
+- `GAME [STRUCTURE: simultaneous | sequential | repeated] [KIND: pd | stag_hunt | chicken | coordination | bargaining | public_goods | signalling | principal_agent | zero_sum | …]`
+- `PLAY [MOVE: cooperate | defect | mix | punish | signal]`
+- `EQUILIBRIUM [CONCEPT: nash | mixed | pareto | correlated | ess | focal | spe | bayesian]` — selection/check of a solution concept, not a solver
+- `SIGNAL [COST: cheap | costly]`
+- One-shot games omit `repeated`. Do **not** tag GAME steps `STRATEGIC` (that tag is organisational and requires org constructs).
+
+**HCI (including complexity of choice):**
+- `CHOICE [SET: n] [ARCHITECTURE: default | grouped | progressive | open]` — presented-set cardinality and architecture. Hick–Hyman records equiprobable choice-reaction size; it is **not** “fewer is always faster.” Many UI tasks are visual search → `FORAGE`.
+- `GULF [KIND: execution | evaluation]`
+- `AFFORDANCE [MAP: natural | arbitrary]`
+- `FORAGE [SCENT: strong | weak]`
+- `HUMAN_DEMAND:` remains the demand arc. `HCI_TOUCHPOINT:` is an **annotation** (where in the UI), not a construct.
+
+Recommended modifiers are key-presence “should” checks (same grain as `REGULATION` STRATEGY/TARGET), not closed runtime enums. Unknown values stay valid.
+
+**Disambiguation:** individual `HABIT` ≠ org `REINFORCEMENT` ≠ `NUDGE [TOOL: incentive]` ≠ `PAYOFF:`. Presented option set is `CHOICE`; search through an information ecology is `FORAGE`; an intervention on the set is `NUDGE`.
 
 New tags (see §7): [EMOTIONAL], [COGNITIVE], [LEADERSHIP], [STRATEGIC], [CULTURAL], [POWER], [SOCIAL], [GROUP], [NORM], [ROLE], [SYMBOLIC], etc.
 
@@ -730,9 +761,14 @@ extensions** for anything custom.
 | **Control** (optional) | `BLOCKING` · `GATED` (human review) · `CACHED` |
 
 **Domain-specific extensions** (from psychological / organisational / sociological proposals):
-- Psychological: `EMOTIONAL` · `COGNITIVE` · `APPRAISAL` · `REGULATION` · `MOTIVATIONAL` · `METACOGNITIVE` · `BEHAVIORAL`
+- Psychological: `EMOTIONAL` · `COGNITIVE` · `APPRAISAL` · `REGULATION` · `MOTIVATIONAL` · `METACOGNITIVE` · `BEHAVIORAL` · `TRANSDIAGNOSTIC` · `INTERPERSONAL` · `AVOIDANT`
 - Organisational: `LEADERSHIP` · `STRATEGIC` · `CULTURAL` · `POWER` · `STAKEHOLDER` · `STRUCTURAL` · `ALIGNMENT` · `RESISTANCE`
 - Sociological: `SOCIAL` · `GROUP` · `NORM` · `ROLE` · `SYMBOLIC`
+- Behavioural-economic: `HEURISTIC` · `FRAMED` · `NUDGED` (require a `FRAME`/`NUDGE`/`ACCOUNT`/`DISCOUNT` construct in the PROCESS)
+- Game-theoretic: `INCENTIVE` · `COMMON_KNOWLEDGE` · `RECIPROCAL` (require a `GAME`/`PLAY`/`EQUILIBRIUM`/`SIGNAL` construct; do **not** reuse organisational `STRATEGIC`)
+- HCI: `INTERACTIVE` · `OVERLOAD` · `DISCOVERABLE` (require a `CHOICE`/`GULF`/`AFFORDANCE`/`FORAGE` construct)
+
+Optional domain annotations (not diagnoses, not closed enums): `CONDITION_MAP:` (bibliographic pointer at a DSM-5-TR chapter / ICD-11 grouping / HiTOP spectrum / RDoC domain), `BIAS:`, `PAYOFF:`, `INFORMATION: complete | incomplete`, `CHOICE_COMPLEXITY:`, `HCI_TOUCHPOINT:`.
 
 Example: `[LLM, STOCHASTIC, SYNC, SIDE-EFFECT]`.
 
@@ -1026,7 +1062,7 @@ needs) execution semantics in a minimal interpreter.
 | Profile | Constructs | Runtime duty |
 |---|---|---|
 | **Core (execution-normative)** | `STEP`, `CALL`, `ITERATE`, `DECISION`, `RECURSE`, `QUEUE`, `PARALLEL`, `MERGE`, `SERVICE`, `RETRY`, `AWAIT`, `BREAK`, `CONTINUE`, `MILESTONE`, `ERROR` | Must be interpretable under §4.6 |
-| **Descriptive (documentation)** | Domain constructs (`REGULATION`, `SOCIALIZE`, `SYMBOLIC_INTERACTION`, …) and reconstruction constructs (`SAMPLE`, `VIEW`) | May render and validate as structure; a core-profile runtime may skip with trace rather than invent behaviour |
+| **Descriptive (documentation)** | Domain constructs (`REGULATION`, `AVOIDANCE`, `NUDGE`, `GAME`, `CHOICE`, `SOCIALIZE`, `SYMBOLIC_INTERACTION`, …) and reconstruction constructs (`SAMPLE`, `VIEW`) | May render and validate as structure; a core-profile runtime may skip with trace rather than invent behaviour |
 
 Producers that target portable execution SHOULD prefer the core profile.
 Descriptive constructs remain valuable for human-systems modelling; they are not

@@ -19,9 +19,12 @@ without changing the narrative:
 - **Timing** — `SYNC` vs `ASYNC`.
 
 **Domain extensions** (see proposals):
-- Psychological: `EMOTIONAL`, `COGNITIVE`, `APPRAISAL`, `REGULATION`, `MOTIVATIONAL`, `METACOGNITIVE`, `BEHAVIORAL`
+- Psychological: `EMOTIONAL`, `COGNITIVE`, `APPRAISAL`, `REGULATION`, `MOTIVATIONAL`, `METACOGNITIVE`, `BEHAVIORAL`, `TRANSDIAGNOSTIC`, `INTERPERSONAL`, `AVOIDANT`
 - Organisational: `LEADERSHIP`, `STRATEGIC`, `CULTURAL`, `POWER`, `STAKEHOLDER`, `STRUCTURAL`, `ALIGNMENT`, `RESISTANCE`
 - Sociological: `SOCIAL`, `GROUP`, `NORM`, `ROLE`, `SYMBOLIC`
+- Behavioural-economic: `HEURISTIC`, `FRAMED`, `NUDGED`
+- Game-theoretic: `INCENTIVE`, `COMMON_KNOWLEDGE`, `RECIPROCAL` (not org `STRATEGIC`)
+- HCI: `INTERACTIVE`, `OVERLOAD`, `DISCOVERABLE`
 
 Because the dimensions are independent, a step can carry several at once. Tags are
 exposed in full by the [`ai` profile](backbone-and-render-profiles.md) and the

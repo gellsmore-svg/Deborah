@@ -34,9 +34,10 @@ PROCESS InformalReputationFlow (INPUT: ambiguous_event; OUTPUT: corrected_or_dis
        status: reputation effects differ by role power and group membership.
 
   2. Story spreads through informal channels. [ASYNC, SOCIAL]
-     GAME_THEORY:
-       pattern: sharing inside information can create status rewards.
-       mitigation: provide official, fair, privacy-respecting clarification routes.
+     GAME [STRUCTURE: sequential; KIND: signalling] of inside information. [INCENTIVE]
+     SIGNAL [COST: cheap] of the informal story. [INCENTIVE]
+     PLAY [MOVE: signal] for status reward. [INCENTIVE]
+     INTERPERSONAL [PATTERN: rank] of who may speak. [INTERPERSONAL]
 
   3. Individual or manager responds. [HUMAN, GATED]
      SUPPORT: separate facts, impact, privacy, and repair path.
@@ -78,9 +79,10 @@ PROCESS DomesticStressWorkBoundary (INPUT: domestic_stress_and_work_expectations
        social_norm: employees may hide domestic strain to preserve professional identity.
 
   2. Employee chooses disclose, compensate, withdraw, or request support. [HUMAN, DECISION]
-     GAME_THEORY:
-       pattern: if support requests are punished, concealment becomes rational.
-       mitigation: make support routes predictable and non-stigmatizing.
+     GAME [KIND: pd] of disclose vs conceal. [INCENTIVE]
+     PLAY [MOVE: defect] as concealment if support requests are punished. [INCENTIVE]
+     AVOIDANCE [MODE: behavioral] of asking for help. [AVOIDANT]
+     PAYOFF: T>R>P>S for hide vs disclose
 
   3. Manager negotiates boundary and coverage. [HUMAN, SUPPORT]
      SUPPORT: clarify priority, deadline, coverage, and confidentiality.
@@ -105,9 +107,9 @@ PROCESS OpenSourceContributionNorming (INPUT: new_contributor_pull_request; OUTP
        belonging: first interaction shapes whether contributor returns.
 
   2. Maintainers review contribution and communicate standards. [HUMAN, GATED]
-     GAME_THEORY:
-       pattern: harsh review can protect quality short-term but reduce future contribution.
-       mitigation: separate quality bar from social dismissal.
+     GAME [STRUCTURE: repeated; KIND: pd] of review vs future contribution. [INCENTIVE]
+     PLAY [MOVE: punish] as harsh review. [INCENTIVE]
+     DISCOUNT [SHAPE: hyperbolic] [REF: now] if maintainers overweight current quality. [HEURISTIC]
 
   3. Project accepts, requests change, or redirects. [SIDE-EFFECT]
      SUPPORT: provide rationale, next action, and path to successful future contribution.

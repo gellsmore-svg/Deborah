@@ -103,9 +103,18 @@ Do not inline another process’s graph — `CALL` / `SERVICE` it.
 ## Extension constructs (docs; core walker may skip)
 
 Psych/org/socio: `REGULATION` `APPRAISAL` `DUAL_PROCESS` `METACOGNITION`
+`AVOIDANCE` `HABIT` `ATTENTION` `INTERPERSONAL`
 `ALIGN` `COALITION` `RESISTANCE` `REINFORCEMENT` `CASCADE` `VISION`
 `SOCIALIZE` `INSTITUTIONALIZE` `SYMBOLIC_INTERACTION` `CONFLICT`
 `ACCOMMODATE` `ASSIMILATE` `ROLE` `FEEDBACK` `MACRO`
+
+Behavioural economics: `FRAME` `NUDGE` `ACCOUNT` `DISCOUNT`
+(`DECISION [ON: …; RULE: satisfice|maximize]` — same first bracket as ON).
+
+Game theory: `GAME` `PLAY` `EQUILIBRIUM` `SIGNAL` (do not tag `STRATEGIC`).
+
+HCI: `CHOICE` `GULF` `AFFORDANCE` `FORAGE`. Hick `CHOICE [SET:]` is not
+“fewer is always faster”; visual search is `FORAGE`.
 
 Isolated reconstruction: `SAMPLE` (needs `N` or `MAX`), `VIEW` (needs
 `ROLE`, `EXPOSE`, or `WITHHOLD`), `MERGE [RULE: admissibility|winner|vote|synthesis|none]`.
@@ -116,7 +125,9 @@ Isolated reconstruction: `SAMPLE` (needs `N` or `MAX`), `VIEW` (needs
 
 ## Do not write
 
-- Invented constructs or tags
+- Invented constructs or tags (no DSM/ICD diagnosis names as constructs)
+- `DECISION [ON: x] [RULE: satisfice]` — RULE must share the first `[ON: …]` bracket
+- `GAME_THEORY:` — use `GAME`/`PLAY`/`EQUILIBRIUM`/`SIGNAL`
 - `CONCURRENT` → use `PARALLEL`
 - `BATCH` → `ITERATE` / `QUEUE`, or `SAMPLE` for isolated reconstructions
 - A programming dialect (types, functions, source order)
@@ -139,6 +150,8 @@ Omit COGNITION when the step is ordinary prose. `decide` → construct
 
 `PURPOSE:` `OUTPUT:` `CONSTRAINTS:` `STATE UPDATE:` `RISKS:`
 `HUMAN_DEMAND:` `HUMAN_FACTORS:` `SUPPORT:` `FAILURE_MODE:`
+`CONDITION_MAP:` (pointer, not a diagnosis) `BIAS:` `PAYOFF:` `INFORMATION:`
+`CHOICE_COMPLEXITY:` `HCI_TOUCHPOINT:`
 
 STATE is for durable/shared data (`scope: process|session|global`, `dir:`).
 

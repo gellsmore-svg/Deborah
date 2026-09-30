@@ -86,10 +86,16 @@ RETRY, AWAIT, BREAK, CONTINUE, MILESTONE, ERROR
 
 **Extension (human-systems / domain documentation; thin runtime may skip):**
 
-REGULATION, APPRAISAL, DUAL_PROCESS, METACOGNITION, ALIGN, COALITION,
+REGULATION, APPRAISAL, DUAL_PROCESS, METACOGNITION, AVOIDANCE, HABIT,
+ATTENTION, INTERPERSONAL, FRAME, NUDGE, ACCOUNT, DISCOUNT, GAME, PLAY,
+EQUILIBRIUM, SIGNAL, CHOICE, GULF, AFFORDANCE, FORAGE, ALIGN, COALITION,
 RESISTANCE, REINFORCEMENT, CASCADE, VISION, SOCIALIZE, INSTITUTIONALIZE,
 SYMBOLIC_INTERACTION, CONFLICT, ACCOMMODATE, ASSIMILATE, ROLE, FEEDBACK, MACRO,
 SAMPLE, VIEW
+
+Diagnoses are maps (`examples/mappings/psych-condition-map.md`), not constructs.
+`DECISION [ON: …; RULE: satisfice|maximize]` shares one bracket. Do not tag GAME
+`STRATEGIC`.
 
 `SAMPLE` describes several isolated attempts at the same problem (they must not
 read each other). `VIEW` describes what a later attempt is allowed to see.

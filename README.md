@@ -21,7 +21,7 @@ and review complex work across technical, psychological, organisational, and
 sociological dimensions — including iteration, recursion, non-determinism,
 sync/async, queuing, outcome review, error handling, and human context.
 
-**The specification lives in [SPEC.md](SPEC.md) (v0.13).**
+**The specification lives in [SPEC.md](SPEC.md) (v0.14).**
 
 Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
 distribution now installs a compatibility shim that re-exports from here.)
@@ -161,7 +161,7 @@ clarity always wins.
 ### Human-system awareness
 Cairn can describe psychological, organisational, and sociological processes
 alongside technical ones because governed agentic work happens inside human
-systems. Domain constructs (`REGULATION`, `COALITION`, `SOCIALIZE`, …) are in the
+systems. Domain constructs (`REGULATION`, `AVOIDANCE`, `NUDGE`, `GAME`, `CHOICE`, `COALITION`, `SOCIALIZE`, …) are in the
 **descriptive** profile — they author and render well; a minimal interpreter may
 skip them without inventing runtime behaviour (SPEC §16).
 

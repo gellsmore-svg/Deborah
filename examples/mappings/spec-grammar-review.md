@@ -3,6 +3,15 @@
 The expanded example suite exercised corporate, organisational-change,
 psychological, sociological, technical/agentic, HCI, and augmentation cases.
 
+## Erratum (SPEC v0.14)
+
+The 2026-08 expanded-example review treated informal `HCI_TOUCHPOINT`,
+`GAME_THEORY`, `AUGMENTATION_PROCESS`, and `FUNCTIONAL_LAYOUT_LOAD` as
+“existing.” The parser silently dropped unmatched `KEYWORD:` lines.
+v0.14 **parses** `HCI_TOUCHPOINT:`. Informal `GAME_THEORY:` is **rewritten**
+to `GAME`/`PLAY`/`EQUILIBRIUM`/`SIGNAL`. The other two remain informal pending
+evolve-from-use. Diagnoses stay in mapping docs, not grammar.
+
 ## Result
 
 No immediate SPEC or GRAMMAR extension was required to represent the new

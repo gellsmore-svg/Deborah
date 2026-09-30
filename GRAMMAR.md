@@ -1,4 +1,4 @@
-# Cairn — structural grammar (v0.13)
+# Cairn — structural grammar (v0.14)
 
 A minimal EBNF for the **structural skeleton** of a Cairn description. It defines
 *shape*, not meaning: the prose in step descriptions, CONTEXT, ACCEPTANCE, etc. is
@@ -83,6 +83,8 @@ annotation      = ( "STATE UPDATE:" | "OUTPUT:" | "RISKS:" | "PURPOSE:" | "COGNI
                   | "HUMAN_FACTORS:" | "HUMAN_RISK:"
                   | "TRUST:" | "SUPPORT:" | "FAILURE_MODE:"
                   | "SIMULATION_FINDINGS:" | "IMPROVEMENT:" | "CHANGE_IMPACT:"
+                  | "CONDITION_MAP:" | "BIAS:" | "PAYOFF:" | "INFORMATION:"
+                  | "CHOICE_COMPLEXITY:" | "HCI_TOUCHPOINT:"
                   | emergent-satisfies ) TEXT NL ;
 (* COGNITION TEXT first token:
    observe|infer|evaluate|decide|negotiate|learn|optimize
@@ -98,7 +100,11 @@ construct       = "STEP" | "MILESTONE" | "ITERATE" | "RECURSE" | "QUEUE"
                 | "CASCADE" | "VISION" | "SOCIALIZE" | "INSTITUTIONALIZE"
                 | "SYMBOLIC_INTERACTION" | "CONFLICT" | "ACCOMMODATE"
                 | "ASSIMILATE" | "ROLE" | "FEEDBACK" | "MACRO"
-                | "SAMPLE" | "VIEW" ;
+                | "SAMPLE" | "VIEW"
+                | "AVOIDANCE" | "HABIT" | "ATTENTION" | "INTERPERSONAL"
+                | "FRAME" | "NUDGE" | "ACCOUNT" | "DISCOUNT"
+                | "GAME" | "PLAY" | "EQUILIBRIUM" | "SIGNAL"
+                | "CHOICE" | "GULF" | "AFFORDANCE" | "FORAGE" ;
 construct-line  = ( "MILESTONE" | "ITERATE" | "RECURSE" | "QUEUE" | "PARALLEL"
                   | "SERVICE" | "CONCURRENT" | "DECISION" | "RETRY" | "ERROR"
                   | "AWAIT" | "CALL" | "MERGE" | "BREAK" | "CONTINUE" | "ATOMIC"
@@ -107,7 +113,11 @@ construct-line  = ( "MILESTONE" | "ITERATE" | "RECURSE" | "QUEUE" | "PARALLEL"
                   | "CASCADE" | "VISION" | "SOCIALIZE" | "INSTITUTIONALIZE"
                   | "SYMBOLIC_INTERACTION" | "CONFLICT" | "ACCOMMODATE"
                   | "ASSIMILATE" | "ROLE" | "FEEDBACK" | "MACRO"
-                  | "SAMPLE" | "VIEW" )
+                  | "SAMPLE" | "VIEW"
+                  | "AVOIDANCE" | "HABIT" | "ATTENTION" | "INTERPERSONAL"
+                  | "FRAME" | "NUDGE" | "ACCOUNT" | "DISCOUNT"
+                  | "GAME" | "PLAY" | "EQUILIBRIUM" | "SIGNAL"
+                  | "CHOICE" | "GULF" | "AFFORDANCE" | "FORAGE" )
                   [ modifiers ] [ "→" TEXT ] TEXT? NL ;
 modifiers       = "[" mod { ";" mod } "]" ;
 mod             = key ":" TEXT | flag ;        (* e.g. UNTIL: …; MAX: 5 *)
@@ -120,12 +130,17 @@ tag             = reserved-tag [ "[" TEXT "]" ]    (* IDEMPOTENT [KEY: …], BAT
                 | ext-tag ;
 reserved-tag    = actor | determinism | timing | effect | control
                 | domain-tag ;
-domain-tag      = psychological-tag | organisational-tag | sociological-tag ;
+domain-tag      = psychological-tag | organisational-tag | sociological-tag
+                | be-tag | gt-tag | hci-tag ;
 psychological-tag = "EMOTIONAL" | "COGNITIVE" | "APPRAISAL" | "REGULATION"
-                | "MOTIVATIONAL" | "METACOGNITIVE" | "BEHAVIORAL" ;
+                | "MOTIVATIONAL" | "METACOGNITIVE" | "BEHAVIORAL"
+                | "TRANSDIAGNOSTIC" | "INTERPERSONAL" | "AVOIDANT" ;
 organisational-tag = "LEADERSHIP" | "STRATEGIC" | "CULTURAL" | "POWER"
                 | "STAKEHOLDER" | "STRUCTURAL" | "ALIGNMENT" | "RESISTANCE" ;
 sociological-tag = "SOCIAL" | "GROUP" | "NORM" | "ROLE" | "SYMBOLIC" ;
+be-tag          = "HEURISTIC" | "FRAMED" | "NUDGED" ;
+gt-tag          = "INCENTIVE" | "COMMON_KNOWLEDGE" | "RECIPROCAL" ;
+hci-tag         = "INTERACTIVE" | "OVERLOAD" | "DISCOVERABLE" ;
 actor           = ( "LLM" | "HUMAN" | "CODE" | "EXTERNAL" ) [ ":" role ] ;  (* HUMAN: Product Lead *)
 assisted-by     = "ASSISTED-BY:" actor { "," actor } ;
 role            = word { word } ;
@@ -152,7 +167,7 @@ Beyond grammar, a description is well-formed if:
 6. LLM-driven `ITERATE`/`RECURSE` carry a bound (`MAX`/`MAX_DEPTH`);
 7. `BREAK`/`CONTINUE` appear only inside a loop;
 8. every `AWAIT` states a `TIMEOUT`.
-9. Domain constructs (REGULATION, COALITION, SOCIALIZE, FEEDBACK, MACRO, etc.) are encouraged when using matching tags for psych/org/socio work in human systems.
+9. Domain constructs (REGULATION, COALITION, SOCIALIZE, FEEDBACK, MACRO, FRAME, GAME, CHOICE, etc.) are encouraged when using matching tags for psych/org/socio/BE/GT/HCI work in human systems. Do not mint diagnosis names as constructs.
 10. Human-facing high-load steps should expose human demand (ORIENT / ACT / CLOSE), support, trust, recovery, and change impact where relevant.
 11. New render profiles: `therapeutic`, `change_leader`, `human_demand`, and `human_factors` for domain-focused views.
 12. `SAMPLE` declares `N` or `MAX`. `VIEW` declares `ROLE`, `EXPOSE`, or `WITHHOLD`.

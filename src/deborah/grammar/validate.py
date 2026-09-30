@@ -21,10 +21,53 @@ _BOUND_CONSTRUCTS = frozenset({"ITERATE", "RECURSE"})
 _BOUND_KEYS = frozenset({"MAX", "MAX_DEPTH", "UNTIL", "OVER"})
 
 # Domain-specific constructs from proposals (for validation and awareness)
-_PSYCH_CONSTRUCTS = frozenset({"REGULATION", "APPRAISAL", "DUAL_PROCESS", "METACOGNITION", "FEEDBACK"})
+_PSYCH_CONSTRUCTS = frozenset(
+    {
+        "REGULATION",
+        "APPRAISAL",
+        "DUAL_PROCESS",
+        "METACOGNITION",
+        "FEEDBACK",
+        "AVOIDANCE",
+        "HABIT",
+        "ATTENTION",
+        "INTERPERSONAL",
+    }
+)
 _ORG_CONSTRUCTS = frozenset({"ALIGN", "COALITION", "RESISTANCE", "REINFORCEMENT", "CASCADE", "VISION"})
 _SOCIO_CONSTRUCTS = frozenset({"SOCIALIZE", "INSTITUTIONALIZE", "SYMBOLIC_INTERACTION", "CONFLICT", "ACCOMMODATE", "ASSIMILATE", "ROLE"})
-_ALL_DOMAIN_CONSTRUCTS = _PSYCH_CONSTRUCTS | _ORG_CONSTRUCTS | _SOCIO_CONSTRUCTS | {"MACRO"}
+_BE_CONSTRUCTS = frozenset({"FRAME", "NUDGE", "ACCOUNT", "DISCOUNT"})
+_GT_CONSTRUCTS = frozenset({"GAME", "PLAY", "EQUILIBRIUM", "SIGNAL"})
+_HCI_CONSTRUCTS = frozenset({"CHOICE", "GULF", "AFFORDANCE", "FORAGE"})
+_ALL_DOMAIN_CONSTRUCTS = (
+    _PSYCH_CONSTRUCTS
+    | _ORG_CONSTRUCTS
+    | _SOCIO_CONSTRUCTS
+    | _BE_CONSTRUCTS
+    | _GT_CONSTRUCTS
+    | _HCI_CONSTRUCTS
+    | {"MACRO"}
+)
+_SHOULD_ANY = {
+    "AVOIDANCE": ("MODE",),
+    "HABIT": ("PHASE",),
+    "ATTENTION": ("MODE",),
+    "INTERPERSONAL": ("PATTERN",),
+    "FRAME": ("VALENCE",),
+    "NUDGE": ("TOOL",),
+    "ACCOUNT": ("KIND",),
+    "DISCOUNT": ("SHAPE",),
+    "PLAY": ("MOVE",),
+    "EQUILIBRIUM": ("CONCEPT",),
+    "SIGNAL": ("COST",),
+    "GULF": ("KIND",),
+    "AFFORDANCE": ("MAP",),
+    "FORAGE": ("SCENT",),
+}
+_SHOULD_OR = {
+    "GAME": ("STRUCTURE", "KIND"),
+    "CHOICE": ("SET", "ARCHITECTURE"),
+}
 _SAMPLE_BOUND_KEYS = frozenset({"N", "MAX"})
 _MERGE_RULES = frozenset({"winner", "vote", "synthesis", "admissibility", "none"})
 
@@ -255,16 +298,43 @@ def _validate_process(
         if isinstance(el, ConstructLine):
             used_constructs.add(el.construct)
 
-    psych_tag_set = {"EMOTIONAL", "COGNITIVE", "APPRAISAL", "REGULATION", "MOTIVATIONAL", "METACOGNITIVE", "BEHAVIORAL"}
+    psych_tag_set = {
+        "EMOTIONAL",
+        "COGNITIVE",
+        "APPRAISAL",
+        "REGULATION",
+        "MOTIVATIONAL",
+        "METACOGNITIVE",
+        "BEHAVIORAL",
+        "TRANSDIAGNOSTIC",
+        "INTERPERSONAL",
+        "AVOIDANT",
+    }
     org_tag_set = {"LEADERSHIP", "STRATEGIC", "CULTURAL", "POWER", "STAKEHOLDER", "STRUCTURAL", "ALIGNMENT", "RESISTANCE"}
     socio_tag_set = {"SOCIAL", "GROUP", "NORM", "ROLE", "SYMBOLIC"}
+    be_tag_set = {"HEURISTIC", "FRAMED", "NUDGED"}
+    gt_tag_set = {"INCENTIVE", "COMMON_KNOWLEDGE", "RECIPROCAL"}
+    hci_tag_set = {"INTERACTIVE", "OVERLOAD", "DISCOVERABLE"}
+    used_upper = {c.upper() for c in used_constructs}
 
-    if psych_tag_set & tag_set and not _PSYCH_CONSTRUCTS & {c.upper() for c in used_constructs}:
+    if psych_tag_set & tag_set and not _PSYCH_CONSTRUCTS & used_upper:
         errors.append(f"PROCESS {proc.name}: has psychological tags but no corresponding constructs (REGULATION, APPRAISAL, etc.) — use them for clarity in human systems")
-    if org_tag_set & tag_set and not _ORG_CONSTRUCTS & {c.upper() for c in used_constructs}:
+    if org_tag_set & tag_set and not _ORG_CONSTRUCTS & used_upper:
         errors.append(f"PROCESS {proc.name}: has organisational tags but no corresponding constructs (COALITION, ALIGN, etc.)")
-    if socio_tag_set & tag_set and not _SOCIO_CONSTRUCTS & {c.upper() for c in used_constructs}:
+    if socio_tag_set & tag_set and not _SOCIO_CONSTRUCTS & used_upper:
         errors.append(f"PROCESS {proc.name}: has sociological tags but no corresponding constructs (SOCIALIZE, SYMBOLIC_INTERACTION, etc.)")
+    if be_tag_set & tag_set and not _BE_CONSTRUCTS & used_upper:
+        errors.append(
+            f"PROCESS {proc.name}: behavioural-economic tags require a FRAME, NUDGE, ACCOUNT, or DISCOUNT construct"
+        )
+    if gt_tag_set & tag_set and not _GT_CONSTRUCTS & used_upper:
+        errors.append(
+            f"PROCESS {proc.name}: game-theoretic tags require a GAME, PLAY, EQUILIBRIUM, or SIGNAL construct"
+        )
+    if hci_tag_set & tag_set and not _HCI_CONSTRUCTS & used_upper:
+        errors.append(
+            f"PROCESS {proc.name}: hci tags require a CHOICE, GULF, AFFORDANCE, or FORAGE construct"
+        )
 
     return errors
 
@@ -305,6 +375,7 @@ def _validate_step_tree(
         if construct == "FEEDBACK":
             if not keys and not step.text:
                 errors.append(f"line {step.lineno}: FEEDBACK should specify what is fed back (e.g. [FROM: emotion] or text)")
+        errors.extend(_check_should_modifiers(construct, keys, step.lineno))
 
     if construct == "SAMPLE":
         parsed = getattr(step, "parsed_modifiers", {}) or {}
@@ -363,6 +434,27 @@ def _validate_step_tree(
             )
         )
 
+    return errors
+
+
+def _check_should_modifiers(construct: str | None, modifiers: set[str], lineno: int) -> list[str]:
+    """Key-presence 'should' checks for four-area EXTENSION constructs.
+
+    Values are not closed-enum: mapping docs name the inventory.
+    DECISION RULE is optional and is not checked here.
+    """
+    if not construct:
+        return []
+    errors: list[str] = []
+    keys = {k.upper() for k in modifiers}
+    if construct in _SHOULD_ANY:
+        need = _SHOULD_ANY[construct]
+        if not any(n in keys for n in need):
+            errors.append(f"line {lineno}: {construct} should declare {need[0]}")
+    if construct in _SHOULD_OR:
+        a, b = _SHOULD_OR[construct]
+        if a not in keys and b not in keys:
+            errors.append(f"line {lineno}: {construct} should declare {a} or {b}")
     return errors
 
 
@@ -453,6 +545,7 @@ def _validate_construct_line(
     if cline.construct == "MACRO":
         if not keys and not cline.text:
             errors.append(f"line {cline.lineno}: MACRO should name a higher-level pattern or sub-process")
+    errors.extend(_check_should_modifiers(cline.construct, keys, cline.lineno))
     return errors
 
 

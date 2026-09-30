@@ -37,6 +37,13 @@ Source anchors:
 - Incentives and status rewards can make individually rational actions produce
   poor system outcomes.
 - Cairn examples should therefore state the incentive pattern, not only the task.
+- First-class verbs (SPEC v0.14): `FRAME` `NUDGE` `ACCOUNT` `DISCOUNT`;
+  `GAME` `PLAY` `EQUILIBRIUM` `SIGNAL`. Inventories:
+  [`be-bias-map.md`](be-bias-map.md), [`gt-game-map.md`](gt-game-map.md).
+
+Source anchors:
+- Kahneman & Tversky, prospect theory (1979): https://doi.org/10.2307/1914185
+- Camerer-style economic games overview: https://online.ucpress.edu/collabra/article/7/1/19004/116331/Economic-Games-An-Introduction-and-Guide-for
 
 ## Sociological And Domestic-Work Interfaces
 
@@ -58,6 +65,14 @@ Source anchors:
   reconstruct meaning from memory.
 - Cairn examples should model awareness, orientation, execution, feedback,
   recovery, handoff, and adaptation touchpoints when UI is present.
+- First-class verbs (SPEC v0.14): `CHOICE` `GULF` `AFFORDANCE` `FORAGE`.
+  `HCI_TOUCHPOINT:` is now a parsed annotation. Hick–Hyman is not “fewer is
+  always faster”; visual search is `FORAGE`. Map: [`hci-heuristic-map.md`](hci-heuristic-map.md).
+
+Source anchors:
+- CHI 2020, How Relevant is Hick's Law for HCI?: https://doi.org/10.1145/3313831.3376878
+- Scheibehenne, Greifeneder & Todd (2010) choice-overload meta-analysis:
+  https://www.researchgate.net/publication/48210291_Can_There_Ever_be_Too_Many_Options_A_Meta-analytic_Review_of_Choice_Overload
 
 ## Occupational Health And Healthy Work
 

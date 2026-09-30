@@ -5,7 +5,7 @@ that must **emit, validate, walk, or integrate** crystallised process plans.
 
 **Companion:** [GUIDE-HUMAN.md](GUIDE-HUMAN.md).  
 **Normative:** [SPEC.md](../SPEC.md), [GRAMMAR.md](../GRAMMAR.md),
-`deborah.conformance` (version **1.4**), `deborah.contracts` (**1.1**).  
+`deborah.conformance` (version **1.6**), `deborah.contracts` (**1.1**).  
 **Ownership:** [PLAN-OWNERSHIP.md](PLAN-OWNERSHIP.md).  
 **Package:** `deborah>=0.23.3` (stdlib-only core).
 

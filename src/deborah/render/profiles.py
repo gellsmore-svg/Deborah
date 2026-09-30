@@ -378,7 +378,7 @@ class TherapeuticProfile(RenderProfile):
         if language == "en":
             body = body.replace("# ", "# Therapeutic View: ", 1) if body.startswith("# ") else "# Therapeutic View\n\n" + body
             if "Modifiers:" in body:
-                body += "\n\n_Note: Focus on regulation, appraisal, and feedback loops for emotional/psychological work._"
+                body += "\n\n_Note: Focus on regulation, appraisal, feedback, avoidance, habit, attention, and interpersonal process — descriptive, not diagnostic._"
         res.body = body
         res.profile = self.name
         return res
@@ -411,6 +411,8 @@ _HUMAN_DEMAND_KEYS = (
     "SIMULATION_FINDINGS",
     "IMPROVEMENT",
     "CHANGE_IMPACT",
+    "HCI_TOUCHPOINT",
+    "CHOICE_COMPLEXITY",
 )
 
 _HUMAN_FACTORS_KEYS = (
@@ -421,6 +423,9 @@ _HUMAN_FACTORS_KEYS = (
     "SUPPORT",
     "TRUST",
     "CHANGE_IMPACT",
+    "CHOICE_COMPLEXITY",
+    "BIAS",
+    "PAYOFF",
 )
 
 
@@ -516,6 +521,8 @@ class HumanFactorsProfile(RenderProfile):
             lines.append("# Human Factors Review")
             lines.append("")
             lines.append("No human factors annotations were found.")
+        elif language == "en":
+            lines.append("_Note: Emphasize framing, nudges, discounting, games, choice architecture, gulfs, and forage scent._")
 
         return RenderResult(
             profile=self.name,

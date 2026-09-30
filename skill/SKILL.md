@@ -81,10 +81,11 @@ them. Do not redefine their jobs.
    first tokens and `decide` → `DECISION` are in the mini.
 
 4. **Invent no constructs.** CORE constructs for anything that must execute.
-   Extension constructs (psych/org/socio, SAMPLE/VIEW) are documentation; a
-   core runtime may skip them. If the grammar cannot say it, use a numbered
-   STEP plus CONSTRAINTS/PURPOSE — do not mint syntax. Forbidden aliases
-   live in cairn-mini.
+   Extension constructs (psych/org/socio/BE/GT/HCI, SAMPLE/VIEW) are
+   documentation; a core runtime may skip them. Do not mint DSM/ICD diagnosis
+   names. If the grammar cannot say it, use a numbered STEP plus
+   CONSTRAINTS/PURPOSE — do not mint syntax. Forbidden aliases live in
+   cairn-mini.
 
 5. **Validate** when Deborah is installed and the artefact is more than a
    sketch. Use the `deborah-validate` commands in cairn-mini. Fix grammar

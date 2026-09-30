@@ -30,9 +30,9 @@ PROCESS AIModelRiskGovernanceReview (INPUT: proposed_ai_system; OUTPUT: approved
        impact: high
        confidence: medium
        rationale: weak governance can create customer harm, legal exposure, and loss of trust.
-     GAME_THEORY:
-       incentive: teams may minimize risk language to secure approval.
-       mitigation: require explicit residual-risk owner and visible dissent capture.
+     GAME [KIND: principal_agent] of approval vs residual risk. [INCENTIVE]
+     PLAY [MOVE: defect] as minimized risk language. [INCENTIVE]
+     SIGNAL [COST: costly] if dissent and residual-risk ownership are required. [INCENTIVE]
 
   4. Track conditions, monitoring, incidents, and periodic re-review. [SERVICE, ASYNC]
      HCI_TOUCHPOINT:
@@ -86,9 +86,9 @@ PROCESS InternalAuditFindingRemediation (INPUT: audit_finding; OUTPUT: verified_
      SUPPORT: distinguish observation, risk, requirement, action, evidence, and due date.
 
   2. Agree management action plan and realistic remediation path. [HUMAN, GATED]
-     GAME_THEORY:
-       incentive: owners may offer cosmetic actions that satisfy wording but not risk.
-       mitigation: require testable evidence and independent verification criteria.
+     GAME [KIND: principal_agent] of wording vs residual risk. [INCENTIVE]
+     PLAY [MOVE: defect] as cosmetic actions. [INCENTIVE]
+     SIGNAL [COST: costly] if evidence must be independently verified. [INCENTIVE]
      HUMAN_RISK:
        probability: medium
        impact: medium
@@ -159,9 +159,9 @@ PROCESS ThirdPartyRiskDueDiligence (INPUT: proposed_supplier_or_partner; OUTPUT:
        impact: high
        confidence: medium
        rationale: weak third-party decisions can import security, continuity, ethical, and customer harms.
-     GAME_THEORY:
-       incentive: vendors may provide polished but incomplete evidence.
-       mitigation: require critical-evidence checks and periodic reassessment.
+     GAME [KIND: principal_agent] of vendor evidence. [INCENTIVE]
+     SIGNAL [COST: cheap] of polished incomplete packs. [INCENTIVE]
+     SIGNAL [COST: costly] if critical-evidence checks are required. [INCENTIVE]
 
   4. Monitor changes, incidents, renewals, and offboarding. [SERVICE, ASYNC]
      SUPPORT: expose renewal dates, contract duties, live incidents, and exit readiness in one view.
@@ -189,9 +189,9 @@ PROCESS SpeakUpConcernHandling (INPUT: employee_or_stakeholder_concern; OUTPUT: 
      SUPPORT: separate confidentiality, investigation scope, welfare support, and anti-retaliation monitoring.
 
   3. Investigate with procedural fairness and minimal necessary disclosure. [HUMAN, READONLY]
-     GAME_THEORY:
-       incentive: powerful actors may shape narratives or discourage witnesses.
-       mitigation: conflict checks, evidence log, witness support, and independent oversight.
+     GAME [KIND: principal_agent] of investigation vs power. [INCENTIVE]
+     PLAY [MOVE: defect] as narrative-shaping or witness-discouragement. [INCENTIVE]
+     SIGNAL [COST: costly] of conflict checks, evidence log, and independent oversight. [INCENTIVE]
 
   4. Communicate outcome at the right level and monitor retaliation risk. [FEEDBACK]
      HCI_TOUCHPOINT:

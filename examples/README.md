@@ -30,6 +30,10 @@ intended as instructive patterns for both humans and LLMs:
 - [`mappings/human-systems-interface-map.md`](mappings/human-systems-interface-map.md) — OKF-style mapping of psychological, sociological, work, augmentation, and HCI interfaces.
 - [`mappings/research-grounding-notes.md`](mappings/research-grounding-notes.md) — concise research lenses used by the expanded examples.
 - [`mappings/spec-grammar-review.md`](mappings/spec-grammar-review.md) — review of whether the new examples require SPEC/GRAMMAR changes.
+- [`mappings/psych-condition-map.md`](mappings/psych-condition-map.md) — DSM-5-TR / ICD-11 / HiTOP / RDoC / pattern → verbs (**not diagnoses**).
+- [`mappings/be-bias-map.md`](mappings/be-bias-map.md) — prospect, heuristics, MINDSPACE/EAST, choice overload.
+- [`mappings/gt-game-map.md`](mappings/gt-game-map.md) — axes, 2×2 orderings, behavioural GT, `GAME_THEORY:` rewrite.
+- [`mappings/hci-heuristic-map.md`](mappings/hci-heuristic-map.md) — Norman, Nielsen 10, Hick caveat, foraging, choice complexity.
 
 The subfolder examples are included in `scripts/validate_examples.py` via
 recursive validation.
@@ -67,6 +71,41 @@ recursive validation.
 - [`psych-metacognition.cairn.md`](psych-metacognition.cairn.md) — Metacognitive monitoring and control in learning/problem-solving.
 - [`psych-operant-conditioning.cairn.md`](psych-operant-conditioning.cairn.md) — Operant conditioning, reinforcement schedules, and extinction.
 - [`psych-self-determination-motivation.cairn.md`](psych-self-determination-motivation.cairn.md) — SDT basic psychological needs and motivation internalization.
+- [`psych-experiential-avoidance.cairn.md`](psych-experiential-avoidance.cairn.md) — experiential / safety avoidance (descriptive, not a diagnosis).
+- [`psych-habit-loop.cairn.md`](psych-habit-loop.cairn.md) — individual cue–routine–reward (not org REINFORCEMENT).
+- [`psych-attentional-bias.cairn.md`](psych-attentional-bias.cairn.md) — select/sustain/shift/bias (not REGULATION TARGET attention).
+- [`psych-mentalization.cairn.md`](psych-mentalization.cairn.md) — INTERPERSONAL attachment/rank/validation/mentalization.
+
+## Behavioural economics
+- [`be-prospect-theory-framing.cairn.md`](be-prospect-theory-framing.cairn.md) — FRAME gain/loss.
+- [`be-nudge-defaults.cairn.md`](be-nudge-defaults.cairn.md) — NUDGE TOOL default.
+- [`be-mental-accounting.cairn.md`](be-mental-accounting.cairn.md) — ACCOUNT KIND mental.
+- [`be-present-bias.cairn.md`](be-present-bias.cairn.md) — DISCOUNT hyperbolic.
+- [`be-satisficing-decision.cairn.md`](be-satisficing-decision.cairn.md) — DECISION RULE satisfice (same bracket as ON).
+- [`be-anchoring-heuristic.cairn.md`](be-anchoring-heuristic.cairn.md) — BIAS anchoring.
+- [`be-social-proof-messenger.cairn.md`](be-social-proof-messenger.cairn.md) — NUDGE social_proof / messenger.
+
+## Game theory
+- [`gt-prisoners-dilemma-tft.cairn.md`](gt-prisoners-dilemma-tft.cairn.md) — iterated PD; TFT is PLAY policy, not a construct.
+- [`gt-stag-hunt-coordination.cairn.md`](gt-stag-hunt-coordination.cairn.md) — stag hunt + loss FRAME.
+- [`gt-chicken-snowdrift.cairn.md`](gt-chicken-snowdrift.cairn.md) — chicken / mixed equilibrium.
+- [`gt-public-goods.cairn.md`](gt-public-goods.cairn.md) — public goods + friction NUDGE.
+- [`gt-ultimatum-reciprocity.cairn.md`](gt-ultimatum-reciprocity.cairn.md) — behavioural GT; tag RECIPROCAL not STRATEGIC.
+- [`gt-signalling-costly.cairn.md`](gt-signalling-costly.cairn.md) — cheap vs costly SIGNAL.
+- [`gt-principal-agent.cairn.md`](gt-principal-agent.cairn.md) — hidden effort, incentive NUDGE.
+
+## HCI (including complexity of choice)
+- [`hci-gulf-execution.cairn.md`](hci-gulf-execution.cairn.md)
+- [`hci-gulf-evaluation.cairn.md`](hci-gulf-evaluation.cairn.md)
+- [`hci-affordance-mapping.cairn.md`](hci-affordance-mapping.cairn.md)
+- [`hci-choice-architecture.cairn.md`](hci-choice-architecture.cairn.md)
+- [`hci-choice-overload.cairn.md`](hci-choice-overload.cairn.md) — Iyengar/Schwartz + Hick caveat.
+- [`hci-information-foraging.cairn.md`](hci-information-foraging.cairn.md)
+- [`hci-cognitive-load.cairn.md`](hci-cognitive-load.cairn.md) — Sweller types in HUMAN_LOAD.
+
+## Cross-area
+- [`cross-avoidance-loss-choice-trust.cairn.md`](cross-avoidance-loss-choice-trust.cairn.md) — AVOIDANCE × loss FRAME × CHOICE overload × PLAY defect.
+- [`cross-habit-nudge-forage.cairn.md`](cross-habit-nudge-forage.cairn.md) — HABIT × NUDGE friction × FORAGE scent.
 
 ## High-Level Organisational Process Examples
 - [`org-kotter-8step-change.cairn.md`](org-kotter-8step-change.cairn.md) — Kotter's 8-step model for leading organisational transformation.

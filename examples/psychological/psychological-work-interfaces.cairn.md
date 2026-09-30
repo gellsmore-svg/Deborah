@@ -52,9 +52,9 @@ PROCESS BorderlinePatternConflictInterface (INPUT: perceived_rejection_or_instab
 
   3. Use validating, boundaried response path. [HUMAN, SUPPORT]
      SUPPORT: acknowledge emotion, state facts, define next contact, and avoid vague promises.
-     GAME_THEORY:
-       pattern: intermittent reassurance can accidentally reinforce escalation.
-       mitigation: predictable communication and consistent boundaries.
+     HABIT [PHASE: reward] of intermittent reassurance. [BEHAVIORAL]
+     GAME [STRUCTURE: repeated; KIND: pd] of escalation vs bounded contact. [INCENTIVE]
+     PLAY [MOVE: cooperate] as predictable contact — not a diagnosis. [RECIPROCAL]
 
   4. Review process trigger rather than label the person. [FEEDBACK]
      HUMAN_FACTORS:
@@ -71,9 +71,9 @@ PROCESS NarcissisticPatternStatusThreat (INPUT: status_threatening_change; OUTPU
        social_status: loss of special role may trigger defensiveness or devaluation of others.
 
   2. Respond through advocacy, obstruction, image management, or coalition seeking. [HUMAN, SOCIAL]
-     GAME_THEORY:
-       pattern: public challenge can reward dominance displays.
-       mitigation: move from status contest to explicit criteria and private repair.
+     GAME [KIND: chicken] public challenge can reward dominance displays. [INCENTIVE]
+     INTERPERSONAL [PATTERN: rank] of the status contest. [INTERPERSONAL]
+     PLAY [MOVE: defect] as a dominance display. [INCENTIVE]
 
   3. Reframe change around contribution and accountable criteria. [REGULATION, COALITION]
      SUPPORT: give high-status contributors a bounded, useful role without giving veto power.
@@ -146,9 +146,9 @@ PROCESS AntisocialPatternExploitationRisk (INPUT: low_accountability_high_reward
        incentive_risk: weak controls and high rewards can invite exploitative behaviour.
 
   2. Person or group tests whether boundaries are real. [HUMAN, DYNAMIC]
-     GAME_THEORY:
-       pattern: if violations produce reward and little cost, exploitation becomes rational.
-       mitigation: immediate, fair, documented boundary enforcement.
+     GAME [KIND: pd] of weak controls vs exploitative reward. [INCENTIVE]
+     PLAY [MOVE: defect] if violations pay and cost little. [INCENTIVE]
+     PAYOFF: T>R>P>S for bend-rules vs comply
 
   3. Apply transparent controls and protect affected people. [HUMAN, GATED]
      SUPPORT: separate fact finding, psychological safety, due process, and retaliation protection.
@@ -171,9 +171,9 @@ PROCESS HistrionicPatternAttentionDynamics (INPUT: ambiguous_attention_or_recogn
        attention_need: ambiguous recognition can trigger dramatic bids for visibility.
 
   2. Group responds with attention, irritation, avoidance, or escalation. [SOCIAL, DYNAMIC]
-     GAME_THEORY:
-       pattern: urgent attention can be reinforced if it reliably redirects group focus.
-       mitigation: predictable recognition, clear meeting structure, and private repair.
+     HABIT [PHASE: reward] if urgent bids reliably redirect group focus. [BEHAVIORAL]
+     GAME [STRUCTURE: repeated; KIND: public_goods] of meeting attention. [INCENTIVE]
+     PLAY [MOVE: cooperate] as structured recognition, not public escalation. [RECIPROCAL]
 
   3. Redirect to evidence, role, and contribution. [REGULATION, SUPPORT]
      SUPPORT: validate contribution without rewarding disruption or public escalation.
