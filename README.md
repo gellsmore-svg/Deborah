@@ -1,40 +1,20 @@
 # Deborah
 
-Deborah is a human-readable process language for **framing cross-LLM work** —
-how LLM *callers* interact with LLM-consumed *capabilities* (versioned tools,
-services, and roles), with intent, outcomes, bounds, and residual uncertainty
-made explicit.
+**Deborah is a process language that people and AI systems can both read.**
+You describe a process in plain numbered steps. Deborah validates it, renders
+it for different audiences, and turns it into a plan an interpreter can walk
+under allow-lists and bounds.
 
-It is **not** a device for turning stochastic model steps into pure functions.
-Stochastic steps stay stochastic; Deborah constrains the *frame* around them
-(which capabilities may run, under what bounds, when to stop, open, or refuse).
+It is built for **framing cross-LLM work**: which capabilities (tools,
+services, roles) an LLM caller may use, under what bounds, and when to stop,
+leave a question open, or refuse, with intent, outcomes and residual
+uncertainty made explicit. It does **not** pretend to turn stochastic model
+steps into pure functions; it constrains the *frame* around them.
 
-> **Renamed from Cairn (v0.9).** The package `cairn` was split into **Deborah**
-> (this repo — the process language) and **[Huldah](https://github.com/gellsmore-svg/Huldah)**
-> (human-systems analysis: human factors, UI evidence, layout load, live
-> observation). The *document format keeps the Cairn name* — your `.cairn.md`
-> files and ```` ```cairn ```` fences are unchanged. See
-> [MIGRATING.md](MIGRATING.md).
-
-It gives humans and AI systems a shared way to describe, crystallise, interpret,
-and review complex work across technical, psychological, organisational, and
-sociological dimensions — including iteration, recursion, non-determinism,
-sync/async, queuing, outcome review, error handling, and human context.
-
-**The specification lives in [SPEC.md](SPEC.md) (v0.14).**
-
-Install: `pip install deborah` — import `deborah`. (The old `cairn-lang`
-distribution now installs a compatibility shim that re-exports from here.)
-
-Optional extras:
-- `pip install 'deborah[render]'` — YAML stylesheets
-- `pip install 'deborah[web]'` — `deborah-serve` interactive composer
-- `pip install 'deborah[export]'` — HTML / DOCX / PDF export (python-docx + fpdf2)
-
-**Agent skill** (author Cairn without memorising the language): copy
-[`skill/`](skill/) to `~/.grok/skills/deborah/` (and `~/.claude/skills/deborah/`
-if you use Claude Code). Invoke with `/deborah`. In this repo Grok also loads
-`.grok/skills/deborah`.
+> **Renamed from Cairn (v0.9).** The `cairn` package split into Deborah (the
+> language) and [Huldah](https://github.com/gellsmore-svg/Huldah) (human-systems
+> analysis). **The document format keeps the Cairn name**: `.cairn.md` files
+> and ```cairn fences are unchanged. See [MIGRATING.md](MIGRATING.md).
 
 ## What it looks like
 
@@ -61,245 +41,106 @@ AI-native organisational change, psychological and sociological work interfaces,
 technical/agentic workflows, occupational health, governance/risk/compliance,
 and OKF-style human-systems mappings.
 
-### Rendering & export
-Cairn can be turned into audience-friendly views:
+## Is it for you?
+
+**Good fit:** you need to describe how work actually happens (an agentic
+workflow, a business process, a review gate, a change programme), so that a
+non-technical reader understands it and a runtime can still validate it.
+That includes iteration, recursion, non-determinism, queues, approvals,
+error handling and the human context around them.
+
+**Not a fit:** a new programming language. Deborah describes and frames
+processes; it is not a general-purpose way to write code.
+
+## Try it
 
 ```bash
+pip install deborah
+deborah-validate my-process.cairn.md --profile strict     # well-formed? conforms?
 deborah-render my-process.cairn.md --profile narrative_steps
-# Domain examples:
-#   --profile therapeutic     (psychological / regulation + feedback focus)
-#   --profile change_leader   (organisational change + coalition/alignment focus)
-#   --profile human_demand    (human load, support, trust + simulation findings)
-#   --profile human_factors   (cognitive/social/org/incentive risks + mitigations)
-deborah-render my-process.cairn.md -f html -o view.html
-deborah-render my-process.cairn.md -f pdf -o plan.pdf   # requires [export]
-
 ```
 
-The human-systems analysis CLIs (`huldah-human-factors`,
-`huldah-agent-harness-plan`, `huldah-recommend-interface-changes`,
-`huldah-generate-report`, the `huldah-ui-*` family) moved to
-**[Huldah](https://github.com/gellsmore-svg/Huldah)** — `pip install huldah`.
-They read the same `.cairn.md` documents this package defines.
+The [examples](examples/) run as-is, for instance
+`deborah-render examples/hoglah.cairn.md` or
+`deborah-run examples/cross-llm-critique.cairn.md --demo-results --check-contracts`.
 
-Or programmatically:
+**Version note:** PyPI has package 0.25.1, which implements SPEC v0.12. The
+current spec, **v0.14**, adds `SAMPLE`/`VIEW`/named `MERGE` (v0.13) and the
+four-area EXTENSION verbs such as `NUDGE`, `GAME` and `CHOICE` (v0.14). It ships
+in package 0.26.0, which is not yet released; install from source to use it:
+`pip install "git+https://github.com/gellsmore-svg/Deborah"`.
 
-```python
-from deborah import parse_document, validate_document, document_to_plan, validate_plan
-from deborah.render import render_plan, export_view
+**Writing it with an agent:** copy [`skill/`](skill/) to
+`~/.claude/skills/deborah/` (Claude Code) or `~/.grok/skills/deborah/` (Grok)
+and invoke `/deborah`. You can describe a process in your own words without
+learning the notation.
 
-doc = parse_document(text)
-errors = validate_document(doc)
-plan = document_to_plan(doc)
-assert validate_plan(plan) == []
+## Tools
 
-view = render_plan(text, profile="operator")
-pdf = export_view(view, "pdf")  # requires deborah[export]
-```
+| Tool | Does |
+|---|---|
+| `deborah-validate` | Checks structure (GRAMMAR.md, SPEC §12) and plan conformance (`full`, `core` or `strict` profile) |
+| `deborah-render` | Renders a process for an audience: `operator`, `executive`, `audit`, `narrative_steps`, `simple_prose`, `therapeutic`, `change_leader`, `human_factors`, `human_demand`. Output as markdown, text, JSON, Mermaid or HTML, or DOCX/PDF with `deborah[export]`; English, Spanish or French |
+| `deborah-run` | Walks a plan through the reference interpreter and checks cognition contracts |
+| `deborah-serve` | A local composer (`deborah[web]`, port 8795): pick a profile and options, watch the view update, save the recipe as a reusable stylesheet |
+| `import deborah` | `parse_document`, `validate_document`, `document_to_plan`, `validate_plan`, `render_plan`: the same surface for a runtime ([conformance API](docs/conformance.md)) |
 
-Interactive composer: `deborah-serve` (requires `deborah[web]`).
+Human-factors and UI analysis of the same documents is in
+[Huldah](https://github.com/gellsmore-svg/Huldah) (`pip install huldah`).
 
-## What it's for
+## How the pieces fit
 
-- **Framing cross-LLM work** — how LLM callers interact with LLM-consumed
-  capabilities (tools, services, roles): intent, outcomes, pins, bounds, and
-  residual uncertainty (`open` / `refused`), without pretending to make
-  stochastic steps pure functions. See [SPEC.md](SPEC.md) §14–§17.
-- **Crystallising** negotiated or hand-authored sequences into versioned
-  `PROCESS` / `PLAN` documents that an interpreter can walk under allow-lists
-  and bounds.
-- Documenting **requirements** and technical specifications in design docs.
-- **Reverse-engineering** hidden or unclear processes out of existing systems.
-- Governed agentic flows: recursion, iteration, tool boundaries, revision,
-  approval gates, and outcome alignment.
-- Describing work in **human systems** (cognitive, organisational, social) with
-  descriptive constructs and render profiles — while the **core** construct
-  profile stays portable for execution (`deborah.CORE_CONSTRUCTS`).
+- **Two kinds of construct.** The **core** profile (`deborah.CORE_CONSTRUCTS`)
+  is execution-normative and portable. **Descriptive** constructs
+  (`REGULATION`, `COALITION`, `NUDGE` and others) author and render well, but
+  a minimal interpreter may skip them without inventing behaviour (SPEC §16).
+- **One backbone, many views.** A process has one canonical structure,
+  projected into render profiles for machines and for people.
+- **PLANs are versioned.** A `PLAN` wraps a `PROCESS` as a live plan that can
+  be revised when new information arrives.
+- **In the family:** [Tirzah](https://github.com/gellsmore-svg/tirzah) authors
+  and revises plans, and its planner is tested against
+  `deborah.validate_plan` so it cannot drift from the grammar
+  ([plan ownership](docs/PLAN-OWNERSHIP.md)).
+  [Keturah](https://github.com/gellsmore-svg/keturah) carries capability
+  manifests (optional; Deborah has a small compatible fallback), and
+  [Galeed](https://github.com/gellsmore-svg/galeed) records the trace and cost
+  of runs.
 
-Human-factors analysis, UI evidence, layout load, and agent-harness reporting
-live in **[Huldah](https://github.com/gellsmore-svg/Huldah)** and consume the
-same `.cairn.md` format.
+Why the language reads the way it does (human-first readability, least
+abstraction, core verbs) is in [docs/philosophy.md](docs/philosophy.md).
 
-Put simply: Cairn describes how callers and capabilities work together inside
-real human systems — not only mechanical control flow.
+## Versions
 
-## Philosophy
+Deborah carries two independent version numbers:
 
-### Human-first readability
-The primary goal is **maximum human readability**. Anyone — technical or not —
-should read a Cairn description and quickly understand the process without
-wrestling with syntax, jargon, or abstraction. We remove cognitive barriers so
-attention stays on **what the process actually does**, not on decoding notation.
-
-This matters because agentic work is rarely just computation. It often includes
-judgement, uncertainty, memory, motivation, trust, conflict, change, and review.
-Cairn keeps those human dimensions describable without losing the governed
-runtime spine that lets AI systems validate and interpret plans.
-
-### Least abstract, simplest language possible
-- Concrete, everyday words wherever they suffice.
-- Short, direct sentences; active voice.
-- Structure scaffolds without getting in the way.
-- Details (constraints, context, edge cases) are optional layers consulted when
-  needed — the main flow stays clean and punchy.
-
-### Consistency through core verbs
-A small recommended lexicon (Initialize, Propose, Evaluate, Decide, Update,
-Execute, Iterate, Queue, Merge, Handle…) gives a consistent rhythm and "process
-feel" that helps readers scan, compare, and mentally simulate flows — and helps
-multiple people or LLMs write consistently. Verbs are **not rigid rules**;
-clarity always wins.
-
-### Balance of structure and flexibility
-- Numbered steps + indentation give sequence and hierarchy.
-- `PLAN` envelopes turn a `PROCESS` into a versioned live plan that can be revised when new information arrives.
-- Tags (`[LLM, SYNC, DYNAMIC]`) add precision without cluttering prose.
-- One canonical backbone is projected into audience **render profiles** (precise
-  `ai`, readable `operator`, and more) — serving machines and humans alike.
-- CONTEXT and CONSTRAINTS supply supporting knowledge on demand.
-
-### Human-system awareness
-Cairn can describe psychological, organisational, and sociological processes
-alongside technical ones because governed agentic work happens inside human
-systems. Domain constructs (`REGULATION`, `AVOIDANCE`, `NUDGE`, `GAME`, `CHOICE`, `COALITION`, `SOCIALIZE`, …) are in the
-**descriptive** profile — they author and render well; a minimal interpreter may
-skip them without inventing runtime behaviour (SPEC §16).
-
-Human-factors analysis tooling and provider adapters for offline interpretation
-ship in **Huldah**, not Deborah. Capability manifests for MCP/tool discovery
-ship in **Keturah**. Trace and cost of runs live in **Galeed**.
-
-### Practical and evolving
-Cairn is meant to be used "in anger" on real projects, evolving from actual needs
-rather than theoretical perfection.
-
-> The ultimate test: a reader thinks *"I get what's happening here,"* not
-> *"I need to learn the notation first."*
-
-## Status
-
-Deborah carries **two independent version numbers** (they are not meant to match):
-
-| What | Where it lives | Current |
+| What | Where | Current |
 |---|---|---|
-| **Specification** — the language | `SPEC.md`, `GRAMMAR.md` | **v0.12** |
-| **Package** — installable Python | `pyproject.toml` (`deborah` on PyPI) | **0.23.3** |
+| Specification (the language) | [SPEC.md](SPEC.md), [GRAMMAR.md](GRAMMAR.md) | **v0.14** |
+| Package (Python) | `pyproject.toml` | **0.26.0** in source; **0.25.1** on PyPI |
 
-Package **0.23.3** adds strict ``decide``→``DECISION`` lint and
-``--list-open-questions``. See [CHANGELOG.md](CHANGELOG.md).
+`cairn-lang` on PyPI is a deprecation shim that re-exports Deborah.
 
-Compat: `cairn-lang` on PyPI is a deprecation shim re-exporting Deborah (and
-Huldah where needed). Prefer `pip install deborah`.
+## Documentation
 
-## Repository
+- **Authors:** [GUIDE-HUMAN](docs/GUIDE-HUMAN.md) · [examples/](examples/) ·
+  [render profiles and export](docs/VIEW-GENERATOR.md)
+- **Runtimes and planners:** [GUIDE-AI](docs/GUIDE-AI.md) ·
+  [conformance API](docs/conformance.md) · [grammar parser](docs/GRAMMAR-PARSER.md) ·
+  [usage modes](docs/usage-modes.md)
+- **Language design:** [SPEC.md](SPEC.md) · [GRAMMAR.md](GRAMMAR.md) ·
+  [process semantics and roadmap](docs/PROCESS-SEMANTICS-AND-ROADMAP.md) ·
+  [cognition taxonomy](docs/TAXONOMY-COGNITION-AND-PATTERNS.md) ·
+  [philosophy](docs/philosophy.md) · [okf/](okf/) concept bundle
+- **History:** [CHANGELOG](CHANGELOG.md) · [MIGRATING](MIGRATING.md) ·
+  [2026-08-08 review](docs/review-2026-08-08.md), actioned in 0.24.0
 
-- [SPEC.md](SPEC.md) — normative specification (**v0.12**).
-- [GRAMMAR.md](GRAMMAR.md) — structural EBNF (including PLAN framing fields).
-- [examples/](examples/) — family systems and domain suites in `.cairn.md`.
-- [CHANGELOG.md](CHANGELOG.md) — package and language evolution.
-- [MIGRATING.md](MIGRATING.md) — Cairn → Deborah / Huldah split.
-- [docs/usage-modes.md](docs/usage-modes.md) — CLI, library, embedded, CI modes.
-- [docs/GUIDE-HUMAN.md](docs/GUIDE-HUMAN.md) — operator / author guide (plain language).
-- [docs/GUIDE-AI.md](docs/GUIDE-AI.md) — AI planner / tool-runtime guide (contracts & APIs).
-- [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md) — executable grammar API.
-- [docs/review-2026-08-08.md](docs/review-2026-08-08.md) — functional + code
-  review of 0.23.3 (point-in-time; findings not yet actioned).
-- [docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md) — render profiles and export.
-- [docs/PROCESS-SEMANTICS-AND-ROADMAP.md](docs/PROCESS-SEMANTICS-AND-ROADMAP.md)
-  — three-layer process semantics (execution / behaviour / cognition) and
-  phased implementation roadmap after 0.10.0.
-- [docs/TAXONOMY-COGNITION-AND-PATTERNS.md](docs/TAXONOMY-COGNITION-AND-PATTERNS.md)
-  — which cognitions are primitives vs higher-order patterns.
-- [docs/PLAN-OWNERSHIP.md](docs/PLAN-OWNERSHIP.md) — Deborah interprets;
-  Tirzah authors/revises; shared `validate_plan` contract.
-- [tests/fixtures/tirzah_fallback_plan.json](tests/fixtures/tirzah_fallback_plan.json)
-  — frozen Tirzah `fallback_plan` for Deborah interop.
-- [examples/answer-substrate-question.cairn.md](examples/answer-substrate-question.cairn.md)
-  — Stage 1 vertical slice plan.
-- [okf/](okf/) — Open Knowledge Format concept bundle for the language.
-- [docs/future-usage-logging-spec.md](docs/future-usage-logging-spec.md) —
-  notes on future touchpoint logging.
-- [docs/augmentation-integration-notes.md](docs/augmentation-integration-notes.md)
-  — how augmentation-process research maps into Cairn.
-- Human-factors / UI analysis docs and CLIs →
-  [Huldah](https://github.com/gellsmore-svg/Huldah).
+## Feedback and contributing
 
-## Feedback & contributing
+Deborah evolves from real use, so **feedback is the point**, especially from
+describing your own processes in it. Open an issue for ambiguities, gaps or
+proposals, and show the real process that motivated a language change. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-Cairn evolves from real use, so **feedback is the point** — especially from
-describing your own processes in it.
-
-- Open a GitHub issue for ambiguities, gaps, or proposals (show the real process
-  that motivated a language change).
-- See [CONTRIBUTING.md](CONTRIBUTING.md) for principles (including core vs
-  descriptive constructs and non-goals).
-
-## License
-
-[Apache License 2.0](LICENSE).
-
-## Conformance (`deborah` package)
-
-Deborah is primarily a language package, but it ships a tiny, dependency-free
-**conformance surface** so a runtime can validate the plans it produces instead of
-embedding a private dialect:
-
-```python
-import deborah
-
-# Runtime PLAN dict conformance (profiles: full | core | strict)
-errors = deborah.validate_plan(plan_dict, profile="strict")
-
-# Cognitive product contracts (Phase C)
-from deborah import validate_cognition_result, EXAMPLE_RESULTS
-assert validate_cognition_result("infer", EXAMPLE_RESULTS["infer"], mode="strict") == []
-
-# Structural grammar (GRAMMAR.md EBNF + SPEC §12 well-formedness)
-doc = deborah.parse_document(cairn_text_or_markdown)
-errors = deborah.validate_document(doc)   # [] when well-formed
-plan = deborah.document_to_plan(doc)        # first PLAN or PROCESS → plan dict
-
-# Simplified human-readable views
-view = deborah.render_plan(cairn_text_or_markdown, profile="narrative_steps")
-deborah.CANONICAL_PLAN                      # known-good fixture
-deborah.CORE_CONSTRUCTS                     # execution-normative constructs
-deborah.COGNITION_MVP                       # observe|infer|evaluate|decide
-```
-
-CLI:
-
-```bash
-deborah-validate examples/cross-llm-critique.cairn.md --profile strict
-deborah-run examples/cross-llm-critique.cairn.md --demo-results --check-contracts
-deborah-render examples/hoglah.cairn.md
-```
-
-### View composer (`deborah-serve`)
-
-An interactive, local composer for building a transformation view of a process
-and **saving the recipe as a named template**:
-
-```bash
-pip install 'deborah[web]'
-deborah-serve            # http://127.0.0.1:8795
-```
-
-Paste a Cairn process, pick a profile and options (language, format, depth,
-sections, layout), watch the view update live, then **Save as template**. A
-template is persisted as a stylesheet under `~/.cairn/templates/<name>.json`,
-so it is directly reusable on the CLI:
-`deborah-render --stylesheet ~/.cairn/templates/<name>.json input.cairn.md`.
-
-Grammar parser: [docs/GRAMMAR-PARSER.md](docs/GRAMMAR-PARSER.md). Simplified views:
-[docs/VIEW-GENERATOR.md](docs/VIEW-GENERATOR.md).
-
-Tirzah's recursive planner is tested against `deborah.validate_plan` so its output
-cannot drift from the grammar.
-
-Works the same on native Linux and WSL. Cairn has no hard runtime dependency on
-Keturah; when Keturah is installed, `deborah.manifest` uses it, and otherwise
-Cairn provides a small compatible manifest surface.
-
-```bash
-pip install -e ".[dev]" && pytest
-```
+Develop: `pip install -e ".[dev]" && pytest`. Works the same on Linux and
+WSL. Apache 2.0, see [LICENSE](LICENSE).
