@@ -1,6 +1,6 @@
 # Cairn — a process meta-language
 
-**Specification v0.14** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
+**Specification v0.15** · maintained by **[Deborah](https://github.com/gellsmore-svg/Deborah)**
 
 Cairn is a simple, textual, human-readable meta-language for describing complex
 processes — especially **cross-LLM work** — so that humans and LLMs can read,
@@ -449,6 +449,22 @@ Optional PLAN fields (Phase F):
 
 ### STEP
 A single action. The default construct; the verb carries the meaning.
+
+A step may carry a **name**: one token in angle brackets, immediately after the
+number and before any construct.
+
+```
+1. <receive-invoice> Receive the supplier invoice. [CODE, DETERMINISTIC]
+2. <approve> DECISION Approve or return. [HUMAN, GATED]
+   BINDS: requirement-approve-invoice
+```
+
+The number is reading order. The name is the stable handle: insert a step and
+the numbers move, the names do not. Names are unique within one process, match
+`letter { letter | digit | "-" | "_" }`, and are not construct keywords. Omit
+the name on a narrative step that nothing outside the document refers to.
+`BINDS:` names external records the step discharges. Deborah stores those
+tokens and does not look them up.
 
 A step may perform **many similar calls at once** (a fan-out / batch) and still be
 *one* step — e.g. "run the requested tool calls." Tag it `[BATCH]` (optionally
@@ -932,7 +948,10 @@ is **well-formed** if:
 5. every `STATE UPDATE` names a piece declared in a `STATE` block;
 6. LLM-driven `ITERATE` / `RECURSE` carry a bound (`MAX` / `MAX_DEPTH`);
 7. `BREAK` / `CONTINUE` appear only inside a loop (`ITERATE` / `QUEUE`);
-8. every `AWAIT` states a `TIMEOUT` (a value or `never`).
+8. every `AWAIT` states a `TIMEOUT` (a value or `never`);
+9. a step name, when present, is a single token unique in its process, and is
+   not a construct keyword. `BINDS:` tokens are the same shape. The language
+   does not resolve them.
 
 Descriptions (the prose in each step) are intentionally **not** constrained —
 that is where human readability lives. Tooling validates the skeleton, not the
@@ -1137,6 +1156,9 @@ is versioned separately in `pyproject.toml` and `CHANGELOG.md` and tagged in git
 the two are not expected to match. See the Status section of [README.md](README.md)
 for the current pairing.
 
+- **v0.15** adds an optional process step name (`1. <receive-invoice> …`) and
+  the `BINDS:` annotation for external record ids. Names are unique within a
+  process. Existing documents that use only numbers stay valid. Package ≥0.27.
 - **v0.12** extends `COGNITION` with negotiate/learn/optimize (gated contracts);
   optional PLAN `EXPLORATION_BUDGET` / `REFLECTIVE_PASS` for bounded reflective
   policy (re-entry still opt-in at the interpreter). **Reflect is plan policy,

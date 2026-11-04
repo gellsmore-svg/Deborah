@@ -93,6 +93,8 @@ class ConstructLine:
 @dataclass
 class Step:
     step_id: str
+    # Stable token (`receive-invoice`). Optional. Numbers stay the reading order.
+    name: str | None = None
     construct: str | None = None
     text: str = ""
     tags: list[str] = field(default_factory=list)

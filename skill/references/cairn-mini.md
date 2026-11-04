@@ -20,11 +20,18 @@ OUTCOMES
 
 PROCESS Name (INPUT: x; OUTPUT: y)
   1. Do the first thing.
-  2. Do the next thing. [LLM, STOCHASTIC]
+  2. <draft-answer> Do the next thing. [LLM, STOCHASTIC]
      PURPOSE: why this step exists
      CONSTRAINTS: bounds
      OUTPUT: artefact name
+     BINDS: requirement-draft-answer
 ```
+
+`<draft-answer>` is an optional stable name. Put it immediately after the
+number, before any construct. The number is reading order. Names are unique in
+the process. Omit the name when nothing outside the document refers to the
+step. `BINDS:` lists external record ids. Deborah stores them and does not
+resolve them.
 
 PLAN (crystallised walk — extra fields on top of a PROCESS):
 

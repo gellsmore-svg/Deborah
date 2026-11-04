@@ -1,4 +1,4 @@
-# Cairn — structural grammar (v0.14)
+# Cairn — structural grammar (v0.15)
 
 A minimal EBNF for the **structural skeleton** of a Cairn description. It defines
 *shape*, not meaning: the prose in step descriptions, CONTEXT, ACCEPTANCE, etc. is
@@ -70,9 +70,11 @@ constraints-block = ( "CONSTRAINTS" | "BOUNDARIES" ) ( ":" TEXT NL
                   | NL INDENT { TEXT NL } DEDENT ) ;
 
 (* ---- steps ---- *)
-step            = step-id [ construct ] TEXT [ tags ] NL
+step            = step-id [ step-name ] [ construct ] TEXT [ tags ] NL
                   [ INDENT { sub-block } DEDENT ] ;
 step-id         = number { "." number } [ letter ] "." ;   (* 1.  2.1  3a. *)
+step-name       = "<" step-token ">" ;                    (* <receive-invoice> — stable; the number is reading order *)
+step-token      = letter { letter | digit | "-" | "_" } ;
 
 sub-block       = annotation
                 | construct-line
@@ -85,6 +87,7 @@ annotation      = ( "STATE UPDATE:" | "OUTPUT:" | "RISKS:" | "PURPOSE:" | "COGNI
                   | "SIMULATION_FINDINGS:" | "IMPROVEMENT:" | "CHANGE_IMPACT:"
                   | "CONDITION_MAP:" | "BIAS:" | "PAYOFF:" | "INFORMATION:"
                   | "CHOICE_COMPLEXITY:" | "HCI_TOUCHPOINT:"
+                  | "BINDS:"
                   | emergent-satisfies ) TEXT NL ;
 (* COGNITION TEXT first token:
    observe|infer|evaluate|decide|negotiate|learn|optimize
@@ -173,6 +176,13 @@ Beyond grammar, a description is well-formed if:
 12. `SAMPLE` declares `N` or `MAX`. `VIEW` declares `ROLE`, `EXPOSE`, or `WITHHOLD`.
     `MERGE [RULE: …]` uses a named rule (`winner` / `vote` / `synthesis` /
     `admissibility` / `none`) or omits `RULE` for free-text.
+13. A step name, when present, is one token in angle brackets immediately after
+    the step number (`1. <receive-invoice> …`), before any construct. Names are
+    unique within a process and are not construct keywords. The number stays
+    the reading order. Omit the name when nothing outside the document needs a
+    stable handle.
+14. `BINDS:` lists external record ids as comma-separated tokens. The language
+    stores them. It does not resolve them. A consumer such as SCL does.
 
 This grammar is deliberately permissive about prose — it constrains the
 *scaffolding*, so a human stays free to write each step in plain language.

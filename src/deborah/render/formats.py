@@ -45,6 +45,9 @@ def to_mermaid(doc: ProcessDocument, language: str = "en") -> str:
                 node.tags,
                 node.parsed_modifiers,
             ).replace('"', "'")[:80]
+            step_name = getattr(node, "name", None)
+            if step_name:
+                label = f"<{step_name}> {label}"
             lines.append(f'  {nid}["{node.number}. {label}"]')
             if parent:
                 lines.append(f"  {parent} --> {nid}")

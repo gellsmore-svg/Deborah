@@ -78,7 +78,10 @@ them. Do not redefine their jobs.
 3. **Author** following `references/cairn-mini.md`. Golden rule: a reader
    should think “I get what’s happening,” not “I need the notation.” Prefer a
    project file `*.cairn.md`; otherwise a fenced `cairn` block. COGNITION
-   first tokens and `decide` → `DECISION` are in the mini.
+   first tokens and `decide` → `DECISION` are in the mini. When a step must
+   stay addressable after renumbering, give it a name:
+   `1. <receive-invoice> Receive the supplier invoice.` Use `BINDS:` only for
+   an external record id. Do not invent a name on every narrative step.
 
 4. **Invent no constructs.** CORE constructs for anything that must execute.
    Extension constructs (psych/org/socio/BE/GT/HCI, SAMPLE/VIEW) are

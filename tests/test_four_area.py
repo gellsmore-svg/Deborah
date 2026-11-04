@@ -60,7 +60,7 @@ def _proc(body: str) -> str:
 
 
 def test_conformance_version_is_1_6() -> None:
-    assert CONFORMANCE_VERSION == "1.6"
+    assert CONFORMANCE_VERSION == "1.7"
 
 
 def test_new_verbs_are_extension_and_in_step_regex() -> None:

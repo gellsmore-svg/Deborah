@@ -70,9 +70,18 @@ _SHOULD_OR = {
 }
 _SAMPLE_BOUND_KEYS = frozenset({"N", "MAX"})
 _MERGE_RULES = frozenset({"winner", "vote", "synthesis", "admissibility", "none"})
+_STEP_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
+_BIND_TOKEN = _STEP_NAME
 
 
-def validate_document(doc: CairnDocument) -> list[str]:
+def _reserved_step_names() -> frozenset[str]:
+    """Construct keywords, loaded lazily so grammar import does not cycle."""
+    from deborah.conformance import PLAN_CONSTRUCTS
+
+    return PLAN_CONSTRUCTS | {"ATOMIC", "CONCURRENT"}
+
+
+def validate_document(doc: CairnDocument, *, require_step_names: bool = False) -> list[str]:
     """Return well-formedness errors (empty list = well-formed per SPEC §12)."""
     errors: list[str] = list(doc.parse_errors)
 
@@ -96,11 +105,19 @@ def validate_document(doc: CairnDocument) -> list[str]:
                 proc,
                 declared_states=all_states | context_keys,
                 loop_call_target=in_loop,
+                require_step_names=require_step_names,
             )
         )
 
     for plan in doc.plans:
-        errors.extend(_validate_plan(plan, declared_states=all_states | context_keys, loop_call_targets=loop_call_targets))
+        errors.extend(
+            _validate_plan(
+                plan,
+                declared_states=all_states | context_keys,
+                loop_call_targets=loop_call_targets,
+                require_step_names=require_step_names,
+            )
+        )
 
     return errors
 
@@ -215,6 +232,7 @@ def _validate_plan(
     *,
     declared_states: set[str],
     loop_call_targets: set[str],
+    require_step_names: bool = False,
 ) -> list[str]:
     errors: list[str] = []
     if not plan.request.strip():
@@ -243,6 +261,7 @@ def _validate_plan(
                 plan.process,
                 declared_states=declared_states,
                 loop_call_target=plan.process.name in loop_call_targets,
+                require_step_names=require_step_names,
             )
         )
     else:
@@ -255,6 +274,7 @@ def _validate_process(
     *,
     declared_states: set[str],
     loop_call_target: bool = False,
+    require_step_names: bool = False,
 ) -> list[str]:
     errors: list[str] = []
     if not proc.name or proc.name == "unnamed":
@@ -277,8 +297,17 @@ def _validate_process(
             loop_depth = max(loop_depth, 1)
             errors.extend(_validate_construct_line(element, loop_depth=loop_depth, require_llm_bound=False))
 
+    seen_names: set[str] = set()
     for step in proc.steps:
-        errors.extend(_validate_step_tree(step, declared_states, loop_depth=loop_depth))
+        errors.extend(
+            _validate_step_tree(
+                step,
+                declared_states,
+                loop_depth=loop_depth,
+                seen_names=seen_names,
+                require_step_names=require_step_names,
+            )
+        )
 
     # Domain tag/construct consistency (core improvement for human systems)
     all_step_tags = []
@@ -339,17 +368,38 @@ def _validate_process(
     return errors
 
 
+def _validate_step_name(step: Step, seen: set[str], *, require_step_names: bool) -> list[str]:
+    """A name is optional unless the caller asked for one. It is unique in the process."""
+    if not step.name:
+        if require_step_names:
+            return [f"line {step.lineno}: step {step.step_id} is missing a name"]
+        return []
+    if not _STEP_NAME.fullmatch(step.name):
+        return [f"line {step.lineno}: step name {step.name!r} must be a single token"]
+    if step.name.upper() in _reserved_step_names():
+        return [f"line {step.lineno}: step name {step.name!r} is a construct keyword"]
+    if step.name in seen:
+        return [f"line {step.lineno}: duplicate step name {step.name!r}"]
+    seen.add(step.name)
+    return []
+
+
 def _validate_step_tree(
     step: Step,
     declared_states: set[str],
     *,
     loop_depth: int,
     parent_number: str | None = None,
+    seen_names: set[str] | None = None,
+    require_step_names: bool = False,
 ) -> list[str]:
     errors: list[str] = []
+    names = seen_names if seen_names is not None else set()
 
     if parent_number is not None:
         errors.extend(_check_nesting(parent_number, step.step_id, step.lineno))
+
+    errors.extend(_validate_step_name(step, names, require_step_names=require_step_names))
 
     errors.extend(_validate_tags(step.tags, step.lineno))
     errors.extend(_validate_annotations(step.annotations, declared_states, step.lineno))
@@ -431,6 +481,8 @@ def _validate_step_tree(
                 declared_states,
                 loop_depth=new_loop_depth,
                 parent_number=step.step_id if step.step_id != "0" else parent_number,
+                seen_names=names,
+                require_step_names=require_step_names,
             )
         )
 
@@ -565,6 +617,13 @@ def _validate_annotations(annotations: list[Annotation], declared_states: set[st
             if ref and ref.group(1) not in declared_states:
                 errors.append(
                     f"line {ann.lineno}: STATE UPDATE references undeclared state {ref.group(1)!r}"
+                )
+        elif ann.keyword == "BINDS":
+            tokens = [part.strip() for part in ann.text.split(",")]
+            if not ann.text.strip() or any(not _BIND_TOKEN.fullmatch(part) for part in tokens):
+                errors.append(
+                    f"line {ann.lineno}: BINDS requires comma-separated tokens "
+                    "(for example requirement-record-reason)"
                 )
         elif ann.keyword == "COGNITION":
             cognition_seen += 1
