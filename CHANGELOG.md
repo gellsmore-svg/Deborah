@@ -5,6 +5,22 @@
 ### Fixed
 - HTML export uses a language tag for the `lang` attribute. Any other language string is escaped on the visible line, and the attribute is `en`.
 
+## [0.28.0] — 2026-11-04
+
+**A versioned process-description core a consumer can vendor.**
+
+### Added
+- `cairn_core` is the process description: SPEC v0.15 well-formedness, plan
+  conformance 1.7, and the parser those checks use. Its own version is
+  **1.0.0**. It does not import the Deborah package. Copy `src/cairn_core`
+  to validate a document without installing Deborah.
+- `ValidationMetamodel.extend` adds constructs, annotations, and checks.
+  `override` replaces a field, including the cognition values and the
+  annotation rules. `parse_document`, `validate_document`, and `validate_plan`
+  take that model. The default model is the v0.15 contract.
+- `deborah.grammar` and `deborah.conformance` re-export the core, so existing
+  imports keep working.
+
 ## [0.27.0] — 2026-11-04
 
 **Optional process step names, and an external bind.**

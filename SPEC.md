@@ -1087,8 +1087,10 @@ Producers that target portable execution SHOULD prefer the core profile.
 Descriptive constructs remain valuable for human-systems modelling; they are not
 a promise of cross-product orchestration semantics.
 
-The machine-readable split is `deborah.CORE_CONSTRUCTS` vs
-`deborah.EXTENSION_CONSTRUCTS`.
+The machine-readable split is `cairn_core.DEFAULT_METAMODEL`, re-exported as
+`deborah.CORE_CONSTRUCTS` and `deborah.EXTENSION_CONSTRUCTS`. A consumer may
+copy the `cairn_core` package and pass a model from `extend` or `override`
+into parse and validate. That copy does not import Deborah.
 
 ---
 
@@ -1153,8 +1155,11 @@ The following are **explicitly out of scope** for this specification:
 The version numbers below are **specification** versions — they track the language,
 not the implementation. The Python package (`deborah` / historical `cairn-lang`)
 is versioned separately in `pyproject.toml` and `CHANGELOG.md` and tagged in git;
-the two are not expected to match. See the Status section of [README.md](README.md)
-for the current pairing.
+the two are not expected to match. The process-description core
+(`src/cairn_core`, `CORE_VERSION`) is a third number: the spec sections and
+Python validation a consumer can take without the rest of Deborah. See
+[src/cairn_core/CORE.md](src/cairn_core/CORE.md). The current pairing is in
+[README.md](README.md).
 
 - **v0.15** adds an optional process step name (`1. <receive-invoice> …`) and
   the `BINDS:` annotation for external record ids. Names are unique within a
