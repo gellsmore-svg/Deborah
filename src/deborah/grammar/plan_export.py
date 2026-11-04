@@ -84,6 +84,11 @@ def _steps_to_dict(steps: list[Step], *, prefix: str = "s") -> list[dict[str, An
                 "status": "pending",
                 "depends_on": [parent_id] if parent_id else [],
             }
+            if node.name:
+                entry["name"] = node.name
+            binds = [a.text for a in node.annotations if a.keyword == "BINDS"]
+            if binds:
+                entry["binds"] = binds
             criteria = [a.text for a in node.annotations if a.keyword == "OUTPUT"]
             if criteria:
                 entry["success_criteria"] = criteria

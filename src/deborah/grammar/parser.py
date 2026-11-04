@@ -27,6 +27,8 @@ from deborah.grammar.lexer import Line, is_render_profile, tokenize_lines
 from deborah.grammar.tags import extract_bracket_tags, split_tag_list
 
 _STEP_ID = re.compile(r"^(\d+(?:\.\d+)*)([a-z])?\.\s*(.*)$", re.I)
+# Optional stable name, immediately after the number: `1. <receive-invoice> …`.
+_STEP_NAME = re.compile(r"^<([A-Za-z][A-Za-z0-9_-]*)>\s*(.*)$")
 _REQ_ID = re.compile(r"^(R\d+)\.\s*(.*)$", re.I)
 _PRIORITY = re.compile(r"\[(MUST|SHOULD|MAY)\]\s*$", re.I)
 _PROCESS_HDR = re.compile(
@@ -48,7 +50,7 @@ _ANNOTATION = re.compile(
     r"HUMAN_DEMAND|HUMAN SIMULATION|HUMAN_SIMULATION|HUMAN_LOAD|"
     r"HUMAN_FACTORS|HUMAN_RISK|TRUST|SUPPORT|FAILURE_MODE|"
     r"SIMULATION_FINDINGS|IMPROVEMENT|CHANGE_IMPACT|"
-    r"CONDITION_MAP|BIAS|PAYOFF|INFORMATION|CHOICE_COMPLEXITY|HCI_TOUCHPOINT):\s*(.*)$",
+    r"CONDITION_MAP|BIAS|PAYOFF|INFORMATION|CHOICE_COMPLEXITY|HCI_TOUCHPOINT|BINDS):\s*(.*)$",
     re.I,
 )
 _EMERGENT = re.compile(r"^EMERGENT\s+(\[.*?\])\s*$", re.I)
@@ -438,9 +440,14 @@ class Parser:
         body = line.text
         step_id = ""
 
+        step_name = None
         if step_match:
             step_id = step_match.group(1) + (step_match.group(2) or "")
             body = step_match.group(3).strip()
+            name_match = _STEP_NAME.match(body)
+            if name_match:
+                step_name = name_match.group(1)
+                body = name_match.group(2).strip()
         else:
             cl = _CONSTRUCT_LINE.match(line.text)
             if cl:
@@ -468,7 +475,16 @@ class Parser:
             cleaned = cleaned.lstrip("→").strip()
 
         parsed_mods = _parse_modifiers_dict(mods)
-        step = Step(step_id=step_id, construct=construct, text=cleaned, tags=tags, lineno=line.lineno, modifiers=mods, parsed_modifiers=parsed_mods)
+        step = Step(
+            step_id=step_id,
+            name=step_name,
+            construct=construct,
+            text=cleaned,
+            tags=tags,
+            lineno=line.lineno,
+            modifiers=mods,
+            parsed_modifiers=parsed_mods,
+        )
         child_indent = line.indent + 2
         while self._peek() and self._peek().indent >= child_indent:
             cur = self._peek()

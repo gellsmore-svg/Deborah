@@ -11,9 +11,10 @@ It is intentionally minimal and additive: it checks the *core* plan/step contrac
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
-CONFORMANCE_VERSION = "1.6"
+CONFORMANCE_VERSION = "1.7"
 
 # Step-level constructs from SPEC §5 (the ones a PLAN step may *be*).
 #
@@ -133,6 +134,8 @@ OPTIONAL_PLAN_FIELDS: tuple[str, ...] = (
     "reflective_pass",
 )
 REQUIRED_STEP_FIELDS: tuple[str, ...] = ("id", "action", "construct", "status")
+# Optional stable token on a step (SPEC v0.15). The synthetic id stays the walk key.
+_STEP_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 
 
 def _validate_step(step: Any, index: int) -> list[str]:
@@ -145,6 +148,12 @@ def _validate_step(step: Any, index: int) -> list[str]:
     status = step.get("status")
     if status is not None and status not in STEP_STATUSES:
         errors.append(f"step[{index}] invalid status: {status!r} (allowed: {sorted(STEP_STATUSES)})")
+    name = step.get("name")
+    if name is not None:
+        if not isinstance(name, str) or _STEP_NAME.fullmatch(name) is None:
+            errors.append(f"step[{index}] name must be a token such as receive-invoice")
+        elif name.upper() in PLAN_CONSTRUCTS:
+            errors.append(f"step[{index}] name {name!r} is a construct keyword")
     return errors
 
 
@@ -235,10 +244,16 @@ def validate_plan(plan: Any, *, profile: str = "full") -> list[str]:
     if not isinstance(steps, list) or not steps:
         errors.append("plan must have at least one step")
     else:
+        seen_names: set[str] = set()
         for index, step in enumerate(steps):
             errors.extend(_validate_step(step, index))
             if not isinstance(step, dict):
                 continue
+            name = step.get("name")
+            if isinstance(name, str) and name in seen_names:
+                errors.append(f"step[{index}] duplicate name {name!r}")
+            if isinstance(name, str):
+                seen_names.add(name)
             construct = step.get("construct")
             if profile == "core" and construct in EXTENSION_CONSTRUCTS:
                 errors.append(

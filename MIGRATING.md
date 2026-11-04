@@ -24,7 +24,9 @@ revision. Since then, **SPEC v0.10** adds *optional* PLAN framing fields
 terminal statuses `open` / `refused`. Existing documents remain valid; new fields
 are additive.
 
-**SPEC v0.14** (package 0.26.0) adds four-area EXTENSION verbs and parses
+**SPEC v0.15** (package 0.27.0) adds an optional step name
+(`1. <receive-invoice> …`) and `BINDS:`. Documents that use only numbers stay
+valid. **SPEC v0.14** (package 0.26.0) adds four-area EXTENSION verbs and parses
 `HCI_TOUCHPOINT:`. Informal `GAME_THEORY:` is still dropped unless rewritten to
 `GAME`/`PLAY`/`EQUILIBRIUM`/`SIGNAL`. `DECISION [RULE:]` must share the first
 bracket with `[ON:]`. Existing documents remain valid.

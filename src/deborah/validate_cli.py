@@ -54,6 +54,11 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--require-step-names",
+        action="store_true",
+        help="Require a stable <name> on every process step (off by default)",
+    )
+    parser.add_argument(
         "--results-mode",
         choices=sorted(CONTRACT_MODES),
         default="soft",
@@ -69,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     plan_profile = "strict" if args.strict and args.profile == "full" else args.profile
 
     doc = parse_document(text)
-    errors = list(validate_document(doc))
+    errors = list(validate_document(doc, require_step_names=args.require_step_names))
     plan_errors: list[str] = []
     result_errors: list[str] = []
     plan_dict = None

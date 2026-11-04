@@ -50,6 +50,76 @@ PLAN plan_test REVISION 1 [STATUS: active]
 """
 
 
+def test_step_name_is_optional_and_stable() -> None:
+    text = """\
+PROCESS ApproveInvoice (INPUT: invoice; OUTPUT: decision)
+  1. <receive-invoice> Receive the supplier invoice. [CODE, DETERMINISTIC]
+  2. <approve> DECISION Approve or return. [HUMAN, GATED]
+     BINDS: requirement-approve-invoice
+     2.1. <record-decision> Record the outcome.
+"""
+    doc = parse_document(text)
+    assert doc.parse_errors == []
+    assert validate_document(doc) == []
+    steps = doc.processes[0].steps
+    assert steps[0].name == "receive-invoice"
+    assert steps[0].text == "Receive the supplier invoice."
+    assert steps[1].name == "approve"
+    assert steps[1].construct == "DECISION"
+    assert steps[1].annotations[0].keyword == "BINDS"
+    assert steps[1].children[0].name == "record-decision"
+    assert steps[1].children[0].step_id == "2.1"
+    plan = document_to_plan(doc)
+    assert plan["steps"][0]["id"] == "s1"
+    assert plan["steps"][0]["name"] == "receive-invoice"
+    assert plan["steps"][1]["binds"] == ["requirement-approve-invoice"]
+    assert validate_plan(plan) == []
+
+
+def test_duplicate_step_name_is_rejected() -> None:
+    text = """\
+PROCESS Work (INPUT: x; OUTPUT: y)
+  1. <receive> First.
+  2. <receive> Second.
+"""
+    doc = parse_document(text)
+    errors = validate_document(doc)
+    assert any("duplicate step name" in error for error in errors)
+
+
+def test_require_step_names_flags_a_bare_step() -> None:
+    text = """\
+PROCESS Work (INPUT: x; OUTPUT: y)
+  1. <receive> First.
+  2. Second.
+"""
+    doc = parse_document(text)
+    assert validate_document(doc) == []
+    errors = validate_document(doc, require_step_names=True)
+    assert any("missing a name" in error for error in errors)
+
+
+def test_construct_keyword_is_not_a_step_name() -> None:
+    text = """\
+PROCESS Work (INPUT: x; OUTPUT: y)
+  1. <STEP> Do the thing.
+"""
+    doc = parse_document(text)
+    errors = validate_document(doc)
+    assert any("construct keyword" in error for error in errors)
+
+
+def test_bad_bind_token_is_rejected() -> None:
+    text = """\
+PROCESS Work (INPUT: x; OUTPUT: y)
+  1. <receive> First.
+     BINDS: not a token
+"""
+    doc = parse_document(text)
+    errors = validate_document(doc)
+    assert any("BINDS" in error for error in errors)
+
+
 def test_parse_hoglah_slice() -> None:
     doc = parse_document(HOGLAH_FORMAL)
     assert doc.parse_errors == []

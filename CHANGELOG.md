@@ -5,6 +5,23 @@
 ### Fixed
 - HTML export uses a language tag for the `lang` attribute. Any other language string is escaped on the visible line, and the attribute is `en`.
 
+## [0.27.0] — 2026-11-04
+
+**Optional process step names, and an external bind.**
+
+### Added
+- SPEC **v0.15** / conformance **1.7**: a step may carry a stable name after the
+  number, `1. <receive-invoice> Receive the supplier invoice.` The number stays
+  the reading order. Names are unique within a process and are not construct
+  keywords. Existing numbered documents stay valid.
+- `BINDS:` stores comma-separated external record ids. Deborah does not resolve
+  them. `deborah-validate --require-step-names` demands a name on every step.
+- Plan export includes `name` and `binds` when the step has them. The synthetic
+  step id (`s1`, `s2`) is unchanged.
+- Render shows the name in the step line, the operator title, the audit line,
+  and the Mermaid label.
+- Example: `examples/named-process-steps.cairn.md`.
+
 ## [0.26.0] — 2026-08-25
 
 **Four-area EXTENSION: transdiagnostic psych, behavioural economics, game theory, HCI.**

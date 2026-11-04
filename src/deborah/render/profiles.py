@@ -29,9 +29,21 @@ def _indent(depth: int) -> str:
     return "  " * depth
 
 
+def _with_step_name(node: StepNode, text: str) -> str:
+    """Prefix prose with the stable name when the step has one."""
+    name = getattr(node, "name", None)
+    if not name:
+        return text
+    prefix = f"<{name}> "
+    if text.startswith(prefix):
+        return text
+    return f"{prefix}{text}".strip()
+
+
 def _render_step_line(node: StepNode, language: str, depth: int, options: dict[str, Any]) -> list[str]:
     include_tags = options.get("include_tags", False)
     text = phrase_construct(node.construct, node.text, language, node.tags, getattr(node, "parsed_modifiers", {}))
+    text = _with_step_name(node, text)
     # number is already hierarchical ("2.1"); do not inject spaces that yield "2. 1".
     num = str(node.number or "").strip().rstrip(".")
     line = f"{_indent(depth)}{num}. {text}"
@@ -211,7 +223,7 @@ class OperatorProfile(RenderProfile):
         lines.extend(_plan_header(doc, language))
 
         for node in _steps_for_profile(doc, self.name):
-            body_text = node.text
+            body_text = _with_step_name(node, node.text)
             if not body_text.strip() and node.construct == "QUEUE":
                 body_text = describe_queue(node.tags, language, node.parsed_modifiers)
             title = body_text.split(".")[0][:60] if body_text else f"Step {node.number}"
@@ -351,7 +363,9 @@ class AuditProfile(RenderProfile):
                 if node.parsed_modifiers:
                     mods = ", ".join(f"{key}:{value}" for key, value in node.parsed_modifiers.items())
                     mod_str = f" modifiers={mods}"
-                lines.append(f"{'  ' * depth}- **{node.number}**{construct}{tag_str}{mod_str} {node.text}")
+                lines.append(
+                    f"{'  ' * depth}- **{node.number}**{construct}{tag_str}{mod_str} {_with_step_name(node, node.text)}"
+                )
                 for key, value in node.sub_blocks.items():
                     lines.append(f"{'  ' * (depth + 1)}- {key}: {value}")
                 walk(node.children, depth + 1)

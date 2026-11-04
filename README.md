@@ -65,9 +65,10 @@ The [examples](examples/) run as-is, for instance
 `deborah-run examples/cross-llm-critique.cairn.md --demo-results --check-contracts`.
 
 **Version note:** PyPI has package 0.25.1, which implements SPEC v0.12. The
-current spec, **v0.14**, adds `SAMPLE`/`VIEW`/named `MERGE` (v0.13) and the
+current spec, **v0.15**, adds optional process step names (`1. <receive-invoice>`)
+and `BINDS:` (v0.15), on top of `SAMPLE`/`VIEW`/named `MERGE` (v0.13) and the
 four-area EXTENSION verbs such as `NUDGE`, `GAME` and `CHOICE` (v0.14). It ships
-in package 0.26.0, which is not yet released; install from source to use it:
+in package 0.27.0, which is not yet released; install from source to use it:
 `pip install "git+https://github.com/gellsmore-svg/Deborah"`.
 
 **Writing it with an agent:** copy [`skill/`](skill/) to
@@ -116,8 +117,8 @@ Deborah carries two independent version numbers:
 
 | What | Where | Current |
 |---|---|---|
-| Specification (the language) | [SPEC.md](SPEC.md), [GRAMMAR.md](GRAMMAR.md) | **v0.14** |
-| Package (Python) | `pyproject.toml` | **0.26.0** in source; **0.25.1** on PyPI |
+| Specification (the language) | [SPEC.md](SPEC.md), [GRAMMAR.md](GRAMMAR.md) | **v0.15** |
+| Package (Python) | `pyproject.toml` | **0.27.0** in source; **0.25.1** on PyPI |
 
 `cairn-lang` on PyPI is a deprecation shim that re-exports Deborah.
 
