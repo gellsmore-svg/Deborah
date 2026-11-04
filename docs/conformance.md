@@ -2,6 +2,8 @@
 
 The dependency-free conformance API a runtime uses to validate the plans it produces, plus the CLI and the view composer. Moved from the root README (2026-10).
 
+The process-description portion (parse, document well-formedness, and this plan contract) is the versioned `cairn_core` package. A consumer copies that directory instead of depending on `deborah`. Pass a `ValidationMetamodel` from `extend` or `override` to replace the default vocabulary.
+
 
 Deborah is primarily a language package, but it ships a tiny, dependency-free
 **conformance surface** so a runtime can validate the plans it produces instead of

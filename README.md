@@ -68,7 +68,7 @@ The [examples](examples/) run as-is, for instance
 current spec, **v0.15**, adds optional process step names (`1. <receive-invoice>`)
 and `BINDS:` (v0.15), on top of `SAMPLE`/`VIEW`/named `MERGE` (v0.13) and the
 four-area EXTENSION verbs such as `NUDGE`, `GAME` and `CHOICE` (v0.14). It ships
-in package 0.27.0, which is not yet released; install from source to use it:
+in package 0.28.0, which is not yet released; install from source to use it:
 `pip install "git+https://github.com/gellsmore-svg/Deborah"`.
 
 **Writing it with an agent:** copy [`skill/`](skill/) to
@@ -113,12 +113,18 @@ abstraction, core verbs) is in [docs/philosophy.md](docs/philosophy.md).
 
 ## Versions
 
-Deborah carries two independent version numbers:
+Deborah carries three independent version numbers:
 
 | What | Where | Current |
 |---|---|---|
 | Specification (the language) | [SPEC.md](SPEC.md), [GRAMMAR.md](GRAMMAR.md) | **v0.15** |
-| Package (Python) | `pyproject.toml` | **0.27.0** in source; **0.25.1** on PyPI |
+| Process-description core | [src/cairn_core](src/cairn_core/CORE.md) | **1.0.0** |
+| Package (Python) | `pyproject.toml` | **0.28.0** in source; **0.25.1** on PyPI |
+
+The process-description core is the spec contract plus the parser and
+validators. Copy `src/cairn_core` into a consumer and import `cairn_core`.
+That copy does not need the `deborah` package. `extend` adds vocabulary;
+`override` replaces it. `import deborah` still re-exports the same functions.
 
 `cairn-lang` on PyPI is a deprecation shim that re-exports Deborah.
 
